@@ -702,7 +702,7 @@ function checkAnimalMood() {
   } else {
     var h = new Date().getHours();
     if (h < 10)       msg = 'Buongiorno! Inizia con una sessione 📚';
-    else if (h >= 21) msg = 'Un’ultima sessione prima di dormire? 🌙';
+    else if (h >= 21) msg = "Un’ultima sessione prima di dormire? 🌙";
     else              msg = 'Dai, inizia la prima sessione di oggi! 🎯';
   }
   if (msg) setTimeout(function() { showAnimalThought(msg); }, 2000);
