@@ -62,6 +62,13 @@ def init_db():
                 PRIMARY KEY (user_id, key),
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
+            CREATE TABLE IF NOT EXISTS presence (
+                user_id    INTEGER PRIMARY KEY,
+                updated_at TEXT DEFAULT (datetime('now','localtime')),
+                page       TEXT DEFAULT 'timer',
+                studying   INTEGER DEFAULT 0,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
         """)
 
 def _migrate_db():
@@ -530,6 +537,42 @@ def export_csv():
     resp.headers["Content-Type"]        = "text/csv; charset=utf-8"
     resp.headers["Content-Disposition"] = "attachment; filename=studyflow_sessioni.csv"
     return resp
+
+# ──────────────────────────────────────────
+# API: PRESENZA SOCIALE
+# ──────────────────────────────────────────
+
+@app.route("/api/presence/ping", methods=["POST"])
+def presence_ping():
+    user = get_auth_user(required=True)
+    data = request.get_json(silent=True) or {}
+    page     = str(data.get("page", "timer"))[:20]
+    studying = 1 if data.get("studying") else 0
+    with get_db() as c:
+        c.execute("""
+            INSERT INTO presence (user_id, updated_at, page, studying)
+            VALUES (?, datetime('now','localtime'), ?, ?)
+            ON CONFLICT(user_id) DO UPDATE SET
+              updated_at=excluded.updated_at,
+              page=excluded.page,
+              studying=excluded.studying
+        """, (user["id"], page, studying))
+        c.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/presence/online", methods=["GET"])
+def presence_online():
+    get_auth_user(required=True)
+    with get_db() as c:
+        rows = c.execute("""
+            SELECT u.username, p.page, p.studying, p.updated_at
+            FROM presence p
+            JOIN users u ON u.id = p.user_id
+            WHERE p.updated_at >= datetime('now','localtime','-5 minutes')
+              AND u.username != 'kiwi07'
+            ORDER BY p.studying DESC, p.updated_at DESC
+        """).fetchall()
+    return jsonify([dict(r) for r in rows])
 
 # ──────────────────────────────────────────
 # RUN

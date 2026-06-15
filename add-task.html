@@ -167,6 +167,9 @@
         Gestisci Materie
       </div>
 
+      <div class="subj-presets-label" id="subj-presets-label">Aggiungi rapidamente</div>
+      <div class="subj-presets" id="subj-presets"></div>
+
       <div class="subj-mgmt-list" id="subj-mgmt-list">
         <!-- popolato da JS -->
       </div>
@@ -278,6 +281,7 @@
   /* Carica soggetti all'avvio */
   loadSubjects();
   renderSubjectsMgmt();
+  renderSubjectPresets('subj-presets');
   initSubjectSearch();
 
   /* Imposta data default oggi */
