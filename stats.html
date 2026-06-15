@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="ocean">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statistiche — StudyFlow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/calendar.css">
+  <link rel="stylesheet" href="css/stats.css">
+  <link rel="stylesheet" href="css/shop.css">
+</head>
+<body>
+
+<div class="orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<button class="focus-exit-btn" onclick="toggleFocus()">Esci dal Focus</button>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <span class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </span>
+      <span class="logo-text">StudyFlow</span>
+    </a>
+
+    <span class="nav-section-label">Pagine</span>
+    <a href="index.html"    class="nav-link" data-page="home">
+      <i data-feather="clock"      class="nav-icon"></i><span class="nav-label">Timer</span>
+    </a>
+    <a href="tasks.html"    class="nav-link" data-page="tasks">
+      <i data-feather="check-square" class="nav-icon"></i><span class="nav-label">Task</span>
+    </a>
+    <a href="add-task.html" class="nav-link" data-page="add-task">
+      <i data-feather="plus-circle"  class="nav-icon"></i><span class="nav-label">Nuova Task</span>
+    </a>
+    <a href="calendar.html" class="nav-link" data-page="calendar">
+      <i data-feather="calendar"   class="nav-icon"></i><span class="nav-label">Calendario</span>
+    </a>
+    <a href="stats.html"    class="nav-link active" data-page="stats">
+      <i data-feather="bar-chart-2" class="nav-icon"></i><span class="nav-label">Statistiche</span>
+    </a>
+    <a href="shop.html"     class="nav-link" data-page="shop">
+      <i data-feather="shopping-bag" class="nav-icon"></i><span class="nav-label">Shop</span>
+    </a>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-coin">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="#F59E0B"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>
+        <span class="js-coin-count">0</span> monete
+      </div>
+      <button class="nav-link" id="focusBtn" onclick="toggleFocus()">
+        <i data-feather="crosshair" class="nav-icon"></i><span class="nav-label">Focus</span>
+      </button>
+      <button class="nav-link" id="ambientBtn" onclick="toggleAmbient()">
+        <i data-feather="cloud-rain" class="nav-icon"></i><span class="nav-label">Pioggia</span>
+      </button>
+      <button class="nav-link" onclick="openSettings()">
+        <i data-feather="settings" class="nav-icon"></i><span class="nav-label">Impostazioni</span>
+      </button>
+      <div class="theme-row">
+        <span class="theme-label">Tema</span>
+        <div class="theme-dots" id="theme-dots-sidebar">
+          <div class="tdot active" data-t="ocean"></div>
+          <div class="tdot" data-t="lavender"></div>
+          <div class="tdot" data-t="peach"></div>
+          <div class="tdot" data-t="forest"></div>
+          <div class="tdot" data-t="sakura"></div>
+        </div>
+      </div>
+      <div style="padding:4px 10px;display:flex;align-items:center;gap:8px">
+        <div id="backend-dot" style="width:8px;height:8px;border-radius:50%;background:#BDBDBD;flex-shrink:0"></div>
+        <span style="font-size:0.65rem;color:var(--text-soft)">Backend</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="stats-page">
+
+    <!-- CLOCK BAR -->
+    <div class="clock-bar">
+      <div>
+        <div class="clock-time" id="clockTime">00:00:00</div>
+        <div class="clock-date" id="clockDate">...</div>
+      </div>
+      <div class="clock-quote" id="clockQuote">...</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="stat-pill">
+          <span class="stat-pill-val" id="pill-streak">0</span>
+          <span class="stat-pill-label">Streak</span>
+        </div>
+        <div class="coin-chip">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="#F59E0B"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>
+          <span class="js-coin-count">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- OFFLINE NOTICE -->
+    <div class="offline-notice" id="offline-notice">
+      Backend non attivo. Avvia <code>python3 app.py</code> per le statistiche complete.
+      Le statistiche mostrate usano i dati del browser (localStorage).
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-cards">
+      <div class="stat-card">
+        <div class="stat-card-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-card-val" id="sc-hours">0</div>
+        <div class="stat-card-label">Ore totali</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="stat-card-val" id="sc-sessions">0</div>
+        <div class="stat-card-label">Sessioni totali</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="stat-card-val" id="sc-streak">0</div>
+        <div class="stat-card-label">Giorni streak</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <div class="stat-card-val" id="sc-today">0m</div>
+        <div class="stat-card-label">Minuti oggi</div>
+      </div>
+    </div>
+
+    <!-- HEATMAP -->
+    <div class="card heatmap-card" style="animation:fadeInUp 0.5s 0.15s ease both">
+      <h3>Attività di studio — anno</h3>
+      <div class="heatmap-months" id="heatmap-months"></div>
+      <div class="heatmap-wrap">
+        <div class="heatmap-days">
+          <span></span><span>Lun</span><span></span><span>Mer</span>
+          <span></span><span>Ven</span><span></span>
+        </div>
+        <div class="heatmap-grid" id="heatmap-grid"></div>
+      </div>
+      <div class="heatmap-legend">
+        <span style="color:var(--text-soft);font-size:0.68rem">Meno</span>
+        <div class="hm-cell hm-0"></div>
+        <div class="hm-cell hm-1"></div>
+        <div class="hm-cell hm-2"></div>
+        <div class="hm-cell hm-3"></div>
+        <div class="hm-cell hm-4"></div>
+        <span style="color:var(--text-soft);font-size:0.68rem">Di più</span>
+      </div>
+    </div>
+
+    <!-- GRAFICI -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Minuti di studio al giorno</h3>
+        <div class="range-tabs">
+          <button class="rtab active" onclick="loadHistory(7,this)">7 giorni</button>
+          <button class="rtab" onclick="loadHistory(14,this)">14 giorni</button>
+          <button class="rtab" onclick="loadHistory(30,this)">30 giorni</button>
+        </div>
+        <div class="chart-wrap"><canvas id="historyChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Distribuzione per materia</h3>
+        <div class="chart-wrap"><canvas id="subjectChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- BOTTOM GRID -->
+    <div class="bottom-grid">
+
+      <!-- Sessioni recenti -->
+      <div class="card chart-card" style="animation-delay:0.3s">
+        <h3>Sessioni recenti</h3>
+        <div style="overflow-y:auto;max-height:220px">
+          <table class="sessions-table" id="sessionsTable">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Durata</th>
+                <th>Materia</th>
+              </tr>
+            </thead>
+            <tbody id="sessionsBody">
+              <tr><td colspan="3" style="text-align:center;color:var(--text-soft);padding:16px">
+                Avvia il backend per vedere lo storico
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Gestione materie -->
+      <div class="card chart-card" style="animation-delay:0.35s">
+        <h3>Gestione Materie</h3>
+        <div id="subject-list"></div>
+        <div class="subject-form">
+          <input id="subj-name"  type="text"  placeholder="Nome materia">
+          <input id="subj-color" type="color" value="#29B6F6" title="Colore">
+          <input id="subj-goal"  type="number" min="10" max="480" value="60"
+            placeholder="Obiettivo (min)" style="width:80px;flex:none">
+          <button class="btn-add-subject" onclick="addSubject()">Aggiungi</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="export-bar">
+      <a class="btn-export" id="export-link" href="#" onclick="handleExport(event)">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Esporta CSV
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="settingsModal" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-hdr">Impostazioni<button class="modal-close" onclick="closeSettings()">✕</button></div>
+    <div class="s-row">
+      <div><div class="s-label">Tempo di Lavoro</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('work',-1)">−</button>
+        <div class="num-val" id="sv-work">25</div>
+        <button class="num-btn" onclick="changeSetting('work',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Pausa Breve</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('short',-1)">−</button>
+        <div class="num-val" id="sv-short">5</div>
+        <button class="num-btn" onclick="changeSetting('short',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Pausa Lunga</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('long',-1)">−</button>
+        <div class="num-val" id="sv-long">15</div>
+        <button class="num-btn" onclick="changeSetting('long',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Suono al termine</div></div>
+      <button class="toggle on" id="tog-sound" onclick="toggleSetting('sound')"></button>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Auto-avvio Pausa</div></div>
+      <button class="toggle" id="tog-autoBreak" onclick="toggleSetting('autoBreak')"></button>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Auto-avvio Lavoro</div></div>
+      <button class="toggle" id="tog-autoWork" onclick="toggleSetting('autoWork')"></button>
+    </div>
+    <div class="s-row" style="border-top:1px solid var(--card-border);margin-top:6px;padding-top:14px">
+      <div>
+        <div class="s-label">Account</div>
+        <div class="s-sub" id="settings-user-label" style="margin-top:2px">—</div>
+      </div>
+      <button onclick="logout()" style="padding:8px 18px;border-radius:10px;border:1.5px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);color:#dc2626;font-family:Poppins,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">Esci</button>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Feather icons -->
+<script>
+  /* Guard login sincrono */
+  (function(){var a=JSON.parse(sessionStorage.getItem('sf_auth')||'null');if(!a||!a.token)location.replace('login.html');})();
+</script>
+<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/api.js"></script>
+<script src="js/coins.js"></script>
+<script src="js/cat.js"></script>
+<script src="js/companions.js"></script>
+<script src="js/rabbit.js"></script>
+<script src="js/parrot.js"></script>
+<script src="js/fox.js"></script>
+<script src="js/owl.js"></script>
+<script>
+  /* ── Init ── */
+  initShared();
+  initCoins();
+  initCat();
+  initDog();
+  initRabbit();
+  initParrot();
+  initFox();
+  initOwl();
+  initCampfire();
+  setActivePage('stats');
+
+  /* Sostituisce le icone Feather */
+  if (typeof feather !== 'undefined') feather.replace({ width: 17, height: 17, 'stroke-width': 1.8 });
+
+  /* ── Statistiche ── */
+  let historyChart = null;
+  let subjectChart = null;
+
+  async function loadPage() {
+    const online = await (async () => {
+      try { const r = await fetch('/api/status', {signal: AbortSignal.timeout(1200)}); return r.ok; }
+      catch { return false; }
+    })();
+
+    const notice = document.getElementById('offline-notice');
+    if (!online) { notice.classList.add('visible'); loadFromLocalStorage(); return; }
+
+    const ov = await loadStatsOverview();
+    if (ov) {
+      document.getElementById('sc-hours').textContent    = ov.total_hours + 'h';
+      document.getElementById('sc-sessions').textContent = ov.total_sessions;
+      document.getElementById('sc-streak').textContent   = ov.streak;
+      document.getElementById('sc-today').textContent    = ov.today_minutes + 'm';
+      const sp = document.getElementById('pill-streak');
+      if (sp) sp.textContent = ov.streak;
+    }
+
+    await loadHistory(7, document.querySelector('.rtab.active'));
+    await loadSubjectData();
+    await loadSessionsTable();
+    await loadSubjectList();
+    renderHeatmap();
+  }
+
+  /* Fallback localStorage */
+  function loadFromLocalStorage() {
+    /* Stat cards — usa coinData per i totali cumulativi */
+    if (typeof loadCoinData === 'function') loadCoinData();
+    const sf = (() => { try { return JSON.parse(localStorage.getItem('sf_stats') || '{}'); } catch { return {}; } })();
+    const cd = typeof coinData !== 'undefined' ? coinData : {};
+    document.getElementById('sc-sessions').textContent = cd.totalSessions || sf.sessions || 0;
+    document.getElementById('sc-today').textContent    = (sf.minutes || 0) + 'm';
+    document.getElementById('sc-streak').textContent   = cd.bestStreak || sf.streak || 0;
+    document.getElementById('sc-hours').textContent    = (Math.round((cd.totalMinutes || 0) / 60 * 10) / 10) + 'h';
+    const sp = document.getElementById('pill-streak');
+    if (sp) sp.textContent = cd.bestStreak || sf.streak || 0;
+
+    const sessions = _getLocalSessions();
+
+    /* Grafico storico */
+    _renderHistoryLocal(sessions, 7);
+
+    /* Grafico materie */
+    const subMap = {};
+    sessions.forEach(s => {
+      const k = s.subject;
+      if (!k) return;
+      subMap[k] = (subMap[k] || 0) + (s.duration || 0);
+    });
+    const subData = Object.entries(subMap)
+      .map(([subject, minutes]) => ({ subject, minutes }))
+      .sort((a, b) => b.minutes - a.minutes);
+    renderSubjectChart(subData.length ? subData : []);
+
+    /* Tabella sessioni */
+    const tbody = document.getElementById('sessionsBody');
+    if (tbody) {
+      if (!sessions.length) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-soft);padding:16px">Nessuna sessione registrata</td></tr>';
+      } else {
+        tbody.innerHTML = sessions.slice().reverse().slice(0, 20).map(s => `
+          <tr>
+            <td>${s.date}</td>
+            <td><span class="dur-badge">${s.duration} min</span></td>
+            <td style="color:var(--text-soft)">${s.subject ? esc(s.subject) : '—'}</td>
+          </tr>`).join('');
+      }
+    }
+
+    /* Lista materie */
+    try { _subjects = JSON.parse(localStorage.getItem('sf_subjects') || '[]'); } catch { _subjects = []; }
+    renderSubjectList();
+    renderHeatmap();
+  }
+
+  function _getLocalSessions() {
+    try { return JSON.parse(localStorage.getItem('sf_sessions') || '[]'); } catch { return []; }
+  }
+
+  function _renderHistoryLocal(sessions, days) {
+    const today = new Date();
+    const map = {};
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key   = d.toISOString().split('T')[0];
+      const label = (d.getMonth() + 1) + '/' + d.getDate();
+      map[key] = { date: key, label, minutes: 0 };
+    }
+    sessions.forEach(s => { if (map[s.date]) map[s.date].minutes += s.duration || 0; });
+    renderHistoryChart(Object.values(map), days);
+  }
+
+  /* ── Grafico storico ── */
+  async function loadHistory(days, btn) {
+    document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    if (backendOk) {
+      const data = await loadStudyHistory(days) || [];
+      renderHistoryChart(data, days);
+    } else {
+      _renderHistoryLocal(_getLocalSessions(), days);
+    }
+  }
+
+  function renderHistoryChart(data, days) {
+    const labels  = data.map(d => d.label || d.date);
+    const minutes = data.map(d => d.minutes || 0);
+
+    const style = getComputedStyle(document.documentElement);
+    const accent  = style.getPropertyValue('--accent').trim()  || '#29B6F6';
+    const accent2 = style.getPropertyValue('--accent-2').trim()|| '#4CAF50';
+    const textCol = style.getPropertyValue('--text-soft').trim()|| '#888';
+
+    const ctx = document.getElementById('historyChart').getContext('2d');
+
+    if (historyChart) historyChart.destroy();
+    historyChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Minuti',
+          data: minutes,
+          backgroundColor: (context) => {
+            const g = context.chart.ctx.createLinearGradient(0, 0, 0, 240);
+            g.addColorStop(0, accent + 'CC');
+            g.addColorStop(1, accent2 + '66');
+            return g;
+          },
+          borderRadius: 8,
+          borderSkipped: false,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ` ${ctx.raw} min`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: textCol, font: { family: 'Poppins', size: 11 } },
+          },
+          y: {
+            grid: { color: 'rgba(0,0,0,0.06)' },
+            ticks: {
+              color: textCol,
+              font: { family: 'Poppins', size: 11 },
+              callback: v => v + 'm',
+            },
+            beginAtZero: true,
+          },
+        },
+      },
+    });
+  }
+
+  /* ── Grafico materie ── */
+  async function loadSubjectData() {
+    const data = await loadSubjectStats() || [];
+    renderSubjectChart(data);
+  }
+
+  function renderSubjectChart(data) {
+    const ctx = document.getElementById('subjectChart').getContext('2d');
+    if (subjectChart) subjectChart.destroy();
+
+    if (!data || data.length === 0) {
+      subjectChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: ['Nessun dato'], datasets: [{ data: [1], backgroundColor: ['rgba(200,200,200,0.4)'] }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } },
+      });
+      return;
+    }
+
+    const style   = getComputedStyle(document.documentElement);
+    const colors  = [
+      style.getPropertyValue('--accent').trim(),
+      style.getPropertyValue('--accent-2').trim(),
+      '#FF8F00','#D81B60','#AB47BC','#00ACC1','#7CB342',
+    ];
+    const textCol = style.getPropertyValue('--text').trim() || '#333';
+
+    subjectChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: data.map(d => d.subject),
+        datasets: [{
+          data: data.map(d => d.minutes),
+          backgroundColor: data.map((_, i) => colors[i % colors.length] + 'CC'),
+          borderColor: data.map((_, i) => colors[i % colors.length]),
+          borderWidth: 2,
+          hoverOffset: 8,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: textCol, font: { family: 'Poppins', size: 11 }, padding: 12, boxWidth: 12 },
+          },
+          tooltip: { callbacks: { label: ctx => ` ${ctx.raw} min` } },
+        },
+      },
+    });
+  }
+
+  /* ── Tabella sessioni ── */
+  async function loadSessionsTable() {
+    const sessions = await apiGet('/sessions?days=30') || [];
+    const tbody = document.getElementById('sessionsBody');
+    if (!sessions.length) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-soft);padding:16px">Nessuna sessione registrata</td></tr>';
+      return;
+    }
+    tbody.innerHTML = sessions.slice(0, 20).map(s => `
+      <tr>
+        <td>${s.date}</td>
+        <td><span class="dur-badge">${s.duration} min</span></td>
+        <td style="color:var(--text-soft)">${esc(s.subject || '—')}</td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── Lista materie ── */
+  let _subjects = [];
+
+  function loadSubjectList() {
+    try { _subjects = JSON.parse(localStorage.getItem('sf_subjects') || '[]'); } catch { _subjects = []; }
+    renderSubjectList();
+  }
+
+  function renderSubjectList() {
+    const el = document.getElementById('subject-list');
+    if (!_subjects.length) {
+      el.innerHTML = '<div style="font-size:0.78rem;color:var(--text-soft);padding:6px 0">Nessuna materia</div>';
+      return;
+    }
+    const maxMin = Math.max(..._subjects.map(s => s.goal_min), 1);
+    el.innerHTML = _subjects.map(s => `
+      <div class="subject-row">
+        <div class="subject-color-dot" style="background:${esc(s.color)}"></div>
+        <div class="subject-name">${esc(s.name)}</div>
+        <div class="subject-min">${s.goal_min} min/g</div>
+        <div class="subject-bar-wrap">
+          <div class="subject-bar-fill" style="width:${(s.goal_min/maxMin)*100}%;background:${esc(s.color)}"></div>
+        </div>
+        <button class="subject-del" onclick="removeSubject(${s.id})" title="Rimuovi">✕</button>
+      </div>
+    `).join('');
+  }
+
+  async function addSubject() {
+    const name  = document.getElementById('subj-name').value.trim();
+    const color = document.getElementById('subj-color').value;
+    const goal  = parseInt(document.getElementById('subj-goal').value) || 60;
+    if (!name) return;
+    _subjects.push({ id: Date.now(), name, color, goal_min: goal });
+    localStorage.setItem('sf_subjects', JSON.stringify(_subjects));
+    renderSubjectList();
+    document.getElementById('subj-name').value = '';
+  }
+
+  function removeSubject(id) {
+    _subjects = _subjects.filter(s => s.id !== id);
+    localStorage.setItem('sf_subjects', JSON.stringify(_subjects));
+    renderSubjectList();
+  }
+
+  /* ── Export ── */
+  function handleExport(e) {
+    if (!backendOk) {
+      e.preventDefault();
+      alert('Avvia il backend Python per esportare.\n\nRun: python3 app.py');
+      return;
+    }
+    document.getElementById('export-link').href = getExportUrl();
+  }
+
+  /* ── Heatmap ── */
+  function renderHeatmap() {
+    const sessions = _getLocalSessions();
+    const map = {};
+    sessions.forEach(s => { map[s.date] = (map[s.date] || 0) + (s.duration || 0); });
+    const vals = Object.values(map);
+    const maxMin = vals.length ? Math.max(...vals) : 1;
+
+    const today = new Date();
+    const DAYS  = 364;
+    const cells = [];
+    for (let i = DAYS - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      const min = map[key] || 0;
+      const lvl = min === 0 ? 0 : Math.min(4, Math.ceil((min / maxMin) * 4));
+      cells.push({ key, min, lvl, d: new Date(d) });
+    }
+
+    /* Griglia (colonne = settimane) */
+    const grid = document.getElementById('heatmap-grid');
+    if (!grid) return;
+    grid.innerHTML = cells.map(c =>
+      `<div class="hm-cell hm-${c.lvl}" title="${c.key}${c.min ? ': ' + c.min + ' min' : ''}"></div>`
+    ).join('');
+
+    /* Etichette mesi */
+    const monthsEl = document.getElementById('heatmap-months');
+    if (monthsEl) {
+      const mLabels = [];
+      let lastMonth = -1;
+      cells.forEach((c, i) => {
+        const m = c.d.getMonth();
+        if (m !== lastMonth) {
+          const week = Math.floor(i / 7);
+          mLabels.push({ label: ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'][m], week });
+          lastMonth = m;
+        }
+      });
+      monthsEl.innerHTML = '';
+      mLabels.forEach(({ label, week }) => {
+        const span = document.createElement('span');
+        span.textContent = label;
+        span.style.gridColumn = (week + 1) + '';
+        monthsEl.appendChild(span);
+      });
+    }
+  }
+
+  /* Avvio */
+  loadPage();
+</script>
+</body>
+</html>

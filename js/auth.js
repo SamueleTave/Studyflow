@@ -1,0 +1,133 @@
+/* =====================================================
+   AUTH.JS — utente, sync localStorage ↔ server
+   Incluso PRIMA di shared.js in ogni pagina
+   ===================================================== */
+
+const SF_AUTH_KEY  = 'sf_auth';
+const _SF_SYNC_KEYS = [
+  'sf_coins','sf_garden','sf_widgets','sf_timer','sf_stats',
+  'sf_sessions','sf_events','sf_daily_deal','sf_moods',
+  'sf_cfg','sf_tasks','sf_theme','sf_subjects','sf_notes'
+];
+
+/* ── Lettura auth ── */
+function getAuth() {
+  try { return JSON.parse(sessionStorage.getItem(SF_AUTH_KEY) || 'null'); }
+  catch { return null; }
+}
+function isLoggedIn()    { return !!(getAuth()?.token); }
+function isAdmin()       { return !!(getAuth()?.is_admin); }
+function getCurrentUser(){ return getAuth(); }
+
+/* ── Guard: redirect se non loggato ── */
+function requireLogin() {
+  if (!isLoggedIn()) { window.location.replace('login.html'); }
+}
+
+/* ── Guard: redirect se non admin ── */
+function requireAdmin() {
+  const auth = getAuth();
+  if (!auth?.token)    { window.location.replace('login.html'); return; }
+  if (!auth.is_admin)  { window.location.replace('index.html'); }
+}
+
+/* ── Logout ── */
+function logout() {
+  _SF_SYNC_KEYS.forEach(k => localStorage.removeItem(k));
+  sessionStorage.removeItem(SF_AUTH_KEY);
+  window.location.replace('login.html');
+}
+
+/* ── Sync tutto verso il server ── */
+async function syncToServer() {
+  const auth = getAuth();
+  if (!auth?.token) return;
+  const payload = {};
+  _SF_SYNC_KEYS.forEach(k => {
+    const v = localStorage.getItem(k);
+    if (v !== null) payload[k] = v;
+  });
+  try {
+    await fetch((window.SF_API_BASE || '/api') + '/user/sync', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + auth.token,
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch {}
+}
+
+/* ── Carica dati dal server → localStorage ── */
+async function loadFromServer() {
+  const auth = getAuth();
+  if (!auth?.token) return false;
+  try {
+    const r = await fetch((window.SF_API_BASE || '/api') + '/user/data', {
+      headers: { 'Authorization': 'Bearer ' + auth.token },
+    });
+    if (!r.ok) { if (r.status === 401) logout(); return false; }
+    const data = await r.json();
+    _SF_SYNC_KEYS.forEach(k => {
+      if (data[k] != null) {
+        /* usa l'originale per non innescare sync in loop */
+        _sfOrigSetItem(k, data[k]);
+      }
+    });
+    return true;
+  } catch { return false; }
+}
+
+/* ── Auto-sync debounced su ogni setItem sf_ ── */
+const _sfOrigSetItem = localStorage.setItem.bind(localStorage);
+localStorage.setItem = function(key, value) {
+  _sfOrigSetItem(key, value);
+  if (_SF_SYNC_KEYS.includes(key) && isLoggedIn()) _triggerSync();
+};
+let _sfSyncTimer = null;
+function _triggerSync() {
+  clearTimeout(_sfSyncTimer);
+  _sfSyncTimer = setTimeout(syncToServer, 2500);
+}
+
+/* ── Inietta pill utente + link admin nella sidebar ── */
+function _initSidebarUser() {
+  const bottom = document.querySelector('.sidebar-bottom');
+  if (!bottom) return;
+  const auth = getAuth();
+  if (!auth) return;
+
+  const pill = document.createElement('div');
+  pill.className = 'sidebar-user-pill';
+  pill.innerHTML =
+    '<span class="sidebar-user-name">' + auth.username + '</span>' +
+    '<button class="sidebar-logout-btn" onclick="logout()">Esci</button>';
+  bottom.insertBefore(pill, bottom.firstChild);
+
+  if (auth.is_admin) {
+    const nav = document.querySelector('.sidebar');
+    if (nav) {
+      const a = document.createElement('a');
+      a.href = 'admin.html';
+      a.className = 'nav-link';
+      a.innerHTML =
+        '<i data-feather="shield" class="nav-icon"></i>' +
+        '<span class="nav-label">Admin</span>';
+      const spacer = nav.querySelector('.sidebar-spacer');
+      if (spacer) nav.insertBefore(a, spacer);
+    }
+  }
+}
+
+function _initSettingsUser() {
+  const label = document.getElementById('settings-user-label');
+  if (!label) return;
+  const auth = getAuth();
+  if (auth?.username) label.textContent = '@' + auth.username;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  _initSidebarUser();
+  _initSettingsUser();
+});
