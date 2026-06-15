@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="ocean">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nuova Task — StudyFlow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/tasks.css">
+  <link rel="stylesheet" href="css/calendar.css">
+  <link rel="stylesheet" href="css/shop.css">
+</head>
+<body>
+
+<div class="orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<button class="focus-exit-btn" onclick="toggleFocus()">Esci dal Focus</button>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <span class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </span>
+      <span class="logo-text">StudyFlow</span>
+    </a>
+
+    <span class="nav-section-label">Pagine</span>
+    <a href="index.html"    class="nav-link" data-page="home">
+      <i data-feather="clock"        class="nav-icon"></i><span class="nav-label">Timer</span>
+    </a>
+    <a href="tasks.html"    class="nav-link" data-page="tasks">
+      <i data-feather="check-square" class="nav-icon"></i><span class="nav-label">Task</span>
+    </a>
+    <a href="add-task.html" class="nav-link active" data-page="add-task">
+      <i data-feather="plus-circle"  class="nav-icon"></i><span class="nav-label">Nuova Task</span>
+    </a>
+    <a href="calendar.html" class="nav-link" data-page="calendar">
+      <i data-feather="calendar"     class="nav-icon"></i><span class="nav-label">Calendario</span>
+    </a>
+    <a href="stats.html"    class="nav-link" data-page="stats">
+      <i data-feather="bar-chart-2"  class="nav-icon"></i><span class="nav-label">Statistiche</span>
+    </a>
+    <a href="shop.html"     class="nav-link" data-page="shop">
+      <i data-feather="shopping-bag" class="nav-icon"></i><span class="nav-label">Shop</span>
+    </a>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-coin">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="#F59E0B"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>
+        <span class="js-coin-count">0</span> monete
+      </div>
+      <button class="nav-link" id="focusBtn" onclick="toggleFocus()">
+        <i data-feather="crosshair"  class="nav-icon"></i><span class="nav-label">Focus</span>
+      </button>
+      <button class="nav-link" id="ambientBtn" onclick="toggleAmbient()">
+        <i data-feather="cloud-rain" class="nav-icon"></i><span class="nav-label">Pioggia</span>
+      </button>
+      <button class="nav-link" onclick="openSettings()">
+        <i data-feather="settings"   class="nav-icon"></i><span class="nav-label">Impostazioni</span>
+      </button>
+      <div class="theme-row">
+        <span class="theme-label">Tema</span>
+        <div class="theme-dots" id="theme-dots-sidebar">
+          <div class="tdot active" data-t="ocean"></div>
+          <div class="tdot" data-t="lavender"></div>
+          <div class="tdot" data-t="peach"></div>
+          <div class="tdot" data-t="forest"></div>
+          <div class="tdot" data-t="sakura"></div>
+        </div>
+      </div>
+      <div style="padding:4px 10px;display:flex;align-items:center;gap:8px">
+        <div id="backend-dot" style="width:8px;height:8px;border-radius:50%;background:#BDBDBD;flex-shrink:0"></div>
+        <span style="font-size:0.65rem;color:var(--text-soft)">Backend</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="addtask-page">
+
+    <!-- Header -->
+    <div class="addtask-header">
+      <a href="tasks.html" class="addtask-back" title="Torna ai task">←</a>
+      <span class="addtask-title">Nuova Task</span>
+    </div>
+
+    <!-- Form card -->
+    <div class="form-card">
+
+      <!-- Nome -->
+      <div class="form-field">
+        <label class="form-label">Nome task *</label>
+        <input class="form-input" id="tf-name" type="text"
+          placeholder="Es. Studiare capitolo 3, Fare esercizi..."
+          autofocus maxlength="120" />
+      </div>
+
+      <!-- Tipo -->
+      <div class="form-field">
+        <label class="form-label">Tipo</label>
+        <div class="type-toggle">
+          <button class="type-btn active" id="type-daily" onclick="selectType('daily')">
+            📋 Giornaliera
+          </button>
+          <button class="type-btn" id="type-study" onclick="selectType('study')">
+            📚 Studio
+          </button>
+        </div>
+      </div>
+
+      <!-- Materia -->
+      <div class="form-field">
+        <label class="form-label">Materia</label>
+        <div class="subj-wrap">
+          <div class="subj-input-row">
+            <span class="subj-selected-dot" id="subj-selected-dot"></span>
+            <input class="form-input" id="tf-subject"
+              placeholder="Cerca o seleziona materia..."
+              autocomplete="off" style="flex:1" />
+          </div>
+          <div class="subj-dropdown" id="subj-dropdown"></div>
+        </div>
+      </div>
+
+      <!-- Priorità -->
+      <div class="form-field">
+        <label class="form-label">Priorità</label>
+        <div class="priority-grid">
+          <button class="priority-pill p-alta"    data-p="alta"    onclick="selectPriority('alta')">🔴 Alta</button>
+          <button class="priority-pill p-media"   data-p="media"   onclick="selectPriority('media')">🟡 Media</button>
+          <button class="priority-pill p-normale active" data-p="normale" onclick="selectPriority('normale')">🔵 Normale</button>
+          <button class="priority-pill p-bassa"   data-p="bassa"   onclick="selectPriority('bassa')">🟢 Bassa</button>
+        </div>
+      </div>
+
+      <!-- Scadenza -->
+      <div class="form-field">
+        <label class="form-label">Scadenza (opzionale)</label>
+        <input class="form-input" id="tf-due" type="date" />
+      </div>
+
+      <!-- Salva -->
+      <button class="save-task-btn" id="saveBtn" onclick="saveTask()">
+        Salva Task
+      </button>
+
+    </div>
+
+    <!-- Gestisci Materie -->
+    <div class="form-card">
+      <div class="card-title" style="margin-bottom:14px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Gestisci Materie
+      </div>
+
+      <div class="subj-mgmt-list" id="subj-mgmt-list">
+        <!-- popolato da JS -->
+      </div>
+
+      <!-- Aggiungi materia -->
+      <div class="add-subj-row">
+        <input class="form-input" id="new-subj-name"
+          placeholder="Nome nuova materia..."
+          style="flex:1;padding:9px 14px;font-size:0.84rem"
+          onkeydown="if(event.key==='Enter')addSubjectFromForm()" />
+        <div class="add-subj-color" title="Scegli colore">
+          <input type="color" id="new-subj-color" value="#2196F3" />
+        </div>
+        <button class="task-add-btn" onclick="addSubjectFromForm()" title="Aggiungi materia">+</button>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="settingsModal" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-hdr">Impostazioni<button class="modal-close" onclick="closeSettings()">&#10005;</button></div>
+    <div class="s-row">
+      <div><div class="s-label">Tempo di Lavoro</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('work',-1)">&#8722;</button>
+        <div class="num-val" id="sv-work">25</div>
+        <button class="num-btn" onclick="changeSetting('work',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Pausa Breve</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('short',-1)">&#8722;</button>
+        <div class="num-val" id="sv-short">5</div>
+        <button class="num-btn" onclick="changeSetting('short',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Pausa Lunga</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('long',-1)">&#8722;</button>
+        <div class="num-val" id="sv-long">15</div>
+        <button class="num-btn" onclick="changeSetting('long',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Sessioni per Pausa Lunga</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('goal',-1)">&#8722;</button>
+        <div class="num-val" id="sv-goal">4</div>
+        <button class="num-btn" onclick="changeSetting('goal',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Suono al termine</div></div>
+      <button class="toggle on" id="tog-sound" onclick="toggleSetting('sound')"></button>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Auto-avvio Pausa</div></div>
+      <button class="toggle" id="tog-autoBreak" onclick="toggleSetting('autoBreak')"></button>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Auto-avvio Lavoro</div></div>
+      <button class="toggle" id="tog-autoWork" onclick="toggleSetting('autoWork')"></button>
+    </div>
+    <div class="s-row" style="border-top:1px solid var(--card-border);margin-top:6px;padding-top:14px">
+      <div>
+        <div class="s-label">Account</div>
+        <div class="s-sub" id="settings-user-label" style="margin-top:2px">—</div>
+      </div>
+      <button onclick="logout()" style="padding:8px 18px;border-radius:10px;border:1.5px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);color:#dc2626;font-family:Poppins,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">Esci</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){var a=JSON.parse(sessionStorage.getItem('sf_auth')||'null');if(!a||!a.token)location.replace('login.html');})();
+</script>
+<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/api.js"></script>
+<script src="js/coins.js"></script>
+<script src="js/cat.js"></script>
+<script src="js/companions.js"></script>
+<script src="js/rabbit.js"></script>
+<script src="js/parrot.js"></script>
+<script src="js/fox.js"></script>
+<script src="js/owl.js"></script>
+<script src="js/tasks.js"></script>
+<script>
+  initShared();
+  initCoins();
+  initCat();
+  initDog();
+  initRabbit();
+  initParrot();
+  initFox();
+  initOwl();
+  initCampfire();
+  setActivePage('add-task');
+  if (typeof feather !== 'undefined') feather.replace({ width: 17, height: 17, 'stroke-width': 1.8 });
+
+  /* Carica soggetti all'avvio */
+  loadSubjects();
+  renderSubjectsMgmt();
+  initSubjectSearch();
+
+  /* Imposta data default oggi */
+  // Non pre-compila la data (è opzionale)
+
+  /* ── Stato form ── */
+  let _selectedType     = 'daily';
+  let _selectedPriority = 'normale';
+  let _selectedSubject  = '';
+  let _selectedSubjColor = '';
+
+  function selectType(t) {
+    _selectedType = t;
+    document.getElementById('type-daily').classList.toggle('active', t === 'daily');
+    document.getElementById('type-study').classList.toggle('active', t === 'study');
+  }
+
+  function selectPriority(p) {
+    _selectedPriority = p;
+    document.querySelectorAll('.priority-pill').forEach(el =>
+      el.classList.toggle('active', el.dataset.p === p)
+    );
+  }
+
+  /* ── Ricerca materie ── */
+  function initSubjectSearch() {
+    const input    = document.getElementById('tf-subject');
+    const dropdown = document.getElementById('subj-dropdown');
+
+    input.addEventListener('focus', () => showSubjectDropdown(input.value));
+    input.addEventListener('input', () => {
+      _selectedSubject   = '';
+      _selectedSubjColor = '';
+      const dot = document.getElementById('subj-selected-dot');
+      if (dot) { dot.style.display = 'none'; }
+      showSubjectDropdown(input.value);
+    });
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.subj-wrap')) dropdown.classList.remove('open');
+    });
+  }
+
+  function showSubjectDropdown(query) {
+    const dropdown = document.getElementById('subj-dropdown');
+    const q        = (query || '').toLowerCase().trim();
+    const filtered = q
+      ? subjects.filter(s => s.name.toLowerCase().includes(q))
+      : subjects;
+
+    let html = '';
+    filtered.forEach(s => {
+      html += `<div class="subj-opt" onclick="selectSubject('${_eAttr(s.name)}','${s.color}')">
+        <span class="subj-opt-dot" style="background:${s.color}"></span>${_eHtml(s.name)}
+      </div>`;
+    });
+
+    const exactMatch = subjects.find(s => s.name.toLowerCase() === q);
+    if (query && !exactMatch) {
+      html += `<div class="subj-opt subj-opt-add" onclick="quickAddSubject('${_eAttr(query)}')">
+        + Aggiungi "${_eHtml(query)}" come nuova materia
+      </div>`;
+    }
+    if (!html) {
+      html = `<div class="subj-empty">Nessuna materia — aggiungila sotto ↓</div>`;
+    }
+
+    dropdown.innerHTML = html;
+    dropdown.classList.add('open');
+  }
+
+  function selectSubject(name, color) {
+    _selectedSubject   = name;
+    _selectedSubjColor = color;
+    document.getElementById('tf-subject').value = name;
+    document.getElementById('subj-dropdown').classList.remove('open');
+    const dot = document.getElementById('subj-selected-dot');
+    if (dot) { dot.style.background = color; dot.style.display = 'inline-block'; }
+  }
+
+  function quickAddSubject(name) {
+    const s = addSubject(name, SUBJ_PALETTE[subjects.length % SUBJ_PALETTE.length]);
+    if (s) {
+      selectSubject(s.name, s.color);
+      renderSubjectsMgmt();
+    }
+  }
+
+  /* ── Gestione materie ── */
+  function renderSubjectsMgmt() {
+    const list = document.getElementById('subj-mgmt-list');
+    if (!list) return;
+    if (!subjects.length) {
+      list.innerHTML = '<div class="tasks-empty" style="padding:12px 0">Nessuna materia ancora. Aggiungine una!</div>';
+      return;
+    }
+    list.innerHTML = subjects.map(s => `
+      <div class="subj-mgmt-item" id="smgmt-${s.id}">
+        <div class="subj-color-dot" style="background:${s.color}" title="Cambia colore">
+          <input type="color" class="subj-color-input" value="${s.color}"
+            oninput="updateSubjectColorUI(${s.id}, this.value)"
+            onchange="updateSubjectColorUI(${s.id}, this.value)" />
+        </div>
+        <span class="subj-mgmt-name">${_eHtml(s.name)}</span>
+        <button class="subj-mgmt-del" onclick="removeSubjectUI(${s.id})" title="Elimina">✕</button>
+      </div>`
+    ).join('');
+  }
+
+  function updateSubjectColorUI(id, color) {
+    updateSubjectColor(id, color);
+    const dot = document.querySelector(`#smgmt-${id} .subj-color-dot`);
+    if (dot) dot.style.background = color;
+    /* Aggiorna la selezione corrente se è quella materia */
+    if (_selectedSubject) {
+      const s = findSubject(_selectedSubject);
+      if (s && s.id === id) {
+        _selectedSubjColor = color;
+        const sdot = document.getElementById('subj-selected-dot');
+        if (sdot) sdot.style.background = color;
+      }
+    }
+  }
+
+  function removeSubjectUI(id) {
+    deleteSubject(id);
+    renderSubjectsMgmt();
+    /* Se era selezionata, deseleziona */
+    if (_selectedSubject) {
+      const s = subjects.find(x => x.id === id);
+      if (!s) {
+        _selectedSubject   = '';
+        _selectedSubjColor = '';
+        document.getElementById('tf-subject').value = '';
+        const sdot = document.getElementById('subj-selected-dot');
+        if (sdot) sdot.style.display = 'none';
+      }
+    }
+  }
+
+  function addSubjectFromForm() {
+    const nameEl  = document.getElementById('new-subj-name');
+    const colorEl = document.getElementById('new-subj-color');
+    const name    = nameEl.value.trim();
+    if (!name) { nameEl.focus(); return; }
+    const s = addSubject(name, colorEl.value);
+    if (!s) {
+      nameEl.style.borderColor = '#EF5350';
+      setTimeout(() => nameEl.style.borderColor = '', 1500);
+      return;
+    }
+    nameEl.value = '';
+    colorEl.value = '#2196F3';
+    renderSubjectsMgmt();
+    /* Aggiorna dropdown se aperto */
+    const dropdown = document.getElementById('subj-dropdown');
+    if (dropdown.classList.contains('open')) showSubjectDropdown(document.getElementById('tf-subject').value);
+  }
+
+  /* ── Salva task ── */
+  function saveTask() {
+    const name = document.getElementById('tf-name').value.trim();
+    if (!name) {
+      const inp = document.getElementById('tf-name');
+      inp.style.borderColor = '#EF5350';
+      inp.focus();
+      setTimeout(() => inp.style.borderColor = '', 1500);
+      return;
+    }
+
+    const subjInput = document.getElementById('tf-subject').value.trim();
+    const subject   = _selectedSubject || subjInput;
+    const dueDate   = document.getElementById('tf-due').value || '';
+
+    const task = {
+      id:        Date.now(),
+      text:      name,
+      done:      false,
+      type:      _selectedType,
+      date:      todayStr(),
+      priority:  _selectedPriority,
+      subject:   subject,
+      subjectColor: _selectedSubjColor || (findSubject(subject)?.color || ''),
+      dueDate:   dueDate,
+      createdAt: new Date().toISOString(),
+    };
+
+    tasks.push(task);
+    saveTasks();
+
+    /* Feedback visivo e redirect */
+    const btn = document.getElementById('saveBtn');
+    btn.textContent = '✓ Salvato!';
+    btn.style.background = 'linear-gradient(135deg,#4CAF50,#2E7D32)';
+    setTimeout(() => window.location.replace('tasks.html'), 700);
+  }
+
+  /* Tastiera: invio salva */
+  document.addEventListener('keydown', e => {
+    if (e.target.id === 'tf-name' && e.key === 'Enter') saveTask();
+    if (e.target.id === 'new-subj-name' && e.key === 'Enter') addSubjectFromForm();
+  });
+
+  /* ── Utility ── */
+  function _eHtml(str) {
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function _eAttr(str) {
+    return String(str||'').replace(/'/g,"\\'").replace(/\\/g,'\\\\');
+  }
+</script>
+</body>
+</html>

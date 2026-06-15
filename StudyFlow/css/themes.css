@@ -1,0 +1,134 @@
+/* =====================================================
+   THEMES — CSS custom properties per ogni tema
+   ===================================================== */
+
+:root,
+[data-theme="ocean"] {
+  --bg-1: #B8E4F9;
+  --bg-2: #C8F0E0;
+  --bg-3: #D4E8FF;
+  --accent:      #29B6F6;
+  --accent-2:    #4CAF50;
+  --accent-dark: #0277BD;
+  --text:        #1a3a5c;
+  --text-soft:   #5b7fa0;
+  --card:        rgba(255,255,255,0.54);
+  --card-border: rgba(255,255,255,0.80);
+  --shadow:      0 8px 32px rgba(41,182,246,0.13);
+  --orb1: rgba(41,182,246,0.24);
+  --orb2: rgba(76,175,80,0.20);
+  --orb3: rgba(129,212,250,0.18);
+}
+
+[data-theme="lavender"] {
+  --bg-1: #E8DAEF;
+  --bg-2: #FCE4EC;
+  --bg-3: #EDE7F6;
+  --accent:      #AB47BC;
+  --accent-2:    #EC407A;
+  --accent-dark: #6A1B9A;
+  --text:        #3a1f5a;
+  --text-soft:   #7a5a9a;
+  --card:        rgba(255,255,255,0.54);
+  --card-border: rgba(255,255,255,0.80);
+  --shadow:      0 8px 32px rgba(171,71,188,0.13);
+  --orb1: rgba(171,71,188,0.24);
+  --orb2: rgba(236,64,122,0.20);
+  --orb3: rgba(209,196,233,0.26);
+}
+
+[data-theme="peach"] {
+  --bg-1: #FFE0B2;
+  --bg-2: #FFF9C4;
+  --bg-3: #FFCCBC;
+  --accent:      #FF8F00;
+  --accent-2:    #E64A19;
+  --accent-dark: #E65100;
+  --text:        #3e1f00;
+  --text-soft:   #8d5a2a;
+  --card:        rgba(255,255,255,0.54);
+  --card-border: rgba(255,255,255,0.80);
+  --shadow:      0 8px 32px rgba(255,143,0,0.13);
+  --orb1: rgba(255,143,0,0.24);
+  --orb2: rgba(230,74,25,0.20);
+  --orb3: rgba(255,204,128,0.26);
+}
+
+[data-theme="forest"] {
+  --bg-1: #C8E6C9;
+  --bg-2: #F1F8E9;
+  --bg-3: #DCEDC8;
+  --accent:      #388E3C;
+  --accent-2:    #7CB342;
+  --accent-dark: #1B5E20;
+  --text:        #1a3d1a;
+  --text-soft:   #4a7a4a;
+  --card:        rgba(255,255,255,0.54);
+  --card-border: rgba(255,255,255,0.80);
+  --shadow:      0 8px 32px rgba(56,142,60,0.13);
+  --orb1: rgba(56,142,60,0.24);
+  --orb2: rgba(124,179,66,0.20);
+  --orb3: rgba(200,230,201,0.26);
+}
+
+[data-theme="sakura"] {
+  --bg-1: #FCE4EC;
+  --bg-2: #F3E5F5;
+  --bg-3: #FFE4F0;
+  --accent:      #D81B60;
+  --accent-2:    #8E24AA;
+  --accent-dark: #880E4F;
+  --text:        #3a001c;
+  --text-soft:   #880e4f;
+  --card:        rgba(255,255,255,0.54);
+  --card-border: rgba(255,255,255,0.80);
+  --shadow:      0 8px 32px rgba(216,27,96,0.13);
+  --orb1: rgba(216,27,96,0.24);
+  --orb2: rgba(142,36,170,0.20);
+  --orb3: rgba(252,228,236,0.32);
+}
+
+/* ── Tema Notte (shop unlock) ── */
+[data-theme="night"] {
+  --bg-1: #0D1117;
+  --bg-2: #161B22;
+  --bg-3: #0D1B2A;
+  --accent:      #7C3AED;
+  --accent-2:    #06B6D4;
+  --accent-dark: #5B21B6;
+  --text:        #E2E8F0;
+  --text-soft:   #94A3B8;
+  --card:        rgba(30,41,59,0.88);
+  --card-border: rgba(255,255,255,0.10);
+  --shadow:      0 8px 32px rgba(0,0,0,0.45);
+  --orb1: rgba(124,58,237,0.22);
+  --orb2: rgba(6,182,212,0.16);
+  --orb3: rgba(139,92,246,0.14);
+}
+[data-theme="night"] body {
+  background: linear-gradient(135deg, #0D1117, #161B22, #0D1B2A) !important;
+}
+[data-theme="night"] .sidebar { background: rgba(15,20,30,0.92); border-right-color: rgba(255,255,255,0.07); }
+[data-theme="night"] .nav-link:hover { background: rgba(255,255,255,0.08); }
+[data-theme="night"] .nav-link.active { background: rgba(124,58,237,0.30); }
+[data-theme="night"] .clock-bar { background: rgba(15,20,30,0.9); border-bottom-color: rgba(255,255,255,0.06); }
+[data-theme="night"] .card { background: rgba(30,41,59,0.88); border-color: rgba(255,255,255,0.08); }
+[data-theme="night"] .falling-star { box-shadow: 0 0 5px white, 0 0 12px #7C3AED; }
+
+/* ── Tema Tramonto (shop unlock) ── */
+[data-theme="sunset"] {
+  --bg-1: #FFF1E6;
+  --bg-2: #FFDDC1;
+  --bg-3: #FFE5CC;
+  --accent:      #F97316;
+  --accent-2:    #EC4899;
+  --accent-dark: #C2410C;
+  --text:        #431407;
+  --text-soft:   #9A3412;
+  --card:        rgba(255,255,255,0.60);
+  --card-border: rgba(255,255,255,0.85);
+  --shadow:      0 8px 32px rgba(249,115,22,0.14);
+  --orb1: rgba(249,115,22,0.25);
+  --orb2: rgba(236,72,153,0.20);
+  --orb3: rgba(253,213,176,0.32);
+}

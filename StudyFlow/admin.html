@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="ocean">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyFlow — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/themes.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: var(--text);
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.13); border-radius: 3px; }
+    .orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .orb  { position: absolute; border-radius: 50%; filter: blur(72px);
+            animation: float-orb var(--d, 24s) ease-in-out infinite; }
+    .orb-1 { width: 520px; height: 520px; background: var(--orb1); top: -160px; left: -160px; --d: 30s; }
+    .orb-2 { width: 440px; height: 440px; background: var(--orb2); bottom: -120px; right: -100px; --d: 38s; animation-delay: -15s; }
+    .orb-3 { width: 360px; height: 360px; background: var(--orb3); top: 38%; left: 44%; --d: 24s; animation-delay: -8s; }
+    @keyframes float-orb {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33%     { transform: translate(45px,-55px) scale(1.07); }
+      66%     { transform: translate(-28px,32px) scale(0.93); }
+    }
+
+    .admin-layout {
+      position: relative; z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px 60px;
+    }
+
+    /* ── Header ── */
+    .admin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .admin-header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .admin-back {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      border: 1.5px solid var(--card-border);
+      background: rgba(255,255,255,0.5);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; text-decoration: none; color: var(--text);
+      transition: all 0.2s;
+      font-size: 1.1rem;
+    }
+    .admin-back:hover { background: rgba(255,255,255,0.85); transform: scale(1.07); }
+    .admin-title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .admin-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white;
+      border-radius: 6px;
+      padding: 3px 8px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .admin-header-right {
+      display: flex; gap: 10px; align-items: center;
+    }
+    .admin-btn {
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .admin-btn-accent {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+    }
+    .admin-btn-accent:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.14); }
+    .admin-btn-ghost {
+      background: rgba(255,255,255,0.5);
+      color: var(--text);
+      border: 1.5px solid var(--card-border);
+    }
+    .admin-btn-ghost:hover { background: rgba(255,255,255,0.85); }
+
+    /* ── Stats bar ── */
+    .admin-stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .admin-stat-card {
+      background: var(--card);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 20px 22px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    .asc-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: 8px;
+    }
+    .asc-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+    .asc-sub {
+      font-size: 0.72rem;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+
+    /* ── Tabella utenti ── */
+    .admin-table-card {
+      background: var(--card);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.07);
+      overflow: hidden;
+    }
+    .admin-table-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.5);
+    }
+    .admin-table-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead th {
+      padding: 10px 20px;
+      text-align: left;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      background: rgba(255,255,255,0.3);
+      border-bottom: 1px solid rgba(255,255,255,0.5);
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      transition: background 0.15s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.4); }
+    td {
+      padding: 14px 20px;
+      font-size: 0.86rem;
+      color: var(--text);
+      vertical-align: middle;
+    }
+
+    .user-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .user-avatar {
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: white;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+    .user-name-text { font-weight: 600; }
+    .user-admin-tag {
+      font-size: 0.6rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #F59E0B, #EF4444);
+      color: white;
+      border-radius: 5px;
+      padding: 2px 6px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .coin-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .coin-value {
+      font-weight: 700;
+      font-size: 0.94rem;
+    }
+    .coin-edit-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .coin-edit-input {
+      width: 80px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1.5px solid var(--accent);
+      background: rgba(255,255,255,0.7);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      outline: none;
+    }
+    .coin-save-btn {
+      padding: 5px 10px;
+      border-radius: 7px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .coin-save-btn:hover { opacity: 0.85; }
+    .coin-cancel-btn {
+      padding: 5px 8px;
+      border-radius: 7px;
+      border: none;
+      background: rgba(0,0,0,0.08);
+      color: var(--text-soft);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    .date-soft { font-size: 0.78rem; color: var(--text-soft); }
+
+    .action-cell { display: flex; gap: 6px; }
+    .act-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .act-edit  { background: rgba(255,255,255,0.6); color: var(--text); border: 1px solid var(--card-border); }
+    .act-edit:hover { background: rgba(255,255,255,0.9); }
+    .act-reset { background: rgba(255,193,7,0.15); color: #b45309; border: 1px solid rgba(255,193,7,0.3); }
+    .act-reset:hover { background: rgba(255,193,7,0.28); }
+    .act-delete { background: rgba(239,68,68,0.10); color: #dc2626; border: 1px solid rgba(239,68,68,0.25); }
+    .act-delete:hover { background: rgba(239,68,68,0.20); }
+
+    /* ── Modale dettaglio utente ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: var(--card);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+      padding: 30px 34px;
+      max-width: 520px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-close {
+      background: none; border: none;
+      font-size: 1.1rem; cursor: pointer;
+      color: var(--text-soft);
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+    }
+    .modal-close:hover { background: rgba(0,0,0,0.07); }
+
+    .data-key {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+      margin-top: 12px;
+    }
+    .data-val {
+      font-size: 0.78rem;
+      background: rgba(0,0,0,0.05);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-family: monospace;
+      word-break: break-all;
+      white-space: pre-wrap;
+      max-height: 120px;
+      overflow-y: auto;
+      color: var(--text);
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 28px; left: 50%; transform: translateX(-50%);
+      background: var(--text);
+      color: white;
+      padding: 10px 22px;
+      border-radius: 12px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.25s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--text-soft);
+    }
+    .empty-state-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty-state-text { font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+<div class="orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- Modale dettaglio dati utente -->
+<div class="modal-overlay" id="dataModal" onclick="if(event.target===this)closeDataModal()">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span id="dataModalTitle">Dati utente</span>
+      <button class="modal-close" onclick="closeDataModal()">✕</button>
+    </div>
+    <div id="dataModalBody"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<div class="admin-layout">
+
+  <!-- Header -->
+  <div class="admin-header">
+    <div class="admin-header-left">
+      <a href="index.html" class="admin-back" title="Torna all'app">←</a>
+      <span class="admin-title">Admin Panel</span>
+      <span class="admin-badge">kiwi07</span>
+    </div>
+    <div class="admin-header-right">
+      <button class="admin-btn admin-btn-ghost" onclick="loadUsers()">↺ Aggiorna</button>
+      <button class="admin-btn admin-btn-ghost" onclick="logout()">Esci</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="admin-stats-row" id="statsRow">
+    <div class="admin-stat-card">
+      <div class="asc-label">Utenti totali</div>
+      <div class="asc-value" id="statTotal">—</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="asc-label">Sessioni totali</div>
+      <div class="asc-value" id="statSessions">—</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="asc-label">Monete in circolazione</div>
+      <div class="asc-value" id="statCoins">—</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="asc-label">Ultimo accesso</div>
+      <div class="asc-value" id="statLast" style="font-size:1rem">—</div>
+      <div class="asc-sub" id="statLastName"></div>
+    </div>
+  </div>
+
+  <!-- Tabella -->
+  <div class="admin-table-card">
+    <div class="admin-table-head">
+      <span class="admin-table-title">Utenti registrati</span>
+    </div>
+    <div id="tableWrap">
+      <div class="empty-state">
+        <div class="empty-state-icon">⏳</div>
+        <div class="empty-state-text">Caricamento...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/config.js"></script>
+<script>
+  /* ── Auth check (sincrono, prima del render) ── */
+  const _adminAuth = (function() {
+    try {
+      const a = JSON.parse(sessionStorage.getItem('sf_auth') || 'null');
+      if (!a?.token)    { location.replace('login.html'); return null; }
+      if (!a.is_admin)  { location.replace('index.html'); return null; }
+      return a;
+    } catch { location.replace('login.html'); return null; }
+  })();
+
+  if (!_adminAuth) throw new Error('not admin');
+
+  /* ── Tema ── */
+  (function() {
+    try {
+      const t = localStorage.getItem('sf_theme');
+      if (t) document.documentElement.setAttribute('data-theme', t);
+    } catch {}
+  })();
+
+  const AUTH = _adminAuth;
+
+  function logout() {
+    sessionStorage.removeItem('sf_auth');
+    location.replace('login.html');
+  }
+
+  function toast(msg, duration = 2200) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), duration);
+  }
+
+  async function apiFetch(path, opts = {}) {
+    const base = window.SF_API_BASE || '/api';
+    const url = path.startsWith('/api') ? base + path.slice(4) : path;
+    const r = await fetch(url, {
+      ...opts,
+      headers: {
+        'Authorization': 'Bearer ' + AUTH.token,
+        'Content-Type': 'application/json',
+        ...(opts.headers || {}),
+      },
+    });
+    return r;
+  }
+
+  /* ── Carica utenti ── */
+  let _users = [];
+
+  async function loadUsers() {
+    try {
+      const r = await apiFetch('/api/admin/users');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      _users = await r.json();
+      renderStats(_users);
+      renderTable(_users);
+    } catch (e) {
+      document.getElementById('tableWrap').innerHTML =
+        '<div class="empty-state"><div class="empty-state-icon">⚠️</div>' +
+        '<div class="empty-state-text">Errore caricamento: ' + e.message + '</div></div>';
+    }
+  }
+
+  function renderStats(users) {
+    document.getElementById('statTotal').textContent = users.length;
+    const totalSess  = users.reduce((s, u) => s + (u.session_count || 0), 0);
+    const totalCoins = users.reduce((s, u) => s + (u.coins || 0), 0);
+    document.getElementById('statSessions').textContent = totalSess;
+    document.getElementById('statCoins').textContent    = totalCoins + ' 🪙';
+    const last = users.find(u => u.last_seen);
+    if (last) {
+      document.getElementById('statLast').textContent     = fmtDate(last.last_seen);
+      document.getElementById('statLastName').textContent = '@' + last.username;
+    }
+  }
+
+  function fmtDate(dt) {
+    if (!dt) return '—';
+    try {
+      const d = new Date(dt);
+      return d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'2-digit' }) +
+             ' ' + d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+    } catch { return dt; }
+  }
+
+  function renderTable(users) {
+    if (!users.length) {
+      document.getElementById('tableWrap').innerHTML =
+        '<div class="empty-state"><div class="empty-state-icon">👤</div>' +
+        '<div class="empty-state-text">Nessun utente registrato</div></div>';
+      return;
+    }
+
+    let html = '<table><thead><tr>' +
+      '<th>Utente</th><th>Monete</th><th>Sessioni</th>' +
+      '<th>Registrato</th><th>Ultimo accesso</th><th>Azioni</th>' +
+      '</tr></thead><tbody>';
+
+    users.forEach(u => {
+      const initial = (u.username[0] || '?').toUpperCase();
+      const adminTag = u.is_admin ? '<span class="user-admin-tag">admin</span>' : '';
+      html += `<tr id="row-${u.id}">
+        <td>
+          <div class="user-name-cell">
+            <div class="user-avatar">${initial}</div>
+            <span class="user-name-text">@${u.username}</span>
+            ${adminTag}
+          </div>
+        </td>
+        <td>
+          <div class="coin-cell" id="coin-cell-${u.id}">
+            <span class="coin-value" id="coin-val-${u.id}">${u.coins} 🪙</span>
+            ${!u.is_admin ? `<button class="act-btn act-edit" onclick="startEditCoins(${u.id}, ${u.coins})">✏️ Modifica</button>` : ''}
+          </div>
+        </td>
+        <td>${u.session_count}</td>
+        <td><span class="date-soft">${fmtDate(u.created_at)}</span></td>
+        <td><span class="date-soft">${fmtDate(u.last_seen)}</span></td>
+        <td>
+          <div class="action-cell">
+            <button class="act-btn act-edit" onclick="showUserData(${u.id}, '${u.username}')">📂 Dati</button>
+            ${!u.is_admin ? `
+              <button class="act-btn act-reset" onclick="resetUser(${u.id}, '${u.username}')">↺ Reset</button>
+              <button class="act-btn act-delete" onclick="deleteUser(${u.id}, '${u.username}')">🗑️ Elimina</button>
+            ` : ''}
+          </div>
+        </td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('tableWrap').innerHTML = html;
+  }
+
+  /* ── Modifica monete ── */
+  function startEditCoins(uid, current) {
+    const cell = document.getElementById('coin-cell-' + uid);
+    cell.innerHTML = `
+      <div class="coin-edit-wrap">
+        <input class="coin-edit-input" id="coin-input-${uid}" type="number" value="${current}" min="0" max="999999" />
+        <button class="coin-save-btn" onclick="saveCoins(${uid})">Salva</button>
+        <button class="coin-cancel-btn" onclick="cancelEditCoins(${uid}, ${current})">✕</button>
+      </div>`;
+    document.getElementById('coin-input-' + uid).focus();
+    document.getElementById('coin-input-' + uid).select();
+  }
+
+  function cancelEditCoins(uid, current) {
+    const cell = document.getElementById('coin-cell-' + uid);
+    cell.innerHTML =
+      `<span class="coin-value" id="coin-val-${uid}">${current} 🪙</span>` +
+      `<button class="act-btn act-edit" onclick="startEditCoins(${uid}, ${current})">✏️ Modifica</button>`;
+  }
+
+  async function saveCoins(uid) {
+    const inp = document.getElementById('coin-input-' + uid);
+    const val = parseInt(inp.value, 10);
+    if (isNaN(val) || val < 0) { toast('Valore non valido'); return; }
+
+    try {
+      const r = await apiFetch('/api/admin/users/' + uid + '/coins', {
+        method: 'PUT', body: JSON.stringify({ coins: val }),
+      });
+      if (!r.ok) throw new Error();
+      const cell = document.getElementById('coin-cell-' + uid);
+      cell.innerHTML =
+        `<span class="coin-value" id="coin-val-${uid}">${val} 🪙</span>` +
+        `<button class="act-btn act-edit" onclick="startEditCoins(${uid}, ${val})">✏️ Modifica</button>`;
+      const u = _users.find(x => x.id === uid);
+      if (u) u.coins = val;
+      renderStats(_users);
+      toast('Monete aggiornate ✅');
+    } catch { toast('Errore salvataggio'); }
+  }
+
+  /* ── Mostra dati utente ── */
+  async function showUserData(uid, username) {
+    document.getElementById('dataModalTitle').textContent = 'Dati di @' + username;
+    document.getElementById('dataModalBody').innerHTML = '<p style="color:var(--text-soft);font-size:0.85rem">Caricamento...</p>';
+    document.getElementById('dataModal').classList.add('show');
+    try {
+      const r = await apiFetch('/api/admin/users/' + uid + '/data');
+      const raw = await r.json();
+      if (!Object.keys(raw).length) {
+        document.getElementById('dataModalBody').innerHTML =
+          '<p style="color:var(--text-soft);font-size:0.85rem;margin-top:8px">Nessun dato salvato</p>';
+        return;
+      }
+
+      /* Parsa sf_coins → oggetto */
+      let coins = {};
+      try { coins = JSON.parse(raw.sf_coins || '{}'); } catch {}
+
+      /* Parsa sf_tasks */
+      let tasks = [];
+      try { tasks = JSON.parse(raw.sf_tasks || '[]'); } catch {}
+
+      /* Parsa sf_stats */
+      let stats = {};
+      try { stats = JSON.parse(raw.sf_stats || '{}'); } catch {}
+
+      /* Compagni attivi */
+      const fx = coins.activeEffects || {};
+      const companions = [];
+      if (fx.catVisible)    companions.push('🐱 Gatto');
+      if (fx.dogVisible)    companions.push('🐶 Cane');
+      if (fx.rabbitVisible) companions.push('🐰 Coniglio');
+      if (fx.parrotVisible) companions.push('🦜 Pappagallo');
+      if (fx.foxVisible)    companions.push('🦊 Volpe');
+      if (fx.owlVisible)    companions.push('🦉 Gufo');
+      if (fx.campfire)      companions.push('🔥 Falò');
+
+      /* Oggetti shop acquistati */
+      const shopObj = coins.shop || {};
+      const shopItems = Object.keys(shopObj).filter(k => shopObj[k] > 0);
+
+      /* Effetti attivi */
+      const effects = [];
+      if (fx.stars)    effects.push('⭐ Stelle');
+      if (fx.bubbles)  effects.push('🫧 Bolle');
+      if (fx.glow)     effects.push('✨ Glow');
+      if (fx.pulsePro) effects.push('💫 Pulse Pro');
+      if (fx.activeSound) effects.push('🎵 Suono: ' + fx.activeSound);
+
+      /* Giardino */
+      const gardenActive = fx.gardenActive || {};
+      const gardenCount  = Object.keys(gardenActive).length;
+
+      const card = (title, content) =>
+        `<div style="background:rgba(255,255,255,0.55);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-soft);margin-bottom:6px">${title}</div>
+          ${content}
+        </div>`;
+
+      const stat = (label, val) =>
+        `<div style="display:flex;justify-content:space-between;font-size:0.82rem;padding:2px 0">
+          <span style="color:var(--text-soft)">${label}</span>
+          <span style="font-weight:600">${val}</span>
+        </div>`;
+
+      const tag = (t, color='var(--accent)') =>
+        `<span style="display:inline-block;background:${color}22;color:${color};border-radius:7px;padding:3px 9px;font-size:0.75rem;font-weight:600;margin:2px">${t}</span>`;
+
+      let html = '';
+
+      /* Monete & statistiche */
+      html += card('Monete & Statistiche',
+        stat('Monete attuali', '🪙 ' + (coins.balance || 0)) +
+        stat('Monete totali guadagnate', '🪙 ' + (coins.totalEarned || 0)) +
+        stat('Sessioni completate', '⏱ ' + (coins.totalSessions || stats.sessions || 0)) +
+        stat('Minuti di studio', '📚 ' + (coins.totalMinutes || stats.totalMinutes || 0) + ' min') +
+        stat('Task completate', '✅ ' + (coins.tasksCompleted || 0)) +
+        stat('Sfide completate', '🏆 ' + (coins.challengesCompleted || 0))
+      );
+
+      /* Compagni */
+      html += card('Compagni attivi',
+        companions.length
+          ? companions.map(c => tag(c)).join('')
+          : '<span style="color:var(--text-soft);font-size:0.82rem">Nessun compagno attivo</span>'
+      );
+
+      /* Effetti */
+      html += card('Effetti attivi',
+        effects.length
+          ? effects.map(e => tag(e, '#9C27B0')).join('')
+          : '<span style="color:var(--text-soft);font-size:0.82rem">Nessun effetto attivo</span>'
+      );
+
+      /* Giardino */
+      html += card('Giardino',
+        stat('Oggetti piazzati', gardenCount + ' elementi')
+      );
+
+      /* Task */
+      const pendingTasks = tasks.filter(t => !t.done);
+      const doneTasks    = tasks.filter(t => t.done);
+      html += card('Task',
+        stat('In sospeso', pendingTasks.length) +
+        stat('Completate', doneTasks.length) +
+        (pendingTasks.slice(0, 5).map(t =>
+          `<div style="font-size:0.78rem;padding:4px 0;border-top:1px solid rgba(0,0,0,0.06);color:var(--text)">${escHtml(t.name || '—')}</div>`
+        ).join(''))
+      );
+
+      /* Traguardi */
+      const achievements = coins.achievements || [];
+      if (achievements.length) {
+        html += card('Traguardi',
+          achievements.map(a => tag('🏅 ' + (a.id || a), '#FF9800')).join('')
+        );
+      }
+
+      document.getElementById('dataModalBody').innerHTML = html;
+    } catch (e) {
+      document.getElementById('dataModalBody').innerHTML =
+        '<p style="color:#dc2626;font-size:0.85rem">Errore caricamento dati</p>';
+    }
+  }
+
+  function closeDataModal() {
+    document.getElementById('dataModal').classList.remove('show');
+  }
+
+  /* ── Reset utente ── */
+  async function resetUser(uid, username) {
+    if (!confirm('Reset di tutti i dati di @' + username + '?\nLe monete e le sessioni saranno azzerate.')) return;
+    try {
+      const r = await apiFetch('/api/admin/users/' + uid + '/reset', { method: 'POST' });
+      if (!r.ok) throw new Error();
+      const u = _users.find(x => x.id === uid);
+      if (u) { u.coins = 0; u.session_count = 0; }
+      renderStats(_users);
+      renderTable(_users);
+      toast('Dati di @' + username + ' azzerati ✅');
+    } catch { toast('Errore durante il reset'); }
+  }
+
+  /* ── Elimina utente ── */
+  async function deleteUser(uid, username) {
+    if (!confirm('Eliminare definitivamente @' + username + '?\nTutti i dati verranno persi.')) return;
+    try {
+      const r = await apiFetch('/api/admin/users/' + uid, { method: 'DELETE' });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Errore'); }
+      _users = _users.filter(u => u.id !== uid);
+      renderStats(_users);
+      renderTable(_users);
+      toast('@' + username + ' eliminato ✅');
+    } catch (e) { toast(e.message || 'Errore eliminazione'); }
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  /* ── Avvio ── */
+  loadUsers();
+</script>
+</body>
+</html>

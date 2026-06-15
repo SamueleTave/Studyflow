@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="ocean">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyFlow ✨</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Orbitron:wght@400;700&family=Bebas+Neue&family=Playfair+Display:wght@700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/timer.css">
+  <link rel="stylesheet" href="css/tasks.css">
+  <link rel="stylesheet" href="css/calendar.css">
+  <link rel="stylesheet" href="css/shop.css">
+  <link rel="stylesheet" href="css/garden.css">
+</head>
+<body>
+
+<div class="orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<button class="focus-exit-btn" onclick="toggleFocus()">Esci dal Focus</button>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <span class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </span>
+      <span class="logo-text">StudyFlow</span>
+    </a>
+
+    <span class="nav-section-label">Pagine</span>
+    <a href="index.html"    class="nav-link active" data-page="home">
+      <i data-feather="clock"        class="nav-icon"></i><span class="nav-label">Timer</span>
+    </a>
+    <a href="tasks.html"    class="nav-link" data-page="tasks">
+      <i data-feather="check-square" class="nav-icon"></i><span class="nav-label">Task</span>
+    </a>
+    <a href="add-task.html" class="nav-link" data-page="add-task">
+      <i data-feather="plus-circle"  class="nav-icon"></i><span class="nav-label">Nuova Task</span>
+    </a>
+    <a href="calendar.html" class="nav-link" data-page="calendar">
+      <i data-feather="calendar"     class="nav-icon"></i><span class="nav-label">Calendario</span>
+    </a>
+    <a href="stats.html"    class="nav-link" data-page="stats">
+      <i data-feather="bar-chart-2"  class="nav-icon"></i><span class="nav-label">Statistiche</span>
+    </a>
+    <a href="shop.html"     class="nav-link" data-page="shop">
+      <i data-feather="shopping-bag" class="nav-icon"></i><span class="nav-label">Shop</span>
+    </a>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-coin">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="#F59E0B"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>
+        <span class="js-coin-count">0</span> monete
+      </div>
+      <button class="nav-link" id="focusBtn" onclick="toggleFocus()">
+        <i data-feather="crosshair"  class="nav-icon"></i><span class="nav-label">Focus</span>
+      </button>
+      <button class="nav-link" id="ambientBtn" onclick="toggleAmbient()">
+        <i data-feather="cloud-rain" class="nav-icon"></i><span class="nav-label">Pioggia</span>
+      </button>
+      <button class="nav-link" onclick="openSettings()">
+        <i data-feather="settings"   class="nav-icon"></i><span class="nav-label">Impostazioni</span>
+      </button>
+      <div class="theme-row">
+        <span class="theme-label">Tema</span>
+        <div class="theme-dots" id="theme-dots-sidebar">
+          <div class="tdot active" data-t="ocean"></div>
+          <div class="tdot" data-t="lavender"></div>
+          <div class="tdot" data-t="peach"></div>
+          <div class="tdot" data-t="forest"></div>
+          <div class="tdot" data-t="sakura"></div>
+        </div>
+      </div>
+      <div style="padding:4px 10px;display:flex;align-items:center;gap:8px">
+        <div id="backend-dot" style="width:8px;height:8px;border-radius:50%;background:#BDBDBD;flex-shrink:0"></div>
+        <span style="font-size:0.65rem;color:var(--text-soft)">Backend</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="timer-page">
+
+    <!-- CLOCK BAR -->
+    <div class="clock-bar">
+      <div>
+        <div class="clock-time" id="clockTime">00:00:00</div>
+        <div class="clock-date" id="clockDate">...</div>
+      </div>
+      <div class="clock-quote" id="clockQuote">...</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="stat-pill">
+          <span class="stat-pill-val"   id="pill-streak">0</span>
+          <span class="stat-pill-label">Streak</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-pill-val"   id="pill-minutes">0m</span>
+          <span class="stat-pill-label">Oggi</span>
+        </div>
+        <div class="level-pill" id="level-pill" title="Livello studio di oggi">
+          <span class="level-icon" id="level-icon">📚</span>
+          <span class="level-name" id="level-name">Novizio</span>
+        </div>
+        <div class="coin-chip">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="#F59E0B"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>
+          <span class="js-coin-count">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SFIDA GIORNALIERA -->
+    <div class="challenge-bar" id="challenge-bar"></div>
+
+    <!-- TIMER GRID -->
+    <div class="timer-grid">
+
+      <!-- TIMER CARD -->
+      <div class="card timer-card">
+        <div id="timer-decos" aria-hidden="true"></div>
+        <div class="mode-tabs">
+          <button class="mode-tab active" id="tab-work"  onclick="switchMode('work')">Lavoro</button>
+          <button class="mode-tab"        id="tab-short" onclick="switchMode('short')">Pausa Breve</button>
+          <button class="mode-tab"        id="tab-long"  onclick="switchMode('long')">Pausa Lunga</button>
+        </div>
+
+        <div class="ring-wrap" id="ring-wrap">
+          <svg class="timer-svg" viewBox="0 0 240 240">
+            <defs>
+              <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stop-color="var(--accent)"/>
+                <stop offset="100%" stop-color="var(--accent-2)"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring-bg"       cx="120" cy="120" r="100"/>
+            <circle id="ring-glow"        cx="120" cy="120" r="100"/>
+            <circle id="ring-progress"    cx="120" cy="120" r="100"/>
+          </svg>
+          <div class="timer-inner">
+            <div class="session-badge"  id="session-badge">LAVORO</div>
+            <div class="timer-display"  id="timer-display">25:00</div>
+            <div class="session-dots"   id="session-dots"></div>
+          </div>
+        </div>
+
+        <div class="timer-controls">
+          <button class="ctrl-sm" onclick="resetTimer()" title="Reset (R)">
+            <i data-feather="rotate-ccw"></i>
+          </button>
+          <button class="ctrl-play" id="play-btn" onclick="toggleTimer()">
+            <i data-feather="play" id="play-icon"></i>
+          </button>
+        </div>
+        <button class="style-open-btn" onclick="openStylePicker()">✦ Personalizza stile</button>
+
+        <!-- RING IDRATAZIONE -->
+        <div class="hydro-large-wrap" id="hydro-large-wrap">
+          <svg class="hydro-large-svg" viewBox="0 0 72 72" width="72" height="72">
+            <circle cx="36" cy="36" r="28" fill="none"
+              stroke="rgba(41,182,246,0.15)" stroke-width="5.5"/>
+            <circle id="hydro-large-fill" cx="36" cy="36" r="28" fill="none"
+              stroke="var(--accent)" stroke-width="5.5" stroke-linecap="round"
+              stroke-dasharray="175.9" stroke-dashoffset="175.9"
+              transform="rotate(-90 36 36)"
+              style="transition:stroke-dashoffset 0.6s cubic-bezier(0.4,0,0.2,1)"/>
+            <text x="36" y="43" text-anchor="middle" font-size="22" font-family="sans-serif">💧</text>
+          </svg>
+          <span class="hydro-large-min" id="hydro-large-min">30<span class="hydro-large-unit">m</span></span>
+        </div>
+
+        <div class="subj-row">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-soft)" stroke-width="2" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <input list="subj-datalist" id="study-subject" class="subj-input" placeholder="Materia (facoltativo)" autocomplete="off">
+          <datalist id="subj-datalist"></datalist>
+        </div>
+
+        <div class="timer-stats">
+          <div class="tstat">
+            <div class="tstat-val"   id="stat-sessions">0</div>
+            <div class="tstat-label">Sessioni</div>
+          </div>
+          <div class="tstat">
+            <div class="tstat-val"   id="stat-time">0m</div>
+            <div class="tstat-label">Focus</div>
+          </div>
+          <div class="tstat">
+            <div class="tstat-val"   id="stat-goal">4</div>
+            <div class="tstat-label">Obiettivo</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANNELLO DESTRA (widget personalizzabili) -->
+      <div class="timer-right" id="widget-column">
+
+        <!-- Offerta del giorno -->
+        <div class="card daily-deal-zone" id="daily-deal-zone" data-widget-id="deal" style="animation:fadeInUp 0.55s 0.04s ease both">
+          <div class="card-title" style="justify-content:space-between">
+            <span>⚡ Offerta del Giorno</span>
+            <span class="deal-timer" id="deal-timer"></span>
+          </div>
+          <div id="daily-deal-card" class="daily-deal-card"></div>
+        </div>
+
+        <!-- Calendario compatto (solo data di oggi) -->
+        <div class="card" id="clock-card" data-widget-id="cal" style="animation:fadeInUp 0.55s 0.08s ease both">
+          <div class="card-title">Oggi</div>
+          <div class="cal-mini-compact">
+            <div class="cal-today-strip">
+              <div class="cal-today-day"   id="compact-day">—</div>
+              <div class="cal-today-info">
+                <div class="cal-today-name"  id="compact-weekday">—</div>
+                <div class="cal-today-month" id="compact-month">—</div>
+              </div>
+              <a href="calendar.html" class="cal-link">Calendario →</a>
+            </div>
+            <div id="compact-next-event"></div>
+          </div>
+        </div>
+
+        <!-- Task mini -->
+        <div class="card" data-widget-id="tasks" style="animation:fadeInUp 0.55s 0.18s ease both">
+          <div class="card-title" style="justify-content:space-between">
+            Task di Oggi
+            <a href="tasks.html" style="font-size:0.7rem;color:var(--accent);font-weight:500">Vedi tutto</a>
+          </div>
+          <div class="task-list" id="mini-task-list" style="max-height:180px"></div>
+          <div class="task-form-row" style="margin-top:10px">
+            <input class="task-input" id="quick-task-input"
+              placeholder="Task rapida..."
+              onkeydown="if(event.key==='Enter')addQuickTask()">
+            <button class="task-add-btn" onclick="addQuickTask()">+</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- HEATMAP STREAK -->
+    <div class="card heatmap-card" style="animation:fadeInUp 0.55s 0.32s ease both">
+      <div class="card-title" style="justify-content:space-between">
+        <span>🔥 Streak Studiosa</span>
+        <span class="heatmap-legend">
+          <span class="hml-dot hml-0"></span>nessuna
+          <span class="hml-dot hml-1"></span>poca
+          <span class="hml-dot hml-2"></span>media
+          <span class="hml-dot hml-3"></span>intensa
+        </span>
+      </div>
+      <div class="heatmap-wrap">
+        <div class="hm-dow-col">
+          <div class="hm-dow-lbl">L</div>
+          <div class="hm-dow-lbl">M</div>
+          <div class="hm-dow-lbl">M</div>
+          <div class="hm-dow-lbl">G</div>
+          <div class="hm-dow-lbl">V</div>
+          <div class="hm-dow-lbl">S</div>
+          <div class="hm-dow-lbl">D</div>
+        </div>
+        <div class="heatmap-grid" id="heatmap-grid"></div>
+      </div>
+    </div>
+
+    <!-- GIARDINO -->
+    <div id="garden-zone" class="card garden-zone" style="animation:fadeInUp 0.55s 0.28s ease both">
+      <button class="garden-toggle" onclick="toggleGarden()">
+        <span class="garden-toggle-emoji">🌿</span>
+        <span class="garden-toggle-label">Il Mio Giardino</span>
+        <span class="garden-toggle-hint" id="garden-coin-hint">Trascina gli oggetti • ✕ per rimuovere</span>
+        <span class="garden-toggle-badge" id="garden-badge">0</span>
+        <span class="garden-toggle-arrow" id="garden-arrow">▾</span>
+      </button>
+      <div class="garden-content">
+        <div class="garden-canvas" id="garden-canvas">
+          <!-- Cielo -->
+          <div class="g-sky"></div>
+          <!-- Sole / Luna -->
+          <div class="g-sun"></div>
+          <div class="g-moon">
+            <svg viewBox="0 0 44 44" width="44" height="44">
+              <circle cx="22" cy="22" r="20" fill="#E8EAF6"/>
+              <circle cx="30" cy="14" r="14" fill="rgba(8,14,26,0.85)"/>
+              <circle cx="14" cy="28" r="3" fill="rgba(255,255,255,0.15)"/>
+              <circle cx="26" cy="32" r="2" fill="rgba(255,255,255,0.12)"/>
+              <circle cx="10" cy="18" r="1.5" fill="rgba(255,255,255,0.1)"/>
+            </svg>
+          </div>
+          <!-- Stelle notturne (CSS) -->
+          <div class="g-stars-container">
+            <div class="g-star" style="top:8%;left:12%;width:2px;height:2px;animation-delay:0s"></div>
+            <div class="g-star" style="top:14%;left:28%;width:3px;height:3px;animation-delay:0.5s"></div>
+            <div class="g-star" style="top:6%;left:45%;width:2px;height:2px;animation-delay:1.2s"></div>
+            <div class="g-star" style="top:18%;left:60%;width:2px;height:2px;animation-delay:0.8s"></div>
+            <div class="g-star" style="top:10%;left:75%;width:3px;height:3px;animation-delay:0.3s"></div>
+            <div class="g-star" style="top:22%;left:88%;width:2px;height:2px;animation-delay:1.5s"></div>
+            <div class="g-star" style="top:4%;left:92%;width:2px;height:2px;animation-delay:0.9s"></div>
+            <div class="g-star" style="top:28%;left:35%;width:2px;height:2px;animation-delay:1.8s"></div>
+            <div class="g-star" style="top:32%;left:52%;width:2px;height:2px;animation-delay:0.4s"></div>
+            <div class="g-star" style="top:20%;left:20%;width:2px;height:2px;animation-delay:2.1s"></div>
+          </div>
+          <!-- Nuvole -->
+          <div class="garden-cloud g-cloud-1"></div>
+          <div class="garden-cloud g-cloud-2"></div>
+          <div class="garden-cloud g-cloud-3"></div>
+          <!-- Montagne di sfondo -->
+          <div class="g-mountains">
+            <svg viewBox="0 0 1000 88" preserveAspectRatio="none">
+              <path class="gm-far"  d="M0 88 L90 22 L180 58 L280 8 L380 50 L460 12 L550 42 L640 5 L730 46 L840 18 L920 38 L1000 24 L1000 88 Z" fill="#8FB8A8" opacity="0.38"/>
+              <path class="gm-near" d="M0 88 L110 35 L220 65 L340 22 L460 58 L580 18 L700 52 L820 25 L1000 40 L1000 88 Z" fill="#6EA88C" opacity="0.48"/>
+            </svg>
+          </div>
+          <!-- Collinetta -->
+          <div class="g-hill">
+            <svg viewBox="0 0 1040 115" preserveAspectRatio="none">
+              <path class="gh-back"  d="M-10 115 C 80 55, 200 25, 380 65 Q 530 90, 680 40 C 800 10, 940 28, 1050 48 L 1050 115 Z" fill="#4CAF50"/>
+              <path class="gh-front" d="M-10 115 C 100 70, 250 45, 440 78 Q 600 102, 760 58 C 880 28, 970 52, 1050 65 L 1050 115 Z" fill="#66BB6A"/>
+            </svg>
+          </div>
+          <!-- Erba -->
+          <div class="garden-grass"></div>
+          <!-- Suggerimento -->
+          <div class="garden-hint">✦ trascina su/giù per la profondità · ✕ per rimuovere</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CHECKIN POST-SESSIONE -->
+<div id="session-checkin-modal" class="session-checkin-overlay">
+  <div class="session-checkin-box">
+    <div class="scb-icon">🍅</div>
+    <div class="scb-title">Sessione completata!</div>
+    <div class="scb-coins" id="scb-coins">+15 monete</div>
+    <div class="scb-label">Cosa hai studiato?</div>
+    <input class="scb-input" id="scb-note" maxlength="80" placeholder="es. Matematica — capitolo 3..." autocomplete="off">
+    <div class="scb-subject" id="scb-subject-info"></div>
+    <div class="scb-btns">
+      <button class="scb-skip" onclick="_closeCheckin()">Salta</button>
+      <button class="scb-save" onclick="_saveCheckinNote()">Salva &amp; Continua →</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIDGET PICKER -->
+<div id="widget-picker-modal" class="widget-picker-overlay" onclick="if(event.target===this)closeWidgetPicker()">
+  <div class="widget-picker-box">
+    <div class="widget-picker-hdr">
+      <span>✦ Personalizza Pagina</span>
+      <button class="widget-picker-close" onclick="closeWidgetPicker()">✕</button>
+    </div>
+    <p class="widget-picker-sub">Scegli i widget da mostrare. Alcuni si sbloccano con le monete 🪙</p>
+    <div class="widget-picker-list" id="widget-picker-list"></div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="settingsModal" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-hdr">
+      Impostazioni Timer
+      <button class="modal-close" onclick="closeSettings()">&#10005;</button>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Tempo di Lavoro</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('work',-1)">&#8722;</button>
+        <div class="num-val" id="sv-work">25</div>
+        <button class="num-btn" onclick="changeSetting('work',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Pausa Breve</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('short',-1)">&#8722;</button>
+        <div class="num-val" id="sv-short">5</div>
+        <button class="num-btn" onclick="changeSetting('short',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Pausa Lunga</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('long',-1)">&#8722;</button>
+        <div class="num-val" id="sv-long">15</div>
+        <button class="num-btn" onclick="changeSetting('long',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Sessioni per Pausa Lunga</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('goal',-1)">&#8722;</button>
+        <div class="num-val" id="sv-goal">4</div>
+        <button class="num-btn" onclick="changeSetting('goal',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Auto-avvio Pausa</div><div class="s-sub">inizia la pausa automaticamente</div></div>
+      <button class="toggle" id="tog-autoBreak" onclick="toggleSetting('autoBreak')"></button>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Auto-avvio Lavoro</div><div class="s-sub">riprendi il lavoro automaticamente</div></div>
+      <button class="toggle" id="tog-autoWork" onclick="toggleSetting('autoWork')"></button>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Suono al termine</div></div>
+      <button class="toggle on" id="tog-sound" onclick="toggleSetting('sound')"></button>
+    </div>
+    <div class="s-row" style="border-top:1px solid var(--card-border);margin-top:6px;padding-top:14px">
+      <div>
+        <div class="s-label">Account</div>
+        <div class="s-sub" id="settings-user-label" style="margin-top:2px">—</div>
+      </div>
+      <button onclick="logout()" style="padding:8px 18px;border-radius:10px;border:1.5px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);color:#dc2626;font-family:Poppins,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">Esci</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV GUARD -->
+<div id="nav-guard-modal" class="nav-guard-modal">
+  <div class="nav-guard-box">
+    <div class="nav-guard-icon">⏱️</div>
+    <div class="nav-guard-title">Timer in esecuzione</div>
+    <p class="nav-guard-text">Stai studiando! Vuoi davvero lasciare e interrompere la sessione?</p>
+    <div class="nav-guard-btns">
+      <button class="nav-guard-stay"  onclick="_closeNavGuard()">Rimani qui</button>
+      <button class="nav-guard-leave" id="nav-guard-go" onclick="_confirmNavLeave()">Lascia e vai ai Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODE SWITCH GUARD -->
+<div id="mode-guard-modal" class="nav-guard-modal">
+  <div class="nav-guard-box">
+    <div class="nav-guard-icon">💪</div>
+    <div class="nav-guard-title">Sei sicuro?</div>
+    <p class="nav-guard-text">Stai ancora lavorando! Se passi alla pausa adesso il timer verrà <strong>azzerato</strong>.<br><span style="opacity:.7;font-size:.8em">Finisci la sessione per guadagnare le tue monete! 🪙</span></p>
+    <div class="nav-guard-btns">
+      <button class="nav-guard-stay"  onclick="_closeModeGuard()">Continua a lavorare</button>
+      <button class="nav-guard-leave" onclick="_confirmModeSwitch()">Vai in pausa</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* Guard login sincrono */
+  (function(){var a=JSON.parse(sessionStorage.getItem('sf_auth')||'null');if(!a||!a.token)location.replace('login.html');})();
+</script>
+<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/api.js"></script>
+<script src="js/coins.js"></script>
+<script src="js/garden.js"></script>
+<script src="js/cat.js"></script>
+<script src="js/companions.js"></script>
+<script src="js/rabbit.js"></script>
+<script src="js/parrot.js"></script>
+<script src="js/fox.js"></script>
+<script src="js/owl.js"></script>
+<script src="js/widgets.js"></script>
+<script src="js/timer.js"></script>
+<script src="js/tasks.js"></script>
+<script src="js/calendar.js"></script>
+<script>
+  initShared();
+  initCoins();
+  initWidgets();
+  initGarden();
+  initCat();
+  initDog();
+  initCampfire();
+  initTimer();
+  initCalendar();
+  renderMiniTasks();
+  setActivePage('home');
+  if (typeof feather !== 'undefined') feather.replace({ width: 17, height: 17, 'stroke-width': 1.8 });
+
+  /* Calendario compatto — data di oggi */
+  (function() {
+    const now  = new Date();
+    const days = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+    const mons = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+                  'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+    const d  = document.getElementById('compact-day');
+    const wd = document.getElementById('compact-weekday');
+    const mo = document.getElementById('compact-month');
+    if (d)  d.textContent  = now.getDate();
+    if (wd) wd.textContent = days[now.getDay()];
+    if (mo) mo.textContent = mons[now.getMonth()] + ' ' + now.getFullYear();
+
+    /* Prossimo evento del giorno */
+    try {
+      const evts = JSON.parse(localStorage.getItem('sf_events') || '[]');
+      const todayStr = now.toISOString().slice(0,10);
+      // pad month/day for comparison
+      const todayKey = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
+      const todayEvts = evts.filter(e => {
+        const ds = e.date || '';
+        return ds === todayStr || ds === todayKey;
+      });
+      const box = document.getElementById('compact-next-event');
+      if (box) {
+        if (todayEvts.length > 0) {
+          const ev = todayEvts[0];
+          box.innerHTML = `<div class="cal-next-event">
+            <div class="cal-next-dot" style="background:${ev.color||'var(--accent)'}"></div>
+            <div>
+              <div class="cal-next-label">${ev.title}</div>
+              <div class="cal-next-time">${ev.time || 'Oggi'}</div>
+            </div>
+          </div>`;
+        } else {
+          box.innerHTML = `<div class="cal-no-event">Nessun evento oggi 🌸</div>`;
+        }
+      }
+    } catch {}
+  })();
+
+  /* Badge giardino — count oggetti posseduti */
+  (function() {
+    try {
+      if (typeof loadCoinData === 'function') loadCoinData();
+      const owned = (typeof coinData !== 'undefined' && coinData.shop) ? coinData.shop : {};
+      const gardenIds = ['tree','cherryTree','sunflower','mushroom','fountain','bench','rainbow','butterfly','pond','lantern'];
+      const count = gardenIds.filter(id => owned[id]).length;
+      const badge = document.getElementById('garden-badge');
+      if (badge) badge.textContent = count;
+      /* Indicatore motivazionale: quanto manca al prossimo acquisto */
+      const hint = document.getElementById('garden-coin-hint');
+      if (hint) {
+        const balance = (typeof coinData !== 'undefined') ? (coinData.balance || 0) : 0;
+        const next = [...gardenIds].filter(id => !owned[id]).map(id => {
+          const item = (typeof SHOP_ITEMS !== 'undefined') && SHOP_ITEMS.find(i => i.id === id);
+          return item ? { name: item.name, price: item.price } : null;
+        }).filter(Boolean).sort((a,b) => a.price - b.price)[0];
+        if (!next) {
+          hint.textContent = count + ' oggett' + (count===1?'o':'i') + ' · giardino completo!';
+        } else {
+          const gap = next.price - balance;
+          hint.textContent = gap <= 0
+            ? 'Puoi comprare: ' + next.name + '!'
+            : 'Ancora ' + gap + ' monete per ' + next.name;
+        }
+      }
+    } catch {}
+  })();
+
+  /* Materie salvate nel datalist */
+  (function() {
+    try {
+      const subjs = JSON.parse(localStorage.getItem('sf_subjects') || '[]');
+      const dl = document.getElementById('subj-datalist');
+      if (dl) dl.innerHTML = subjs.map(s => `<option value="${s.name}">`).join('');
+    } catch {}
+  })();
+
+  /* ── Heatmap streak (35 giorni) ── */
+  function buildHeatmap() {
+    const grid = document.getElementById('heatmap-grid');
+    if (!grid) return;
+    let sessions = [];
+    try { sessions = JSON.parse(localStorage.getItem('sf_sessions') || '[]'); } catch {}
+    const dayMap = {};
+    sessions.forEach(s => {
+      const d = (s.date || s.endedAt || '').slice(0, 10);
+      if (d) dayMap[d] = (dayMap[d] || 0) + (s.minutes || 25);
+    });
+    const today = new Date(); today.setHours(0,0,0,0);
+    // Trova il lunedì della settimana che contiene (oggi - 34 giorni)
+    const ref = new Date(today); ref.setDate(today.getDate() - 34);
+    const refDow = (ref.getDay() + 6) % 7; // Lun=0
+    const start = new Date(ref); start.setDate(ref.getDate() - refDow);
+    let html = '';
+    for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+      const key  = d.toISOString().slice(0, 10);
+      const mins = dayMap[key] || 0;
+      const lvl  = mins === 0 ? 0 : mins < 25 ? 1 : mins < 75 ? 2 : 3;
+      html += `<div class="hm-cell hm-${lvl}" title="${key}: ${mins}min"></div>`;
+    }
+    grid.innerHTML = html;
+  }
+  buildHeatmap();
+
+  /* ── Daily deal ── */
+  renderDailyDeal();
+  /* Countdown fino a mezzanotte */
+  (function tickDeal() {
+    const el = document.getElementById('deal-timer');
+    if (!el) return;
+    const now  = new Date();
+    const midnight = new Date(now); midnight.setHours(24,0,0,0);
+    const secs = Math.round((midnight - now) / 1000);
+    const h = String(Math.floor(secs / 3600)).padStart(2,'0');
+    const m = String(Math.floor((secs % 3600) / 60)).padStart(2,'0');
+    el.textContent = 'Scade tra ' + h + ':' + m;
+    setTimeout(tickDeal, 30000);
+  })();
+
+  /* ── Checkin post-sessione ── */
+  function showSessionCheckin(subject, callback) {
+    _checkinCallback = callback;
+    const modal = document.getElementById('session-checkin-modal');
+    const inp   = document.getElementById('scb-note');
+    const subInfo = document.getElementById('scb-subject-info');
+    if (!modal) { callback && callback(); return; }
+    if (inp)     inp.value = '';
+    if (subInfo) subInfo.textContent = subject ? '📚 Materia: ' + subject : '';
+    /* Aggiorna le monete ricevute */
+    const coinsEl = document.getElementById('scb-coins');
+    if (coinsEl && typeof coinData !== 'undefined') {
+      const c = Math.max(3, Math.round(15 * (typeof cfg !== 'undefined' ? cfg.work : 25) / 25));
+      coinsEl.textContent = '+' + c + ' monete 🪙';
+    }
+    modal.classList.add('active');
+    if (inp) setTimeout(() => inp.focus(), 100);
+    /* Garden sparkle */
+    if (typeof gardenSessionGrowth === 'function') gardenSessionGrowth();
+    /* Heatmap + widget focus goal aggiorna */
+    buildHeatmap();
+    if (typeof refreshFocusGoalWidget === 'function') refreshFocusGoalWidget();
+  }
+  function _closeCheckin() {
+    const modal = document.getElementById('session-checkin-modal');
+    if (modal) modal.classList.remove('active');
+    if (_checkinCallback) { _checkinCallback(); _checkinCallback = null; }
+  }
+  function _saveCheckinNote() {
+    const inp = document.getElementById('scb-note');
+    const note = inp ? inp.value.trim() : '';
+    if (note) {
+      try {
+        const sessions = JSON.parse(localStorage.getItem('sf_sessions') || '[]');
+        const last = sessions[sessions.length - 1];
+        if (last && !last.note) last.note = note;
+        else sessions.push({ date: new Date().toISOString().slice(0,10), note, minutes: typeof cfg !== 'undefined' ? cfg.work : 25 });
+        localStorage.setItem('sf_sessions', JSON.stringify(sessions));
+      } catch {}
+    }
+    _closeCheckin();
+  }
+  /* Tasto Invio salva */
+  document.getElementById('scb-note')?.addEventListener('keydown', e => { if (e.key === 'Enter') _saveCheckinNote(); });
+</script>
+
+<!-- STYLE PICKER MODAL -->
+<div id="sp-overlay" class="sp-overlay" onclick="if(event.target===this)closeStylePicker()">
+  <div class="sp-box">
+    <div class="sp-title">
+      ✦ Personalizza
+      <button class="sp-close" onclick="closeStylePicker()">✕</button>
+    </div>
+
+    <!-- Etichetta sessione personalizzata -->
+    <div class="sp-section">
+      <div class="sp-section-lbl">Nome Sessione</div>
+      <div class="sp-label-row">
+        <input class="sp-label-input" id="sp-work-label" type="text" maxlength="18"
+          placeholder="LAVORO" oninput="saveWorkLabel(this.value)" />
+        <span class="sp-label-hint">testo nel timer</span>
+      </div>
+    </div>
+
+    <!-- Timer font -->
+    <div class="sp-section">
+      <div class="sp-section-lbl">Carattere Timer</div>
+      <div class="sp-row">
+        <div class="sp-tile" data-sp-type="timer" data-sp-val="minimal" onclick="pickTimerStyle('minimal')">
+          <span class="sp-t sp-t-minimal">25:00</span>
+          <span class="sp-tile-lbl">Leggero</span>
+        </div>
+        <div class="sp-tile" data-sp-type="timer" data-sp-val="thin" onclick="pickTimerStyle('thin')">
+          <span class="sp-t sp-t-thin">25:00</span>
+          <span class="sp-tile-lbl">Sottile</span>
+        </div>
+        <div class="sp-tile" data-sp-type="timer" data-sp-val="bold" onclick="pickTimerStyle('bold')">
+          <span class="sp-t sp-t-bold">25:00</span>
+          <span class="sp-tile-lbl">Black</span>
+        </div>
+        <div class="sp-tile" data-sp-type="timer" data-sp-val="orbitron" onclick="pickTimerStyle('orbitron')">
+          <span class="sp-t sp-t-orbitron">25:00</span>
+          <span class="sp-tile-lbl">Digital</span>
+        </div>
+        <div class="sp-tile" data-sp-type="timer" data-sp-val="bebas" onclick="pickTimerStyle('bebas')">
+          <span class="sp-t sp-t-bebas">25:00</span>
+          <span class="sp-tile-lbl">Retro</span>
+        </div>
+        <div class="sp-tile" data-sp-type="timer" data-sp-val="serif" onclick="pickTimerStyle('serif')">
+          <span class="sp-t sp-t-serif">25:00</span>
+          <span class="sp-tile-lbl">Elegante</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stile orologio -->
+    <div class="sp-section">
+      <div class="sp-section-lbl">Stile Orologio</div>
+      <div class="sp-row">
+        <div class="sp-tile" data-sp-type="clock" data-sp-val="standard" onclick="pickClockStyle('standard')">
+          <div class="sp-c sp-c-standard">
+            <span class="sp-c-daynum">12</span>
+            <span class="sp-c-info">Venerdì<br>Giugno</span>
+          </div>
+          <span class="sp-tile-lbl">Color</span>
+        </div>
+        <div class="sp-tile" data-sp-type="clock" data-sp-val="minimal" onclick="pickClockStyle('minimal')">
+          <div class="sp-c sp-c-minimal">
+            <span class="sp-c-daynum">12</span>
+            <span class="sp-c-info">Venerdì<br>Giugno</span>
+          </div>
+          <span class="sp-tile-lbl">Ghost</span>
+        </div>
+        <div class="sp-tile" data-sp-type="clock" data-sp-val="neon" onclick="pickClockStyle('neon')">
+          <div class="sp-c sp-c-neon">
+            <span class="sp-c-daynum-neon">12</span>
+            <span class="sp-c-info">Venerdì<br>Giugno</span>
+          </div>
+          <span class="sp-tile-lbl">Neon</span>
+        </div>
+        <div class="sp-tile" data-sp-type="clock" data-sp-val="retro" onclick="pickClockStyle('retro')">
+          <div class="sp-c sp-c-retro">
+            <span class="sp-c-daynum-retro">12</span>
+            <span class="sp-c-info" style="color:#BBA000;font-size:0.4rem">Venerdì</span>
+          </div>
+          <span class="sp-tile-lbl">LCD</span>
+        </div>
+        <div class="sp-tile" data-sp-type="clock" data-sp-val="elegant" onclick="pickClockStyle('elegant')">
+          <div class="sp-c sp-c-elegant">
+            <span class="sp-c-daynum-eleg">12</span>
+            <span class="sp-c-info">Venerdì<br>Giugno</span>
+          </div>
+          <span class="sp-tile-lbl">Serif</span>
+        </div>
+        <div class="sp-tile" data-sp-type="clock" data-sp-val="centered" onclick="pickClockStyle('centered')">
+          <div class="sp-c sp-c-centered">
+            <span class="sp-c-daynum">12</span>
+            <span class="sp-c-info">Venerdì</span>
+          </div>
+          <span class="sp-tile-lbl">Centrato</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Durata focus -->
+    <div class="sp-section">
+      <div class="sp-section-lbl">Durata Focus</div>
+      <div class="sp-row">
+        <div class="sp-dur-tile" data-sp-type="dur" data-sp-val="25" onclick="pickDuration(25)">
+          <span class="sp-dur-num">25</span><span class="sp-dur-lbl">min</span>
+        </div>
+        <div class="sp-dur-tile" data-sp-type="dur" data-sp-val="30" onclick="pickDuration(30)">
+          <span class="sp-dur-num">30</span><span class="sp-dur-lbl">min</span>
+        </div>
+        <div class="sp-dur-tile" data-sp-type="dur" data-sp-val="45" onclick="pickDuration(45)">
+          <span class="sp-dur-num">45</span><span class="sp-dur-lbl">min</span>
+        </div>
+        <div class="sp-dur-tile" data-sp-type="dur" data-sp-val="50" onclick="pickDuration(50)">
+          <span class="sp-dur-num">50</span><span class="sp-dur-lbl">min</span>
+        </div>
+        <div class="sp-dur-tile" data-sp-type="dur" data-sp-val="60" onclick="pickDuration(60)">
+          <span class="sp-dur-num">60</span><span class="sp-dur-lbl">min</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Icone decorative -->
+    <div class="sp-section">
+      <div class="sp-section-lbl">Icone Decorative</div>
+      <div class="sp-row" id="sp-decos-row"></div>
+    </div>
+
+    <!-- Colore accento -->
+    <div class="sp-section">
+      <div class="sp-section-lbl">Colore Accento</div>
+      <div class="sp-swatches" id="sp-swatches"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  /* ── SVG icone decorative ── */
+  const _TD_SVG = {
+    book:   `<svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+    pencil: `<svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>`,
+    star:   `<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+    leaf:   `<svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 19.34a1 1 0 0 0 1.58 1.22C9.5 16 14 15 17 8z"/><path d="M3.82 19.34 10 14"/></svg>`,
+    bolt:   `<svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+    moon:   `<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+    music:  `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+    flame:  `<svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17c.17 0 .34-.02.5-.05V15l-3-4z"/><path d="M12 2C6 8 4 10 4 14a8 8 0 0 0 16 0c0-4.6-4-8.6-8-12z"/></svg>`,
+  };
+  const _TD_LABEL = { book:'Libro', pencil:'Matita', star:'Stella', leaf:'Foglia', bolt:'Fulmine', moon:'Luna', music:'Nota', flame:'Fiamma' };
+  const _TD_ALL   = Object.keys(_TD_SVG);
+  const _TD_POS   = ['top:9%;left:7%','top:6%;right:9%','top:36%;left:3%','top:36%;right:3%','bottom:26%;left:6%','bottom:26%;right:6%','bottom:8%;left:26%','bottom:8%;right:26%'];
+
+  /* ── Accento colori ── */
+  const _ACCENTS = [
+    { label:'Ocean',  a:'#6366F1', b:'#818CF8' },
+    { label:'Viola',  a:'#8B5CF6', b:'#A78BFA' },
+    { label:'Rosa',   a:'#EC4899', b:'#F472B6' },
+    { label:'Coral',  a:'#F97316', b:'#FB923C' },
+    { label:'Verde',  a:'#10B981', b:'#34D399' },
+    { label:'Teal',   a:'#06B6D4', b:'#22D3EE' },
+    { label:'Gold',   a:'#F59E0B', b:'#FCD34D' },
+    { label:'Slate',  a:'#64748B', b:'#94A3B8' },
+  ];
+
+  function _getTdEnabled() {
+    try { const v = JSON.parse(localStorage.getItem('sf_td')); if (Array.isArray(v)) return v; } catch {}
+    return [..._TD_ALL];
+  }
+  function initTimerDecos() {
+    const wrap = document.getElementById('timer-decos');
+    if (!wrap) return;
+    const enabled = _getTdEnabled();
+    let html = ''; let posIdx = 0;
+    _TD_ALL.forEach(id => {
+      if (!enabled.includes(id)) return;
+      const pos = _TD_POS[posIdx++ % _TD_POS.length];
+      html += `<span class="td td-${posIdx}" style="${pos}">${_TD_SVG[id]}</span>`;
+    });
+    wrap.innerHTML = html;
+  }
+
+  /* ── Accent color ── */
+  function _applyAccent(idx) {
+    const a = _ACCENTS[idx];
+    if (!a) return;
+    const root = document.documentElement;
+    root.style.setProperty('--accent',   a.a);
+    root.style.setProperty('--accent-2', a.b);
+  }
+  function pickAccentColor(idx) {
+    localStorage.setItem('sf_accent', idx);
+    _applyAccent(idx);
+    document.querySelectorAll('.sp-swatch').forEach((s, i) => s.classList.toggle('sp-active', i === idx));
+  }
+  function _buildSwatches() {
+    const row = document.getElementById('sp-swatches');
+    if (!row || row.children.length > 0) return;
+    const cur = parseInt(localStorage.getItem('sf_accent') ?? '-1');
+    _ACCENTS.forEach((a, i) => {
+      const s = document.createElement('div');
+      s.className = 'sp-swatch' + (i === cur ? ' sp-active' : '');
+      s.style.background = `linear-gradient(135deg, ${a.a}, ${a.b})`;
+      s.title = a.label;
+      s.onclick = () => pickAccentColor(i);
+      row.appendChild(s);
+    });
+  }
+
+  /* ── Duration ── */
+  function pickDuration(mins) {
+    localStorage.setItem('sf_work_dur', mins);
+    if (typeof setWorkDuration === 'function') setWorkDuration(mins);
+    document.querySelectorAll('[data-sp-type="dur"]').forEach(t => t.classList.toggle('sp-active', Number(t.dataset.spVal) === mins));
+  }
+
+  /* ── Styles ── */
+  function initStyles() {
+    const ts = localStorage.getItem('sf_ts') || 'minimal';
+    const cs = localStorage.getItem('sf_cs') || 'standard';
+    const rw = document.getElementById('ring-wrap');
+    const cc = document.getElementById('clock-card');
+    if (rw) rw.dataset.ts = ts;
+    if (cc) cc.dataset.cs = cs;
+    const ai = parseInt(localStorage.getItem('sf_accent') ?? '-1');
+    if (ai >= 0) _applyAccent(ai);
+    initTimerDecos();
+  }
+  function saveWorkLabel(val) {
+    localStorage.setItem('sf_work_label', val.trim());
+    /* Aggiorna subito il badge nel timer */
+    const badge = document.getElementById('session-badge');
+    if (badge && (typeof timerMode === 'undefined' || timerMode === 'work')) {
+      badge.textContent = (val.trim() || 'LAVORO').toUpperCase();
+    }
+  }
+
+  function openStylePicker() {
+    const o = document.getElementById('sp-overlay');
+    if (!o) return;
+    _buildDecoTiles();
+    _buildSwatches();
+    /* Pre-popola etichetta */
+    const inp = document.getElementById('sp-work-label');
+    if (inp) inp.value = localStorage.getItem('sf_work_label') || '';
+    o.classList.add('active');
+    _refreshSpTiles();
+  }
+  function closeStylePicker() {
+    const o = document.getElementById('sp-overlay');
+    if (o) o.classList.remove('active');
+  }
+  function _buildDecoTiles() {
+    const row = document.getElementById('sp-decos-row');
+    if (!row || row.children.length > 0) return;
+    const enabled = _getTdEnabled();
+    _TD_ALL.forEach(id => {
+      const on = enabled.includes(id);
+      const t = document.createElement('div');
+      t.className = 'sp-tile sp-deco-tile' + (on ? ' sp-active' : '');
+      t.dataset.tdId = id;
+      t.innerHTML = `<span class="sp-deco-icon">${_TD_SVG[id]}</span><span class="sp-tile-lbl">${_TD_LABEL[id]}</span>`;
+      t.onclick = () => toggleDeco(id);
+      row.appendChild(t);
+    });
+  }
+  function toggleDeco(id) {
+    const enabled = _getTdEnabled();
+    const idx = enabled.indexOf(id);
+    if (idx >= 0) enabled.splice(idx, 1); else enabled.push(id);
+    localStorage.setItem('sf_td', JSON.stringify(enabled));
+    initTimerDecos();
+    document.querySelectorAll('[data-td-id]').forEach(t => t.classList.toggle('sp-active', enabled.includes(t.dataset.tdId)));
+  }
+  function _refreshSpTiles() {
+    const ts  = localStorage.getItem('sf_ts')  || 'minimal';
+    const cs  = localStorage.getItem('sf_cs')  || 'standard';
+    const dur = parseInt(localStorage.getItem('sf_work_dur') || '25');
+    document.querySelectorAll('[data-sp-type="timer"]').forEach(t => t.classList.toggle('sp-active', t.dataset.spVal === ts));
+    document.querySelectorAll('[data-sp-type="clock"]').forEach(t => t.classList.toggle('sp-active', t.dataset.spVal === cs));
+    document.querySelectorAll('[data-sp-type="dur"]').forEach(t => t.classList.toggle('sp-active', Number(t.dataset.spVal) === dur));
+  }
+  function pickTimerStyle(val) {
+    localStorage.setItem('sf_ts', val);
+    const rw = document.getElementById('ring-wrap');
+    if (rw) rw.dataset.ts = val;
+    _refreshSpTiles();
+  }
+  function pickClockStyle(val) {
+    localStorage.setItem('sf_cs', val);
+    const cc = document.getElementById('clock-card');
+    if (cc) cc.dataset.cs = val;
+    _refreshSpTiles();
+  }
+  initStyles();
+</script>
+</body>
+</html>
