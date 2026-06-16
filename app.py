@@ -1,10 +1,11 @@
 """
-StudyFlow — Backend Flask + SQLite
+StudyFlow — Backend Flask
+SQLite in locale, PostgreSQL su Render (via DATABASE_URL).
 Avvia con: python3 app.py
-Poi apri: http://localhost:5002
 """
 
 import os
+import re
 import sqlite3
 import csv
 import io
@@ -20,14 +21,115 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 DB = "studyflow.db"
 
 # ──────────────────────────────────────────
-# DATABASE
+# DATABASE — SQLite locale / PostgreSQL Render
 # ──────────────────────────────────────────
 
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+USE_PG = bool(DATABASE_URL)
+
+if USE_PG:
+    import psycopg2
+    import psycopg2.extras
+    _IntegrityError = psycopg2.IntegrityError
+else:
+    _IntegrityError = sqlite3.IntegrityError
+
+
+def _now():
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+
+def _parse_dt(v):
+    """Normalizza stringa o oggetto datetime in datetime senza timezone."""
+    if v is None:
+        return None
+    if isinstance(v, datetime):
+        return v.replace(tzinfo=None)
+    s = str(v)[:19]
+    try:
+        return datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
+    except Exception:
+        return None
+
+
+class _Conn:
+    """Context manager unificato: sqlite3 in locale, psycopg2 su Render."""
+
+    def __init__(self):
+        if USE_PG:
+            self._conn = psycopg2.connect(DATABASE_URL)
+            self._cur  = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        else:
+            self._conn = sqlite3.connect(DB)
+            self._conn.row_factory = sqlite3.Row
+            self._conn.execute('PRAGMA foreign_keys = ON')
+            self._cur = None
+
+    def execute(self, sql, params=()):
+        if self._cur is None:
+            return self._conn.execute(sql, params)
+        # ? → %s
+        sql = sql.replace('?', '%s')
+        # datetime('now','localtime') → valore Python
+        n = sql.count("datetime('now','localtime')")
+        if n:
+            sql = sql.replace("datetime('now','localtime')", '%s')
+            params = tuple(params) + (_now(),) * n
+        # datetime('now','localtime','-N minutes/hours') → valore Python
+        def _repl_offset(m):
+            try:
+                parts = m.group(1).strip().split()
+                val  = int(parts[0])
+                unit = parts[1].rstrip('s')
+                kw   = {'minute': 'minutes', 'hour': 'hours', 'day': 'days'}.get(unit, 'minutes')
+                return "'" + (datetime.now() + timedelta(**{kw: val})).strftime('%Y-%m-%d %H:%M:%S') + "'"
+            except Exception:
+                return "'" + _now() + "'"
+        sql = re.sub(r"datetime\('now','localtime','([^']+)'\)", _repl_offset, sql)
+        self._cur.execute(sql, params)
+        return self._cur
+
+    def executescript(self, script):
+        if self._cur is None:
+            self._conn.executescript(script)
+            return
+        script = (script
+            .replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')
+            .replace('COLLATE NOCASE', '')
+            .replace("DEFAULT (datetime('now','localtime'))",
+                     "DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS')")
+            .replace("datetime('now','localtime')",
+                     "to_char(NOW(),'YYYY-MM-DD HH24:MI:SS')"))
+        self._conn.autocommit = True
+        for stmt in script.split(';'):
+            s = stmt.strip()
+            if s:
+                try:
+                    self._cur.execute(s)
+                except Exception:
+                    pass  # IF NOT EXISTS gestisce la maggior parte dei casi
+        self._conn.autocommit = False
+
+    def commit(self):
+        self._conn.commit()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, *_):
+        if self._cur is not None:
+            if exc_type:
+                self._conn.rollback()
+            else:
+                self._conn.commit()
+            self._cur.close()
+        self._conn.close()
+
+
 def get_db():
-    conn = sqlite3.connect(DB)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    return _Conn()
 
 def init_db():
     with get_db() as c:
@@ -127,12 +229,23 @@ def _add_coins_userdata(c, user_id, amount):
     """, (user_id, "sf_coins", json_lib.dumps(cd)))
 
 def _migrate_db():
-    with get_db() as c:
+    if USE_PG:
         try:
-            c.execute("ALTER TABLE users ADD COLUMN pin_hash TEXT")
-            c.commit()
-        except sqlite3.OperationalError:
+            conn = psycopg2.connect(DATABASE_URL)
+            conn.autocommit = True
+            cur = conn.cursor()
+            cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash TEXT")
+            cur.close()
+            conn.close()
+        except Exception:
             pass
+    else:
+        with get_db() as c:
+            try:
+                c.execute("ALTER TABLE users ADD COLUMN pin_hash TEXT")
+                c.commit()
+            except sqlite3.OperationalError:
+                pass
 
 init_db()
 _migrate_db()
@@ -500,15 +613,11 @@ def friends_list():
         presence_at = r["presence_at"] if isinstance(r, dict) else r["presence_at"]
         last_seen   = r["last_seen"]   if isinstance(r, dict) else r["last_seen"]
         if presence_at:
-            try:
-                pu = datetime.strptime(presence_at, "%Y-%m-%d %H:%M:%S")
-                online = (now - pu).total_seconds() < 180
-            except Exception: pass
+            pu = _parse_dt(presence_at)
+            if pu: online = (now - pu).total_seconds() < 180
         if not online and last_seen:
-            try:
-                ls = datetime.strptime(last_seen, "%Y-%m-%d %H:%M:%S")
-                online = (now - ls).total_seconds() < 300
-            except Exception: pass
+            ls = _parse_dt(last_seen)
+            if ls: online = (now - ls).total_seconds() < 300
         fid = r["friendship_id"] if isinstance(r, dict) else r["friendship_id"]
         result.append({
             "id":            r["id"],
@@ -717,17 +826,20 @@ def add_session():
     duration = data.get("duration")
     if not duration:
         return jsonify({"error": "duration required"}), 400
+    params = (
+        data.get("date", date.today().isoformat()),
+        int(duration),
+        data.get("subject", ""),
+    )
     with get_db() as c:
-        cur = c.execute(
-            "INSERT INTO sessions (date, duration, subject) VALUES (?,?,?)",
-            (
-                data.get("date", date.today().isoformat()),
-                int(duration),
-                data.get("subject", ""),
-            )
-        )
+        if USE_PG:
+            cur    = c.execute("INSERT INTO sessions (date, duration, subject) VALUES (?,?,?) RETURNING id", params)
+            new_id = cur.fetchone()[0]
+        else:
+            cur    = c.execute("INSERT INTO sessions (date, duration, subject) VALUES (?,?,?)", params)
+            new_id = cur.lastrowid
         c.commit()
-    return jsonify({"id": cur.lastrowid, "ok": True}), 201
+    return jsonify({"id": new_id, "ok": True}), 201
 
 # ──────────────────────────────────────────
 # API: STATISTICHE
@@ -817,15 +929,18 @@ def add_subject():
     name = data.get("name", "").strip()
     if not name:
         return jsonify({"error": "name required"}), 400
+    params = (name, data.get("color", "#29B6F6"), data.get("goal_min", 60))
     with get_db() as c:
         try:
-            cur = c.execute(
-                "INSERT INTO subjects (name, color, goal_min) VALUES (?,?,?)",
-                (name, data.get("color", "#29B6F6"), data.get("goal_min", 60))
-            )
+            if USE_PG:
+                cur    = c.execute("INSERT INTO subjects (name, color, goal_min) VALUES (?,?,?) RETURNING id", params)
+                new_id = cur.fetchone()[0]
+            else:
+                cur    = c.execute("INSERT INTO subjects (name, color, goal_min) VALUES (?,?,?)", params)
+                new_id = cur.lastrowid
             c.commit()
-            return jsonify({"id": cur.lastrowid, "ok": True}), 201
-        except sqlite3.IntegrityError:
+            return jsonify({"id": new_id, "ok": True}), 201
+        except _IntegrityError:
             return jsonify({"error": "materia gia' esistente"}), 409
 
 @app.route("/api/subjects/<int:sid>", methods=["DELETE"])
@@ -882,15 +997,16 @@ def presence_ping():
 @app.route("/api/presence/online", methods=["GET"])
 def presence_online():
     get_auth_user(required=True)
+    five_min_ago = (datetime.now() - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
     with get_db() as c:
         rows = c.execute("""
             SELECT u.username, p.page, p.studying, p.updated_at
             FROM presence p
             JOIN users u ON u.id = p.user_id
-            WHERE p.updated_at >= datetime('now','localtime','-5 minutes')
-              AND u.username != 'kiwi07'
+            WHERE p.updated_at >= ?
+              AND u.username != ?
             ORDER BY p.studying DESC, p.updated_at DESC
-        """).fetchall()
+        """, (five_min_ago, 'kiwi07')).fetchall()
     return jsonify([dict(r) for r in rows])
 
 # ──────────────────────────────────────────

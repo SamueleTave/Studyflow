@@ -465,12 +465,31 @@ function _saveCheckinData(mood, note, compreh) {
 let _hydroWorkMinutes = 0;
 const HYDRO_INTERVAL  = 30; /* minuti */
 
+function _playWaterSound() {
+  if (!cfg.sound) return;
+  try {
+    const ctx = getAudioCtx();
+    [[1400, 0, 0.35], [1050, 0.22, 0.38]].forEach(([freq, when, dur]) => {
+      const osc = ctx.createOscillator();
+      const g   = ctx.createGain();
+      osc.connect(g); g.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.value = freq;
+      const t = ctx.currentTime + when;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.16, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      osc.start(t); osc.stop(t + dur + 0.05);
+    });
+  } catch (e) {}
+}
+
 function tickHydration(isRunningWork) {
   if (!isRunningWork || cfg.hydration === false) return;
   _hydroWorkMinutes++;
   updateHydroDrop();
   if (_hydroWorkMinutes >= HYDRO_INTERVAL) {
     _hydroWorkMinutes = 0;
+    _playWaterSound();
     const wrap = document.getElementById('hydro-large-wrap');
     if (wrap) {
       wrap.classList.add('full');
