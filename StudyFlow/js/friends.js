@@ -114,14 +114,23 @@ function renderFriendsList() {
     el.innerHTML = '<div class="friends-empty">Nessun amico ancora. Cerca un utente qui sopra!</div>';
     return;
   }
-  var online  = friends.filter(function(f) { return f.online; });
-  var offline = friends.filter(function(f) { return !f.online; });
+
+  var studying = friends.filter(function(f) { return f.online && f.studying; });
+  var online   = friends.filter(function(f) { return f.online && !f.studying; });
+  var offline  = friends.filter(function(f) { return !f.online; });
 
   function _card(f) {
-    var dot   = f.online ? 'friends-dot-online' : 'friends-dot-offline';
-    var label = f.online
-      ? (f.studying ? '📚 Sta studiando' : '🟢 Online')
-      : '⚫ Offline';
+    var dot, label;
+    if (f.online && f.studying) {
+      dot   = 'friends-dot-studying';
+      label = 'Sta studiando';
+    } else if (f.online) {
+      dot   = 'friends-dot-online';
+      label = 'Online';
+    } else {
+      dot   = 'friends-dot-offline';
+      label = 'Offline';
+    }
     return '<div class="friends-card">' +
       '<div class="friends-avatar">' + f.username.charAt(0).toUpperCase() + '</div>' +
       '<div class="friends-info">' +
@@ -133,8 +142,12 @@ function renderFriendsList() {
   }
 
   var html = '';
+  if (studying.length) {
+    html += '<div class="friends-group-label">📚 Stanno studiando (' + studying.length + ')</div>';
+    html += studying.map(_card).join('');
+  }
   if (online.length) {
-    html += '<div class="friends-group-label">Online ora (' + online.length + ')</div>';
+    html += '<div class="friends-group-label">🟢 Online (' + online.length + ')</div>';
     html += online.map(_card).join('');
   }
   if (offline.length) {

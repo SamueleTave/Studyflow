@@ -432,7 +432,7 @@ def friends_list():
     with get_db() as c:
         rows = c.execute(
             """SELECT u.id, u.username, u.last_seen,
-                      p.studying, p.page,
+                      p.studying, p.page, p.updated_at as presence_at,
                       f.id as friendship_id
                FROM friendships f
                JOIN users u ON (
@@ -446,7 +446,15 @@ def friends_list():
     result = []
     for r in rows:
         online = False
-        if r["last_seen"]:
+        # presenza aggiornata ogni 60s — threshold 3 min
+        if r["presence_at"]:
+            try:
+                pu = datetime.strptime(r["presence_at"], "%Y-%m-%d %H:%M:%S")
+                online = (now - pu).total_seconds() < 180
+            except Exception:
+                pass
+        # fallback su last_seen (5 min)
+        if not online and r["last_seen"]:
             try:
                 ls = datetime.strptime(r["last_seen"], "%Y-%m-%d %H:%M:%S")
                 online = (now - ls).total_seconds() < 300
