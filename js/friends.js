@@ -83,7 +83,15 @@ function sendFriendRequest(username) {
 function acceptRequest(fid) {
   _apiCall('POST', '/friends/' + fid + '/accept', null, function(err, data) {
     if (err || data.error) { _showFriendsToast(data && data.error ? data.error : 'Errore', true); return; }
-    _showFriendsToast('Amicizia accettata!');
+    var msg = data.coins ? 'Amicizia accettata! +' + data.coins + ' monete 🪙' : 'Amicizia accettata!';
+    _showFriendsToast(msg);
+    /* Ricarica dati dal server per aggiornare monete e lista amici */
+    if (typeof loadFromServer === 'function') {
+      loadFromServer().then(function() {
+        if (typeof loadCoinData === 'function') loadCoinData();
+        if (typeof _updateCoinDisplay === 'function') _updateCoinDisplay();
+      });
+    }
     loadFriends();
     loadFriendRequests();
   });
@@ -99,7 +107,10 @@ function rejectRequest(fid) {
 
 function removeFriend(fid, username) {
   if (!confirm('Rimuovere ' + username + ' dagli amici?')) return;
-  _apiCall('DELETE', '/friends/' + fid, null, function(err, data) {
+  /* fid può essere null se l'amico proviene da user_data (backup) */
+  var path = (fid && fid !== 'null') ? '/friends/' + fid : '/friends/remove/' + encodeURIComponent(username);
+  var method = 'DELETE';
+  _apiCall(method, path, null, function(err, data) {
     if (err || data.error) { _showFriendsToast(data && data.error ? data.error : 'Errore', true); return; }
     _showFriendsToast(username + ' rimosso dagli amici.');
     loadFriends();

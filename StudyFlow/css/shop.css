@@ -882,3 +882,63 @@ body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out inf
 .owl-companion.owl-happy    svg { animation: rabbit-bounce 0.35s ease-in-out infinite alternate; }
 .owl-companion.owl-happy .owl-heart { animation: heart-pop 0.4s ease; }
 .owl-companion.owl-sleeping .owl-zzz { animation: zzz-float 2.8s ease-in-out infinite; }
+
+/* ══════════════════════════════════════
+   LEONE
+═══════════════════════════════════════ */
+.lion-companion {
+  cursor: pointer;
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.18));
+  user-select: none;
+}
+.lion-companion.lion-hidden { opacity:0 !important; pointer-events:none !important; }
+.lion-dir-wrap { display:flex; flex-direction:column; align-items:center; }
+
+/* Tail */
+.lion-companion.lion-sleeping .lion-tail {
+  animation: lion-tail-slow 4s ease-in-out infinite;
+  transform-origin: 68px 80px;
+  transform-box: view-box;
+}
+.lion-companion.lion-sitting .lion-tail {
+  animation: lion-tail-slow 3s ease-in-out infinite;
+  transform-origin: 68px 80px;
+  transform-box: view-box;
+}
+.lion-companion.lion-walking .lion-tail,
+.lion-companion.lion-happy   .lion-tail {
+  animation: lion-tail-fast 0.42s ease-in-out infinite;
+  transform-origin: 68px 80px;
+  transform-box: view-box;
+}
+
+/* SVG body */
+.lion-companion.lion-sleeping svg { animation: cat-breathe  3.5s ease-in-out infinite; }
+.lion-companion.lion-sitting  svg { animation: cat-breathe  4.2s ease-in-out infinite; }
+.lion-companion.lion-walking  svg { animation: cat-hop      0.45s ease-in-out infinite; }
+.lion-companion.lion-happy    svg { animation: cat-bounce-happy 0.38s ease-in-out infinite alternate; }
+
+/* Paws alternate while walking */
+.lion-companion.lion-walking .lion-paw-l {
+  animation: paw-lift 0.45s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+.lion-companion.lion-walking .lion-paw-r {
+  animation: paw-lift 0.45s 0.225s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ZZZ / heart */
+.lion-companion.lion-sleeping .lion-zzz  { animation: zzz-float  2.4s ease-in-out infinite; }
+.lion-companion.lion-happy    .lion-heart { animation: heart-pop  0.4s ease; }
+
+@keyframes lion-tail-slow {
+  0%,100% { transform: rotate(0deg);  }
+  50%     { transform: rotate(20deg); }
+}
+@keyframes lion-tail-fast {
+  0%,100% { transform: rotate(-14deg); }
+  50%     { transform: rotate(18deg);  }
+}

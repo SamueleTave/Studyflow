@@ -770,7 +770,7 @@ function renderShopPage() {
   /* Griglia items */
   const grid       = document.getElementById('shop-items-grid');
   const gardenGrid = document.getElementById('shop-garden-grid');
-  if (!grid) return;
+  /* non uscire se grid è null — potrebbe essere la nuova struttura a sezioni */
 
   const curTheme = document.documentElement.getAttribute('data-theme');
 

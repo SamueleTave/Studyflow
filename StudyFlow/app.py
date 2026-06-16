@@ -90,6 +90,42 @@ def init_db():
             );
         """)
 
+def _sf_friends_list(c, user_id):
+    row = c.execute("SELECT value FROM user_data WHERE user_id=? AND key='sf_friends'", (user_id,)).fetchone()
+    if row and row["value"]:
+        try: return json_lib.loads(row["value"])
+        except: pass
+    return []
+
+def _sf_friends_add(c, user_id, friend_username):
+    friends = _sf_friends_list(c, user_id)
+    if friend_username not in friends:
+        friends.append(friend_username)
+    c.execute("""
+        INSERT INTO user_data (user_id, key, value, updated_at) VALUES (?,?,?,datetime('now','localtime'))
+        ON CONFLICT(user_id, key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+    """, (user_id, "sf_friends", json_lib.dumps(friends)))
+
+def _sf_friends_remove(c, user_id, friend_username):
+    friends = [f for f in _sf_friends_list(c, user_id) if f != friend_username]
+    c.execute("""
+        INSERT INTO user_data (user_id, key, value, updated_at) VALUES (?,?,?,datetime('now','localtime'))
+        ON CONFLICT(user_id, key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+    """, (user_id, "sf_friends", json_lib.dumps(friends)))
+
+def _add_coins_userdata(c, user_id, amount):
+    row = c.execute("SELECT value FROM user_data WHERE user_id=? AND key='sf_coins'", (user_id,)).fetchone()
+    cd = {}
+    if row and row["value"]:
+        try: cd = json_lib.loads(row["value"])
+        except: pass
+    cd["balance"]     = (cd.get("balance")     or 0) + amount
+    cd["totalEarned"] = (cd.get("totalEarned") or 0) + amount
+    c.execute("""
+        INSERT INTO user_data (user_id, key, value, updated_at) VALUES (?,?,?,datetime('now','localtime'))
+        ON CONFLICT(user_id, key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+    """, (user_id, "sf_coins", json_lib.dumps(cd)))
+
 def _migrate_db():
     with get_db() as c:
         try:
@@ -442,31 +478,45 @@ def friends_list():
                WHERE (f.requester_id=? OR f.receiver_id=?) AND f.status='accepted'""",
             (me["id"], me["id"], me["id"])
         ).fetchall()
+
+        seen = {r["username"] for r in rows}
+        extra = []
+        for uname in _sf_friends_list(c, me["id"]):
+            if uname not in seen:
+                u = c.execute(
+                    """SELECT u.id, u.username, u.last_seen,
+                              p.studying, p.page, p.updated_at as presence_at
+                       FROM users u LEFT JOIN presence p ON p.user_id=u.id
+                       WHERE u.username=? COLLATE NOCASE""", (uname,)
+                ).fetchone()
+                if u:
+                    extra.append({**dict(u), "friendship_id": None})
+                    seen.add(uname)
+
     now = datetime.now()
     result = []
-    for r in rows:
+    for r in [*rows, *extra]:
         online = False
-        # presenza aggiornata ogni 60s — threshold 3 min
-        if r["presence_at"]:
+        presence_at = r["presence_at"] if isinstance(r, dict) else r["presence_at"]
+        last_seen   = r["last_seen"]   if isinstance(r, dict) else r["last_seen"]
+        if presence_at:
             try:
-                pu = datetime.strptime(r["presence_at"], "%Y-%m-%d %H:%M:%S")
+                pu = datetime.strptime(presence_at, "%Y-%m-%d %H:%M:%S")
                 online = (now - pu).total_seconds() < 180
-            except Exception:
-                pass
-        # fallback su last_seen (5 min)
-        if not online and r["last_seen"]:
+            except Exception: pass
+        if not online and last_seen:
             try:
-                ls = datetime.strptime(r["last_seen"], "%Y-%m-%d %H:%M:%S")
+                ls = datetime.strptime(last_seen, "%Y-%m-%d %H:%M:%S")
                 online = (now - ls).total_seconds() < 300
-            except Exception:
-                pass
+            except Exception: pass
+        fid = r["friendship_id"] if isinstance(r, dict) else r["friendship_id"]
         result.append({
-            "id": r["id"],
-            "username": r["username"],
-            "online": online,
-            "studying": bool(r["studying"]),
-            "page": r["page"],
-            "friendship_id": r["friendship_id"]
+            "id":            r["id"],
+            "username":      r["username"],
+            "online":        online,
+            "studying":      bool(r["studying"]),
+            "page":          r["page"],
+            "friendship_id": fid
         })
     result.sort(key=lambda x: (not x["online"], x["username"].lower()))
     return jsonify(result)
@@ -538,9 +588,16 @@ def friends_accept(fid):
         ).fetchone()
         if not f:
             return jsonify({"error": "Richiesta non trovata"}), 404
+        requester = c.execute("SELECT username FROM users WHERE id=?", (f["requester_id"],)).fetchone()
         c.execute("UPDATE friendships SET status='accepted' WHERE id=?", (fid,))
+        # Persiste in user_data: sopravvive ai restart del DB
+        _sf_friends_add(c, me["id"], requester["username"] if requester else "")
+        _sf_friends_add(c, f["requester_id"], me["username"])
+        # 25 monete a entrambi
+        _add_coins_userdata(c, me["id"], 25)
+        _add_coins_userdata(c, f["requester_id"], 25)
         c.commit()
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "coins": 25})
 
 @app.route("/api/friends/<int:fid>/reject", methods=["POST"])
 def friends_reject(fid):
@@ -564,9 +621,32 @@ def friends_remove(fid):
             "SELECT * FROM friendships WHERE id=? AND (requester_id=? OR receiver_id=?)",
             (fid, me["id"], me["id"])
         ).fetchone()
-        if not f:
+        if f:
+            other_id = f["receiver_id"] if f["requester_id"] == me["id"] else f["requester_id"]
+            other = c.execute("SELECT username FROM users WHERE id=?", (other_id,)).fetchone()
+            c.execute("DELETE FROM friendships WHERE id=?", (fid,))
+            if other:
+                _sf_friends_remove(c, me["id"], other["username"])
+                _sf_friends_remove(c, other_id, me["username"])
+        else:
             return jsonify({"error": "Amicizia non trovata"}), 404
-        c.execute("DELETE FROM friendships WHERE id=?", (fid,))
+        c.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/friends/remove/<friend_username>", methods=["DELETE"])
+def friends_remove_by_username(friend_username):
+    """Rimozione per username — fallback quando il DB è stato resettato."""
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        other = c.execute(
+            "SELECT id FROM users WHERE username=? COLLATE NOCASE", (friend_username,)
+        ).fetchone()
+        if other:
+            c.execute("""DELETE FROM friendships WHERE
+                (requester_id=? AND receiver_id=?) OR (requester_id=? AND receiver_id=?)""",
+                (me["id"], other["id"], other["id"], me["id"]))
+            _sf_friends_remove(c, other["id"], me["username"])
+        _sf_friends_remove(c, me["id"], friend_username)
         c.commit()
     return jsonify({"ok": True})
 
