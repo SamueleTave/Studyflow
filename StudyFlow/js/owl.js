@@ -96,7 +96,7 @@ function _createPerchHouse(rightPx, topPx, color) {
     <rect x="57" y="6" width="9" height="20" rx="4" fill="${color}" opacity="0.8"/>
     <rect x="0" y="6" width="70" height="10" rx="5" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
   </svg>`;
-  document.body.appendChild(h);
+  (document.querySelector('.app') || document.body).appendChild(h);
   return h;
 }
 
@@ -111,7 +111,7 @@ function initOwl() {
   _owlEl.title     = 'Clicca il gufo!';
   _owlEl.style.cssText = `position:fixed;right:${OWL_RIGHT}px;top:${OWL_TOP}px;left:auto;z-index:600;cursor:pointer;`;
   _owlEl.addEventListener('click', _onOwlClick);
-  document.body.appendChild(_owlEl);
+  (document.querySelector('.app') || document.body).appendChild(_owlEl);
 
   _owlHouseEl = _createPerchHouse(OWL_RIGHT, OWL_TOP, '#9B8B6E');
   _owlHouseEl.classList.add('house-hidden');
@@ -288,7 +288,7 @@ function owlEnterGarden() {
         _startGardenFlyOwl(rect);
       }
     }, 1300);
-  }, 560);
+  }, 900);
 }
 
 function _startGardenFlyOwl(rect) {

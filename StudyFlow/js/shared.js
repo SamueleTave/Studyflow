@@ -294,6 +294,8 @@ function initShared() {
   _initQuickNote();
   _initCheckin();
   _injectHydrationToggle();
+  checkAnimalMood();
+  _initPresence();
 }
 
 /* ══════════════════════════════════════
@@ -375,6 +377,14 @@ function _initCheckin() {
         ${_MOODS.map((m,i) => `<button class="checkin-mood" data-idx="${i}" onclick="_selectMood(${i})">${m}</button>`).join('')}
       </div>
       <input id="checkin-note" class="checkin-note" type="text" placeholder="Cosa hai studiato? (facoltativo)" maxlength="80">
+      <div class="checkin-compreh-label">Quanto hai capito?</div>
+      <div class="checkin-compreh" id="checkin-compreh">
+        <button class="compreh-btn" onclick="_selectCompreh(1)">😵<span>Poco</span></button>
+        <button class="compreh-btn" onclick="_selectCompreh(2)">😐<span>Abbastanza</span></button>
+        <button class="compreh-btn" onclick="_selectCompreh(3)">🙂<span>Bene</span></button>
+        <button class="compreh-btn" onclick="_selectCompreh(4)">😊<span>Molto</span></button>
+        <button class="compreh-btn" onclick="_selectCompreh(5)">🤩<span>Perfetto!</span></button>
+      </div>
       <div class="checkin-footer">
         <button class="checkin-skip" onclick="_closeCheckin()">Salta</button>
         <button class="checkin-confirm" onclick="_confirmCheckin()">Conferma</button>
@@ -387,6 +397,7 @@ function _initCheckin() {
 let _checkinTimeout = null;
 let _checkinCallback = null;
 let _selectedMood = -1;
+let _selectedCompreh = -1;
 
 function showSessionCheckin(sessionSubject, callback) {
   const overlay = document.getElementById('checkin-overlay');
@@ -401,6 +412,8 @@ function showSessionCheckin(sessionSubject, callback) {
 
   /* Reset mood buttons */
   overlay.querySelectorAll('.checkin-mood').forEach(b => b.classList.remove('selected'));
+  _selectedCompreh = -1;
+  overlay.querySelectorAll('.compreh-btn').forEach(b => b.classList.remove('selected'));
 
   overlay.classList.add('open');
 
@@ -416,10 +429,15 @@ function _selectMood(idx) {
   document.querySelectorAll('.checkin-mood').forEach((b, i) => b.classList.toggle('selected', i === idx));
 }
 
+function _selectCompreh(v) {
+  _selectedCompreh = v;
+  document.querySelectorAll('.compreh-btn').forEach((b, i) => b.classList.toggle('selected', (i + 1) === v));
+}
+
 function _confirmCheckin() {
   const noteEl = document.getElementById('checkin-note');
   const note = noteEl ? noteEl.value.trim() : '';
-  _saveCheckinData(_selectedMood, note);
+  _saveCheckinData(_selectedMood, note, _selectedCompreh);
   _closeCheckin();
 }
 
@@ -430,11 +448,11 @@ function _closeCheckin() {
   if (_checkinCallback) { _checkinCallback(); _checkinCallback = null; }
 }
 
-function _saveCheckinData(mood, note) {
+function _saveCheckinData(mood, note, compreh) {
   try {
     const today = new Date().toISOString().slice(0, 10);
     const checkins = JSON.parse(localStorage.getItem('sf_checkins') || '[]');
-    checkins.push({ date: today, ts: Date.now(), mood, note });
+    checkins.push({ date: today, ts: Date.now(), mood, note, compreh });
     if (checkins.length > 200) checkins.splice(0, checkins.length - 200);
     localStorage.setItem('sf_checkins', JSON.stringify(checkins));
   } catch {}
@@ -634,4 +652,142 @@ function _adminReset() {
   if (typeof _updateCoinDisplay === 'function') _updateCoinDisplay();
   _adminRefreshDisplay();
   if (typeof renderShopPage === 'function') renderShopPage();
+}
+
+/* ══════════════════════════════════════
+   FEATURE — PENSIERI ANIMALI
+═══════════════════════════════════════ */
+function showAnimalThought(text, duration) {
+  duration = duration || 5000;
+  var b = document.getElementById('animal-bubble');
+  if (!b) {
+    b = document.createElement('div');
+    b.id = 'animal-bubble';
+    (document.querySelector('.app') || document.body).appendChild(b);
+  }
+  clearTimeout(b._hideTimer);
+  b.textContent = text;
+  b.className = 'animal-bubble ab-show';
+  b._hideTimer = setTimeout(function() {
+    b.classList.remove('ab-show');
+    b.classList.add('ab-hide');
+    setTimeout(function() { b.className = 'animal-bubble'; }, 400);
+  }, duration);
+}
+
+function checkAnimalMood() {
+  // Mostra il fumetto solo se c'è almeno un animale attivo
+  if (typeof coinData === 'undefined' || !coinData || !coinData.activeEffects) return;
+  var fx = coinData.activeEffects;
+  if (!fx.catVisible && !fx.dogVisible && !fx.rabbitVisible && !fx.foxVisible && !fx.parrotVisible && !fx.owlVisible) return;
+
+  var s         = (typeof stats !== 'undefined') ? stats : {};
+  var sessions  = s.sessions  || 0;
+  var streak    = s.streak    || 0;
+  var lastStudy = s.lastStudy || null;
+  var today     = new Date().toDateString();
+  var yesterday = new Date(Date.now() - 86400000).toDateString();
+
+  var msg = '';
+  if (lastStudy && lastStudy !== today && lastStudy !== yesterday) {
+    var daysAgo = Math.round((Date.now() - new Date(lastStudy)) / 86400000);
+    msg = daysAgo <= 2
+      ? 'Ieri non ti ho visto… torna a studiare! 🥺'
+      : daysAgo + ' giorni senza studiare… mi manchi! 😿';
+  } else if (streak >= 7) {
+    msg = streak + ' giorni di streak — sei inarrestabile! 👑';
+  } else if (streak >= 3) {
+    msg = streak + ' giorni di fila, continua cos\xEC! 🔥';
+  } else if (sessions >= 4) {
+    msg = sessions + ' sessioni oggi — sei in modalit\xE0 genio! 🌟';
+  } else if (sessions >= 2) {
+    msg = 'Bene! Gi\xE0 ' + sessions + ' sessioni completate 💪';
+  } else if (sessions === 1) {
+    msg = 'Prima sessione completata, ottimo inizio! ✨';
+  } else {
+    var h = new Date().getHours();
+    if (h < 10)       msg = 'Buongiorno! Inizia con una sessione 📚';
+    else if (h >= 21) msg = "Un’ultima sessione prima di dormire? 🌙";
+    else              msg = 'Dai, inizia la prima sessione di oggi! 🎯';
+  }
+  if (msg) setTimeout(function() { showAnimalThought(msg); }, 2000);
+}
+
+/* ══════════════════════════════════════
+   FEATURE — PRESENZA SOCIALE
+═══════════════════════════════════════ */
+var _presenceStudying = false;
+
+function setPresenceStudying(v) {
+  _presenceStudying = !!v;
+}
+
+function _getAuth() {
+  try { return JSON.parse(sessionStorage.getItem('sf_auth')); } catch(e) { return null; }
+}
+
+function _pingPresence() {
+  var auth = _getAuth();
+  if (!auth || !auth.token) return;
+  var api  = (typeof window.SF_API_BASE !== 'undefined') ? window.SF_API_BASE : '/api';
+  var page = (window.location.pathname.split('/').pop() || 'index').replace('.html', '') || 'index';
+  fetch(api + '/presence/ping', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + auth.token },
+    body: JSON.stringify({ page: page, studying: _presenceStudying }),
+  }).catch(function() {});
+}
+
+function _fetchOnline() {
+  var auth = _getAuth();
+  if (!auth || !auth.token) return;
+  var api = (typeof window.SF_API_BASE !== 'undefined') ? window.SF_API_BASE : '/api';
+  fetch(api + '/presence/online', {
+    headers: { 'Authorization': 'Bearer ' + auth.token },
+  })
+  .then(function(r) { return r.ok ? r.json() : []; })
+  .then(function(users) { _renderOnlineWidget(users); })
+  .catch(function() {});
+}
+
+function _renderOnlineWidget(users) {
+  var el = document.getElementById('presence-widget');
+  if (!el) return;
+  var auth   = _getAuth();
+  var me     = auth ? auth.username : null;
+  var others = users.filter(function(u) { return u.username !== me; });
+  if (!others.length) {
+    el.innerHTML = '<span class="presence-empty">Nessun amico online</span>';
+    return;
+  }
+  var studying  = others.filter(function(u) { return u.studying; });
+  var countText = others.length === 1 ? '1 amico online' : others.length + ' amici online';
+  if (studying.length) countText += ' \xB7 ' + studying.length + (studying.length === 1 ? ' studia' : ' studiano');
+  el.innerHTML = '<div class="presence-count">' + countText + '</div>' +
+    others.slice(0, 4).map(function(u) {
+      return '<div class="presence-user">' +
+        '<span class="presence-dot ' + (u.studying ? 'studying' : 'idle') + '"></span>' +
+        '<span class="presence-name">' + esc(u.username) + '</span>' +
+        '</div>';
+    }).join('');
+}
+
+function _initPresence() {
+  var sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+  var spacer = sidebar.querySelector('.sidebar-spacer');
+  if (!spacer) return;
+
+  var section = document.createElement('div');
+  section.className = 'presence-section';
+  section.innerHTML =
+    '<div class="presence-label">Chi studia ora</div>' +
+    '<div id="presence-widget"><span class="presence-empty">—</span></div>';
+  sidebar.insertBefore(section, spacer);
+
+  var auth = _getAuth();
+  if (!auth || !auth.token) return;
+  _pingPresence();
+  _fetchOnline();
+  setInterval(function() { _pingPresence(); _fetchOnline(); }, 60000);
 }

@@ -676,6 +676,11 @@ function showAnimalThought(text, duration) {
 }
 
 function checkAnimalMood() {
+  // Mostra il fumetto solo se c'è almeno un animale attivo
+  if (typeof coinData === 'undefined' || !coinData || !coinData.activeEffects) return;
+  var fx = coinData.activeEffects;
+  if (!fx.catVisible && !fx.dogVisible && !fx.rabbitVisible && !fx.foxVisible && !fx.parrotVisible && !fx.owlVisible) return;
+
   var s         = (typeof stats !== 'undefined') ? stats : {};
   var sessions  = s.sessions  || 0;
   var streak    = s.streak    || 0;

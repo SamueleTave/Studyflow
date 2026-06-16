@@ -107,7 +107,7 @@ function _createGroundHouse(rightPx, bottomPx, color) {
     <rect x="22" y="30" width="16" height="18" rx="2" fill="rgba(0,0,0,0.25)"/>
     <rect x="10" y="26" width="40" height="22" rx="2" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
   </svg>`;
-  document.body.appendChild(h);
+  (document.querySelector('.app') || document.body).appendChild(h);
   return h;
 }
 
@@ -122,7 +122,7 @@ function initFox() {
   _foxEl.title     = 'Clicca la volpe!';
   _foxEl.style.cssText = `position:fixed;right:${FOX_RIGHT}px;bottom:${FOX_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
   _foxEl.addEventListener('click', _onFoxClick);
-  document.body.appendChild(_foxEl);
+  (document.querySelector('.app') || document.body).appendChild(_foxEl);
 
   _foxHouseEl = _createGroundHouse(FOX_RIGHT, FOX_BOTTOM, '#E8845A');
   _foxHouseEl.classList.add('house-hidden');
@@ -281,16 +281,17 @@ function foxEnterGarden() {
     _foxEl.style.transform = 'scale(0.45)';
     _foxEl.style.transformOrigin = 'left bottom';
     _startGardenWalkFox(rect);
-  }, 560);
+  }, 900);
 }
 
 function _startGardenWalkFox(rect) {
-  const SCALE = 0.45;
-  const pad   = 14;
+  const SCALE   = 0.45;
+  const pad     = 14;
+  const GRASS_H = 100;
   const minL  = rect.left   + pad;
   const maxL  = rect.right  - FOX_W * SCALE - pad;
-  const minB  = window.innerHeight - rect.bottom + 4;
-  const maxB  = minB + rect.height * 0.38;
+  const minB  = Math.max(4, window.innerHeight - rect.bottom + GRASS_H);
+  const maxB  = minB + 8;
 
   let _foxBusy = false;
   setFoxState('walking');

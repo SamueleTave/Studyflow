@@ -292,7 +292,7 @@ function parrotEnterGarden() {
         _startGardenFlyParrot(rect);
       }
     }, 1400);
-  }, 560);
+  }, 900);
 }
 
 function _startGardenFlyParrot(rect) {

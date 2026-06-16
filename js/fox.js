@@ -281,16 +281,17 @@ function foxEnterGarden() {
     _foxEl.style.transform = 'scale(0.45)';
     _foxEl.style.transformOrigin = 'left bottom';
     _startGardenWalkFox(rect);
-  }, 560);
+  }, 900);
 }
 
 function _startGardenWalkFox(rect) {
-  const SCALE = 0.45;
-  const pad   = 14;
+  const SCALE   = 0.45;
+  const pad     = 14;
+  const GRASS_H = 100;
   const minL  = rect.left   + pad;
   const maxL  = rect.right  - FOX_W * SCALE - pad;
-  const minB  = window.innerHeight - rect.bottom + 4;
-  const maxB  = minB + rect.height * 0.38;
+  const minB  = Math.max(4, window.innerHeight - rect.bottom + GRASS_H);
+  const maxB  = minB + 8;
 
   let _foxBusy = false;
   setFoxState('walking');

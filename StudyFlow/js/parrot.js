@@ -98,7 +98,7 @@ function _createPerchHouse(rightPx, topPx, color) {
     <rect x="22" y="30" width="16" height="18" rx="2" fill="rgba(0,0,0,0.25)"/>
     <rect x="10" y="26" width="40" height="22" rx="2" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
   </svg>`;
-  document.body.appendChild(h);
+  (document.querySelector('.app') || document.body).appendChild(h);
   return h;
 }
 
@@ -112,7 +112,7 @@ function initParrot() {
   _parrotEl.innerHTML = PARROT_SVG;
   _parrotEl.style.cssText = `position:fixed;right:${PARROT_RIGHT}px;top:${PARROT_TOP}px;left:auto;z-index:600;cursor:pointer;`;
   _parrotEl.addEventListener('click', _onParrotClick);
-  document.body.appendChild(_parrotEl);
+  (document.querySelector('.app') || document.body).appendChild(_parrotEl);
 
   _parrotHouseEl = _createPerchHouse(PARROT_RIGHT, PARROT_TOP, '#27AE60');
   _parrotHouseEl.classList.add('house-hidden');
@@ -292,7 +292,7 @@ function parrotEnterGarden() {
         _startGardenFlyParrot(rect);
       }
     }, 1400);
-  }, 560);
+  }, 900);
 }
 
 function _startGardenFlyParrot(rect) {

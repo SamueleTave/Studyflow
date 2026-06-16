@@ -315,16 +315,17 @@ function dogEnterGarden() {
     _dogEl.style.transform = 'scale(0.45)';
     _dogEl.style.transformOrigin = 'left bottom';
     _startGardenWalkDog(rect);
-  }, 560);
+  }, 900);
 }
 
 function _startGardenWalkDog(rect) {
-  const SCALE = 0.45;
-  const pad   = 14;
+  const SCALE   = 0.45;
+  const pad     = 14;
+  const GRASS_H = 100;
   const minL  = rect.left   + pad;
   const maxL  = rect.right  - DOG_W * SCALE - pad;
-  const minB  = window.innerHeight - rect.bottom + 4;
-  const maxB  = minB + rect.height * 0.38;
+  const minB  = Math.max(4, window.innerHeight - rect.bottom + GRASS_H);
+  const maxB  = minB + 8;
 
   let _dogBusy = false;
   setDogState('walking');

@@ -472,16 +472,18 @@ function catEnterGarden() {
     _catEl.style.transformOrigin = 'left bottom';
     // Walk around garden
     _startGardenWalkCat(rect);
-  }, 580);
+  }, 900);
 }
 
 function _startGardenWalkCat(rect) {
-  const SCALE = 0.45;
-  const pad   = 14;
+  const SCALE  = 0.45;
+  const pad    = 14;
+  const GRASS_H = 100; // erba alta 100px dal fondo del canvas
   const minL  = rect.left   + pad;
   const maxL  = rect.right  - CAT_W * SCALE - pad;
-  const minB  = window.innerHeight - rect.bottom + 4;
-  const maxB  = minB + rect.height * 0.38;
+  // Posiziona l'animale SUL livello dell'erba (non dentro)
+  const minB  = Math.max(4, window.innerHeight - rect.bottom + GRASS_H);
+  const maxB  = minB + 8;
 
   setCatState('walking');
   const _gstep = () => {

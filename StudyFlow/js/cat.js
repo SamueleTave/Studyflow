@@ -228,7 +228,7 @@ function _createGroundHouse(rightPx, bottomPx, color) {
     <rect x="22" y="30" width="16" height="18" rx="2" fill="rgba(0,0,0,0.25)"/>
     <rect x="10" y="26" width="40" height="22" rx="2" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
   </svg>`;
-  document.body.appendChild(h);
+  (document.querySelector('.app') || document.body).appendChild(h);
   return h;
 }
 
@@ -247,7 +247,7 @@ function initCat() {
   _catEl.style.left   = 'auto';
   _catEl.style.zIndex = '600';
   _catEl.addEventListener('click', _onCatClick);
-  document.body.appendChild(_catEl);
+  (document.querySelector('.app') || document.body).appendChild(_catEl);
 
   _catHouseEl = _createGroundHouse(CAT_RIGHT_HOME, CAT_BOTTOM_HOME, '#F4C996');
   _catHouseEl.classList.add('house-hidden');
@@ -472,16 +472,18 @@ function catEnterGarden() {
     _catEl.style.transformOrigin = 'left bottom';
     // Walk around garden
     _startGardenWalkCat(rect);
-  }, 580);
+  }, 900);
 }
 
 function _startGardenWalkCat(rect) {
-  const SCALE = 0.45;
-  const pad   = 14;
+  const SCALE  = 0.45;
+  const pad    = 14;
+  const GRASS_H = 100; // erba alta 100px dal fondo del canvas
   const minL  = rect.left   + pad;
   const maxL  = rect.right  - CAT_W * SCALE - pad;
-  const minB  = window.innerHeight - rect.bottom + 4;
-  const maxB  = minB + rect.height * 0.38;
+  // Posiziona l'animale SUL livello dell'erba (non dentro)
+  const minB  = Math.max(4, window.innerHeight - rect.bottom + GRASS_H);
+  const maxB  = minB + 8;
 
   setCatState('walking');
   const _gstep = () => {

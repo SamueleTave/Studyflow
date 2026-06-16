@@ -79,7 +79,7 @@ function _createGroundHouse(rightPx, bottomPx, color) {
     <rect x="22" y="30" width="16" height="18" rx="2" fill="rgba(0,0,0,0.25)"/>
     <rect x="10" y="26" width="40" height="22" rx="2" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
   </svg>`;
-  document.body.appendChild(h);
+  (document.querySelector('.app') || document.body).appendChild(h);
   return h;
 }
 
@@ -93,7 +93,7 @@ function initRabbit() {
   _rabbitEl.innerHTML = RABBIT_SVG;
   _rabbitEl.style.cssText = `position:fixed;right:${RABBIT_RIGHT}px;bottom:${RABBIT_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
   _rabbitEl.addEventListener('click', _onRabbitClick);
-  document.body.appendChild(_rabbitEl);
+  (document.querySelector('.app') || document.body).appendChild(_rabbitEl);
 
   _rabbitHouseEl = _createGroundHouse(RABBIT_RIGHT, RABBIT_BOTTOM, '#E8E0D8');
   _rabbitHouseEl.classList.add('house-hidden');
@@ -251,16 +251,17 @@ function rabbitEnterGarden() {
     _rabbitEl.style.transform = 'scale(0.45)';
     _rabbitEl.style.transformOrigin = 'left bottom';
     _startGardenWalkRabbit(rect);
-  }, 560);
+  }, 900);
 }
 
 function _startGardenWalkRabbit(rect) {
-  const SCALE = 0.45;
-  const pad   = 14;
+  const SCALE   = 0.45;
+  const pad     = 14;
+  const GRASS_H = 100;
   const minL  = rect.left   + pad;
   const maxL  = rect.right  - RABBIT_W * SCALE - pad;
-  const minB  = window.innerHeight - rect.bottom + 4;
-  const maxB  = minB + rect.height * 0.38;
+  const minB  = Math.max(4, window.innerHeight - rect.bottom + GRASS_H);
+  const maxB  = minB + 8;
 
   let _rabbitBusy = false;
   setRabbitState('hopping');

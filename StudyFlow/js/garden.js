@@ -78,6 +78,11 @@ function toggleGarden() {
   if (_gardenExpanded) {
     renderGarden();
     _startNightStars();
+    // Porta il giardino in vista così il canvas è nel viewport quando gli animali calcolano la posizione
+    setTimeout(() => {
+      const gz = document.getElementById('garden-zone');
+      if (gz) gz.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 60);
     if (typeof catEnterGarden    === 'function') catEnterGarden();
     if (typeof dogEnterGarden    === 'function') dogEnterGarden();
     if (typeof rabbitEnterGarden === 'function') rabbitEnterGarden();

@@ -122,7 +122,7 @@ function _createGroundHouse(rightPx, bottomPx, color) {
     <rect x="22" y="30" width="16" height="18" rx="2" fill="rgba(0,0,0,0.25)"/>
     <rect x="10" y="26" width="40" height="22" rx="2" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
   </svg>`;
-  document.body.appendChild(h);
+  (document.querySelector('.app') || document.body).appendChild(h);
   return h;
 }
 
@@ -141,7 +141,7 @@ function initDog() {
   _dogEl.style.left     = 'auto';
   _dogEl.style.zIndex   = '600';
   _dogEl.addEventListener('click', _onDogClick);
-  document.body.appendChild(_dogEl);
+  (document.querySelector('.app') || document.body).appendChild(_dogEl);
 
   _dogHouseEl = _createGroundHouse(DOG_RIGHT_HOME, DOG_BOTTOM_HOME, '#C4A882');
   _dogHouseEl.classList.add('house-hidden');
@@ -315,16 +315,17 @@ function dogEnterGarden() {
     _dogEl.style.transform = 'scale(0.45)';
     _dogEl.style.transformOrigin = 'left bottom';
     _startGardenWalkDog(rect);
-  }, 560);
+  }, 900);
 }
 
 function _startGardenWalkDog(rect) {
-  const SCALE = 0.45;
-  const pad   = 14;
+  const SCALE   = 0.45;
+  const pad     = 14;
+  const GRASS_H = 100;
   const minL  = rect.left   + pad;
   const maxL  = rect.right  - DOG_W * SCALE - pad;
-  const minB  = window.innerHeight - rect.bottom + 4;
-  const maxB  = minB + rect.height * 0.38;
+  const minB  = Math.max(4, window.innerHeight - rect.bottom + GRASS_H);
+  const maxB  = minB + 8;
 
   let _dogBusy = false;
   setDogState('walking');
@@ -497,7 +498,7 @@ function initCampfire() {
   _campfireEl.style.cssText =
     'position:fixed;bottom:20px;left:80px;z-index:598;pointer-events:none;' +
     'filter:drop-shadow(0 0 14px rgba(255,120,0,0.55))';
-  document.body.appendChild(_campfireEl);
+  (document.querySelector('.app') || document.body).appendChild(_campfireEl);
 }
 
 function showCampfire() {

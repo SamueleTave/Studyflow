@@ -288,7 +288,7 @@ function owlEnterGarden() {
         _startGardenFlyOwl(rect);
       }
     }, 1300);
-  }, 560);
+  }, 900);
 }
 
 function _startGardenFlyOwl(rect) {
