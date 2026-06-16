@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="ocean">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amici — StudyFlow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/shop.css">
+<style>
+/* ── Friends page ── */
+.friends-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 28px 32px 60px;
+  gap: 24px;
+}
+.friends-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+.friends-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  margin-top: 2px;
+}
+
+/* ── Search box ── */
+.friends-search-box {
+  background: var(--card);
+  border: 1.5px solid var(--card-border);
+  border-radius: 18px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.friends-search-row {
+  display: flex;
+  gap: 10px;
+}
+.friends-search-input {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--card-border);
+  background: var(--bg);
+  color: var(--text);
+  font-family: Poppins, sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.friends-search-input:focus { border-color: var(--accent); }
+.friends-search-input::placeholder { color: var(--text-soft); }
+
+/* ── Section box ── */
+.friends-section {
+  background: var(--card);
+  border: 1.5px solid var(--card-border);
+  border-radius: 18px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.friends-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Friend card ── */
+.friends-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.35);
+  border: 1px solid var(--card-border);
+  transition: background 0.15s;
+}
+.friends-card:hover { background: rgba(255,255,255,0.55); }
+
+.friends-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2, #a855f7));
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.friends-avatar-pending {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+}
+.friends-avatar-sent {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+}
+
+.friends-info { flex: 1; min-width: 0; }
+.friends-name { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+.friends-status { font-size: 0.78rem; color: var(--text-soft); display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+
+.friends-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.friends-dot-online  { background: #22c55e; box-shadow: 0 0 6px #22c55e88; }
+.friends-dot-offline { background: #9ca3af; }
+
+.friends-group-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 2px 0;
+}
+
+.friends-empty {
+  text-align: center;
+  color: var(--text-soft);
+  font-size: 0.86rem;
+  padding: 16px 0;
+}
+
+/* ── Buttons ── */
+.friends-add-btn {
+  padding: 7px 16px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-family: Poppins, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.friends-add-btn:hover { opacity: 0.85; }
+
+.friends-remove-btn {
+  padding: 6px 13px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(239,68,68,0.35);
+  background: rgba(239,68,68,0.07);
+  color: #dc2626;
+  font-family: Poppins, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.friends-remove-btn:hover { background: rgba(239,68,68,0.18); }
+
+.friends-req-btns { display: flex; gap: 8px; }
+
+.friends-accept-btn {
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: none;
+  background: #22c55e;
+  color: #fff;
+  font-family: Poppins, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.friends-accept-btn:hover { opacity: 0.85; }
+
+.friends-reject-btn {
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--card-border);
+  background: rgba(255,255,255,0.4);
+  color: var(--text-soft);
+  font-family: Poppins, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.friends-reject-btn:hover { background: rgba(255,255,255,0.7); }
+
+.friends-already {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Toast ── */
+#friends-toast {
+  position: fixed;
+  bottom: 28px; left: 50%; transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 14px;
+  color: #fff;
+  font-family: Poppins, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  z-index: 9999;
+  display: none;
+  opacity: 1;
+  transition: opacity 0.35s;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+}
+
+/* ── Badge on nav ── */
+.friends-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-left: 4px;
+}
+</style>
+</head>
+<body>
+
+<div class="orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <span class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </span>
+      <span class="logo-text">StudyFlow</span>
+    </a>
+
+    <span class="nav-section-label">Pagine</span>
+    <a href="index.html"    class="nav-link" data-page="home">
+      <i data-feather="clock"        class="nav-icon"></i><span class="nav-label">Timer</span>
+    </a>
+    <a href="tasks.html"    class="nav-link" data-page="tasks">
+      <i data-feather="check-square" class="nav-icon"></i><span class="nav-label">Task</span>
+    </a>
+    <a href="add-task.html" class="nav-link" data-page="add-task">
+      <i data-feather="plus-circle"  class="nav-icon"></i><span class="nav-label">Nuova Task</span>
+    </a>
+    <a href="calendar.html" class="nav-link" data-page="calendar">
+      <i data-feather="calendar"     class="nav-icon"></i><span class="nav-label">Calendario</span>
+    </a>
+    <a href="stats.html"    class="nav-link" data-page="stats">
+      <i data-feather="bar-chart-2"  class="nav-icon"></i><span class="nav-label">Statistiche</span>
+    </a>
+    <a href="shop.html"     class="nav-link" data-page="shop">
+      <i data-feather="shopping-bag" class="nav-icon"></i><span class="nav-label">Shop</span>
+    </a>
+    <a href="friends.html"  class="nav-link active" data-page="friends">
+      <i data-feather="users"         class="nav-icon"></i><span class="nav-label">Amici</span>
+    </a>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-coin">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="#F59E0B"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>
+        <span class="js-coin-count">0</span> monete
+      </div>
+      <button class="nav-link" onclick="openSettings()">
+        <i data-feather="settings"   class="nav-icon"></i><span class="nav-label">Impostazioni</span>
+      </button>
+      <div class="theme-row">
+        <span class="theme-label">Tema</span>
+        <div class="theme-dots" id="theme-dots-sidebar">
+          <div class="tdot active" data-t="ocean"></div>
+          <div class="tdot" data-t="lavender"></div>
+          <div class="tdot" data-t="peach"></div>
+          <div class="tdot" data-t="forest"></div>
+          <div class="tdot" data-t="sakura"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="friends-page">
+
+    <!-- HEADER -->
+    <div>
+      <div class="friends-title">👥 Amici</div>
+      <div class="friends-subtitle">Cerca, aggiungi e studia insieme ai tuoi amici</div>
+    </div>
+
+    <!-- CERCA UTENTE -->
+    <div class="friends-search-box">
+      <div class="friends-section-title">🔍 Cerca un utente</div>
+      <div class="friends-search-row">
+        <input type="text" id="friends-search-input" class="friends-search-input"
+               placeholder="Scrivi un username..." autocomplete="off" spellcheck="false">
+      </div>
+      <div id="friends-search-results"></div>
+    </div>
+
+    <!-- RICHIESTE IN SOSPESO -->
+    <div class="friends-section">
+      <div class="friends-section-title">
+        📬 Richieste
+        <span class="friends-nav-badge" id="friends-req-badge" style="display:none"></span>
+      </div>
+      <div id="friends-requests"><div class="friends-empty">Caricamento...</div></div>
+    </div>
+
+    <!-- LISTA AMICI -->
+    <div class="friends-section">
+      <div class="friends-section-title">🫂 I tuoi amici</div>
+      <div id="friends-list"><div class="friends-empty">Caricamento...</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="friends-toast"></div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="settingsModal" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-hdr">Impostazioni<button class="modal-close" onclick="closeSettings()">&#10005;</button></div>
+    <div class="s-row">
+      <div><div class="s-label">Tempo di Lavoro</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('work',-1)">&#8722;</button>
+        <div class="num-val" id="sv-work">25</div>
+        <button class="num-btn" onclick="changeSetting('work',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Pausa Breve</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('short',-1)">&#8722;</button>
+        <div class="num-val" id="sv-short">5</div>
+        <button class="num-btn" onclick="changeSetting('short',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Pausa Lunga</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('long',-1)">&#8722;</button>
+        <div class="num-val" id="sv-long">15</div>
+        <button class="num-btn" onclick="changeSetting('long',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Suono al termine</div></div>
+      <button class="toggle on" id="tog-sound" onclick="toggleSetting('sound')"></button>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Auto-avvio Pausa</div></div>
+      <button class="toggle" id="tog-autoBreak" onclick="toggleSetting('autoBreak')"></button>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Auto-avvio Lavoro</div></div>
+      <button class="toggle" id="tog-autoWork" onclick="toggleSetting('autoWork')"></button>
+    </div>
+    <div class="s-row" style="border-top:1px solid var(--card-border);margin-top:6px;padding-top:14px">
+      <div>
+        <div class="s-label">Account</div>
+        <div class="s-sub" id="settings-user-label" style="margin-top:2px">—</div>
+      </div>
+      <button onclick="logout()" style="padding:8px 18px;border-radius:10px;border:1.5px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);color:#dc2626;font-family:Poppins,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">Esci</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){var a=JSON.parse(sessionStorage.getItem('sf_auth')||'null');if(!a||!a.token)location.replace('login.html');})();
+</script>
+<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/api.js"></script>
+<script src="js/coins.js"></script>
+<script src="js/friends.js"></script>
+<script>
+  initShared();
+  setActivePage('friends');
+  if (typeof feather !== 'undefined') feather.replace({ width: 17, height: 17, 'stroke-width': 1.8 });
+  initCoins();
+  initFriends();
+
+  /* Aggiorna quando si torna sulla pagina */
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) { loadFriends(); loadFriendRequests(); }
+  });
+
+  /* Auto-refresh online status ogni 30s */
+  setInterval(function() { loadFriends(); }, 30000);
+</script>
+</body>
+</html>

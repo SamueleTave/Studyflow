@@ -69,6 +69,16 @@ def init_db():
                 studying   INTEGER DEFAULT 0,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
+            CREATE TABLE IF NOT EXISTS friendships (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                requester_id INTEGER NOT NULL,
+                receiver_id  INTEGER NOT NULL,
+                status       TEXT NOT NULL DEFAULT 'pending',
+                created_at   TEXT DEFAULT (datetime('now','localtime')),
+                FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (receiver_id)  REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE (requester_id, receiver_id)
+            );
         """)
 
 def _migrate_db():
@@ -374,6 +384,172 @@ def admin_reset_user(uid):
         if not user:
             return jsonify({"error": "Utente non trovato"}), 404
         c.execute("DELETE FROM user_data WHERE user_id=?", (uid,))
+        c.commit()
+    return jsonify({"ok": True})
+
+# ──────────────────────────────────────────
+# API: AMICI
+# ──────────────────────────────────────────
+
+@app.route("/api/friends/search", methods=["GET"])
+def friends_search():
+    me = get_auth_user(required=True)
+    q  = (request.args.get("q") or "").strip()
+    if len(q) < 2:
+        return jsonify([])
+    with get_db() as c:
+        rows = c.execute(
+            "SELECT id, username FROM users WHERE username LIKE ? AND id != ? LIMIT 20",
+            (f"%{q}%", me["id"])
+        ).fetchall()
+        # attach friendship status for each result
+        result = []
+        for r in rows:
+            fs = c.execute(
+                """SELECT status, requester_id FROM friendships
+                   WHERE (requester_id=? AND receiver_id=?) OR (requester_id=? AND receiver_id=?)""",
+                (me["id"], r["id"], r["id"], me["id"])
+            ).fetchone()
+            result.append({
+                "id": r["id"],
+                "username": r["username"],
+                "friendship": dict(fs) if fs else None
+            })
+    return jsonify(result)
+
+@app.route("/api/friends", methods=["GET"])
+def friends_list():
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        rows = c.execute(
+            """SELECT u.id, u.username, u.last_seen,
+                      p.studying, p.page,
+                      f.id as friendship_id
+               FROM friendships f
+               JOIN users u ON (
+                   CASE WHEN f.requester_id = ? THEN f.receiver_id ELSE f.requester_id END = u.id
+               )
+               LEFT JOIN presence p ON p.user_id = u.id
+               WHERE (f.requester_id=? OR f.receiver_id=?) AND f.status='accepted'""",
+            (me["id"], me["id"], me["id"])
+        ).fetchall()
+    now = datetime.now()
+    result = []
+    for r in rows:
+        online = False
+        if r["last_seen"]:
+            try:
+                ls = datetime.strptime(r["last_seen"], "%Y-%m-%d %H:%M:%S")
+                online = (now - ls).total_seconds() < 300
+            except Exception:
+                pass
+        result.append({
+            "id": r["id"],
+            "username": r["username"],
+            "online": online,
+            "studying": bool(r["studying"]),
+            "page": r["page"],
+            "friendship_id": r["friendship_id"]
+        })
+    result.sort(key=lambda x: (not x["online"], x["username"].lower()))
+    return jsonify(result)
+
+@app.route("/api/friends/requests", methods=["GET"])
+def friends_requests():
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        received = c.execute(
+            """SELECT f.id, u.username, f.created_at
+               FROM friendships f
+               JOIN users u ON u.id = f.requester_id
+               WHERE f.receiver_id=? AND f.status='pending'
+               ORDER BY f.created_at DESC""",
+            (me["id"],)
+        ).fetchall()
+        sent = c.execute(
+            """SELECT f.id, u.username, f.created_at
+               FROM friendships f
+               JOIN users u ON u.id = f.receiver_id
+               WHERE f.requester_id=? AND f.status='pending'
+               ORDER BY f.created_at DESC""",
+            (me["id"],)
+        ).fetchall()
+    return jsonify({
+        "received": rows_list(received),
+        "sent":     rows_list(sent)
+    })
+
+@app.route("/api/friends/request", methods=["POST"])
+def friends_send_request():
+    me   = get_auth_user(required=True)
+    data = request.get_json(silent=True) or {}
+    target_username = (data.get("username") or "").strip()
+    if not target_username:
+        return jsonify({"error": "username richiesto"}), 400
+    with get_db() as c:
+        target = c.execute(
+            "SELECT id FROM users WHERE username=? COLLATE NOCASE", (target_username,)
+        ).fetchone()
+        if not target:
+            return jsonify({"error": "Utente non trovato"}), 404
+        if target["id"] == me["id"]:
+            return jsonify({"error": "Non puoi aggiungere te stesso"}), 400
+        existing = c.execute(
+            """SELECT id, status FROM friendships
+               WHERE (requester_id=? AND receiver_id=?) OR (requester_id=? AND receiver_id=?)""",
+            (me["id"], target["id"], target["id"], me["id"])
+        ).fetchone()
+        if existing:
+            if existing["status"] == "accepted":
+                return jsonify({"error": "Siete già amici"}), 400
+            if existing["status"] == "pending":
+                return jsonify({"error": "Richiesta già inviata"}), 400
+        c.execute(
+            "INSERT INTO friendships (requester_id, receiver_id) VALUES (?,?)",
+            (me["id"], target["id"])
+        )
+        c.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/friends/<int:fid>/accept", methods=["POST"])
+def friends_accept(fid):
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        f = c.execute(
+            "SELECT * FROM friendships WHERE id=? AND receiver_id=? AND status='pending'",
+            (fid, me["id"])
+        ).fetchone()
+        if not f:
+            return jsonify({"error": "Richiesta non trovata"}), 404
+        c.execute("UPDATE friendships SET status='accepted' WHERE id=?", (fid,))
+        c.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/friends/<int:fid>/reject", methods=["POST"])
+def friends_reject(fid):
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        f = c.execute(
+            "SELECT * FROM friendships WHERE id=? AND receiver_id=? AND status='pending'",
+            (fid, me["id"])
+        ).fetchone()
+        if not f:
+            return jsonify({"error": "Richiesta non trovata"}), 404
+        c.execute("DELETE FROM friendships WHERE id=?", (fid,))
+        c.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/friends/<int:fid>", methods=["DELETE"])
+def friends_remove(fid):
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        f = c.execute(
+            "SELECT * FROM friendships WHERE id=? AND (requester_id=? OR receiver_id=?)",
+            (fid, me["id"], me["id"])
+        ).fetchone()
+        if not f:
+            return jsonify({"error": "Amicizia non trovata"}), 404
+        c.execute("DELETE FROM friendships WHERE id=?", (fid,))
         c.commit()
     return jsonify({"ok": True})
 
