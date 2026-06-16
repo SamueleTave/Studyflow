@@ -1,0 +1,584 @@
+/* =====================================================
+   GARDEN.CSS — Il Giardino dello Studio
+   ===================================================== */
+
+/* ── Contenitore principale ── */
+.garden-zone {
+  padding: 0;
+  overflow: hidden;
+  transition: box-shadow 0.3s;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.garden-zone.open {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1), 0 0 0 2px rgba(99,200,99,0.2);
+}
+
+/* ── Toggle header ── */
+.garden-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.3s;
+  font-family: 'Poppins', sans-serif;
+  color: var(--text);
+}
+.garden-toggle:hover { background: rgba(255,255,255,0.22); }
+.garden-zone.open .garden-toggle {
+  border-bottom-color: var(--card-border);
+  background: rgba(255,255,255,0.15);
+}
+.garden-toggle-emoji { font-size: 1.15rem; line-height: 1; }
+.garden-toggle-label { font-size: 0.84rem; font-weight: 600; flex: 1; text-align: left; }
+.garden-toggle-hint  {
+  font-size: 0.62rem; color: var(--text-soft);
+  flex: 1; text-align: left;
+  display: none;
+  line-height: 1.3;
+}
+.garden-zone.open .garden-toggle-label { display: none; }
+.garden-zone.open .garden-toggle-hint  { display: block; }
+.garden-toggle-badge {
+  background: linear-gradient(135deg, #43A047, #66BB6A);
+  color: white;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  min-width: 22px;
+  text-align: center;
+}
+.garden-toggle-arrow {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  display: inline-block;
+}
+
+/* ── Collassato / Espanso ── */
+.garden-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.52s cubic-bezier(0.4,0,0.2,1);
+}
+.garden-zone.open .garden-content { max-height: 360px; }
+
+/* ── Canvas del giardino ── */
+.garden-canvas {
+  position: relative;
+  height: 314px;
+  overflow: visible;  /* non clippare il pulsante × */
+  user-select: none;
+  isolation: isolate; /* z-index items stay inside canvas, don't cover fixed animals */
+}
+
+/* ── Cielo ── */
+.g-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #42A5F5 0%, #81D4FA 55%, #E3F2FD 88%);
+  z-index: 0;
+}
+[data-theme="night"] .g-sky {
+  background: linear-gradient(180deg, #080E1A 0%, #111D2E 50%, #162540 85%);
+}
+
+/* ── Sole ── */
+.g-sun {
+  position: absolute;
+  top: 18px;
+  right: 82px;
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle, #FFF9C4 0%, #FDD835 40%, #FBC02D 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 10px rgba(253,216,53,0.12), 0 0 40px rgba(253,216,53,0.4);
+  z-index: 1;
+  animation: gardenSunPulse 7s ease-in-out infinite;
+}
+[data-theme="night"] .g-sun { display: none; }
+
+.g-moon {
+  display: none;
+  position: absolute;
+  top: 18px;
+  right: 86px;
+  width: 44px;
+  height: 44px;
+  z-index: 1;
+  animation: gardenSunPulse 8s ease-in-out infinite;
+}
+[data-theme="night"] .g-moon { display: block; }
+
+@keyframes gardenSunPulse {
+  0%,100% { box-shadow: 0 0 0 10px rgba(197,202,233,0.12), 0 0 40px rgba(197,202,233,0.4); }
+  50%     { box-shadow: 0 0 0 18px rgba(197,202,233,0.18), 0 0 60px rgba(197,202,233,0.55); }
+}
+
+/* ── Stelle statiche notturne (render in canvas) ── */
+.g-stars-container {
+  display: none;
+  position: absolute;
+  inset: 0 0 40% 0;
+  z-index: 1;
+  pointer-events: none;
+}
+[data-theme="night"] .g-stars-container { display: block; }
+.g-star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  animation: gardenStarTwinkle 3s ease-in-out infinite;
+}
+@keyframes gardenStarTwinkle {
+  0%,100% { opacity: 0.3; transform: scale(1); }
+  50%     { opacity: 1;   transform: scale(1.5); }
+}
+/* stelle dinamiche (JS) */
+.g-night-star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  animation: gardenStarFade 4s ease-out forwards;
+  z-index: 2;
+  pointer-events: none;
+}
+@keyframes gardenStarFade {
+  0%   { opacity: 0;   transform: scale(0.5); }
+  20%  { opacity: 0.9; transform: scale(1); }
+  80%  { opacity: 0.7; }
+  100% { opacity: 0; }
+}
+
+/* ── Nuvole ── */
+.garden-cloud {
+  position: absolute;
+  background: white;
+  border-radius: 50px;
+  opacity: 0.9;
+  z-index: 2;
+  pointer-events: none;
+}
+.garden-cloud::before, .garden-cloud::after {
+  content: '';
+  position: absolute;
+  background: inherit;
+  border-radius: 50%;
+}
+[data-theme="night"] .garden-cloud { opacity: 0.08; background: #5C6BC0; }
+
+.g-cloud-1 {
+  top: 22px; left: 14%;
+  width: 84px; height: 22px;
+  animation: cloudDrift1 30s linear infinite;
+}
+.g-cloud-1::before { width: 38px; height: 38px; top: -17px; left: 10px; }
+.g-cloud-1::after  { width: 30px; height: 30px; top: -13px; left: 40px; }
+
+.g-cloud-2 {
+  top: 48px; left: 52%;
+  width: 62px; height: 16px;
+  opacity: 0.7;
+  animation: cloudDrift2 23s linear infinite;
+}
+.g-cloud-2::before { width: 28px; height: 28px; top: -12px; left: 8px; }
+.g-cloud-2::after  { width: 22px; height: 22px; top: -9px;  left: 28px; }
+
+.g-cloud-3 {
+  top: 12px; left: 74%;
+  width: 52px; height: 14px;
+  opacity: 0.55;
+  animation: cloudDrift3 38s linear infinite;
+}
+.g-cloud-3::before { width: 23px; height: 23px; top: -10px; left: 6px; }
+.g-cloud-3::after  { width: 17px; height: 17px; top: -7px;  left: 26px; }
+
+@keyframes cloudDrift1 { from { transform: translateX(-200px); } to { transform: translateX(110vw); } }
+@keyframes cloudDrift2 { from { transform: translateX(-120px); } to { transform: translateX(110vw); } }
+@keyframes cloudDrift3 { from { transform: translateX(-90px);  } to { transform: translateX(110vw); } }
+
+/* ── Montagne di sfondo ── */
+.g-mountains {
+  position: absolute;
+  bottom: 102px;
+  left: 0; right: 0;
+  height: 88px;
+  z-index: 3;
+  pointer-events: none;
+}
+.g-mountains svg { width: 100%; height: 100%; display: block; }
+[data-theme="night"] .g-mountains svg .gm-far  { fill: #1A2A3A; }
+[data-theme="night"] .g-mountains svg .gm-near { fill: #142236; }
+
+/* ── Collinetta ── */
+.g-hill {
+  position: absolute;
+  bottom: 96px;
+  left: -2%;
+  right: -2%;
+  height: 115px;
+  z-index: 5;
+  pointer-events: none;
+}
+.g-hill svg { width: 100%; height: 100%; display: block; }
+[data-theme="night"] .g-hill svg .gh-back  { fill: #1A3D28; }
+[data-theme="night"] .g-hill svg .gh-front { fill: #162E1E; }
+
+/* ── Erba ── */
+.garden-grass {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 100px;
+  background: linear-gradient(180deg,
+    #81C784 0%, #66BB6A 18%, #4CAF50 50%, #388E3C 100%);
+  z-index: 6;
+  pointer-events: none;
+}
+.garden-grass::before {
+  content: '';
+  position: absolute;
+  top: -12px; left: 0; right: 0;
+  height: 16px;
+  background:
+    radial-gradient(ellipse 11px 11px at 0% 100%, #81C784 48%, transparent 52%) 0 0 / 17px 17px repeat-x,
+    radial-gradient(ellipse  9px  9px at 0% 100%, #66BB6A 48%, transparent 52%) 8px 0 / 17px 17px repeat-x;
+}
+[data-theme="night"] .garden-grass {
+  background: linear-gradient(180deg, #1B4A2A 0%, #143920 50%, #0C2814 100%);
+}
+[data-theme="night"] .garden-grass::before {
+  background:
+    radial-gradient(ellipse 11px 11px at 0% 100%, #1B4A2A 48%, transparent 52%) 0 0 / 17px 17px repeat-x,
+    radial-gradient(ellipse  9px  9px at 0% 100%, #143920 48%, transparent 52%) 8px 0 / 17px 17px repeat-x;
+}
+
+/* ── Suggerimento drag ── */
+.garden-hint {
+  position: absolute;
+  bottom: 108px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.59rem;
+  color: rgba(0,0,0,0.26);
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.55);
+}
+[data-theme="night"] .garden-hint { color: rgba(255,255,255,0.22); text-shadow: none; }
+
+/* ── Item nel giardino ── */
+.garden-item {
+  position: absolute;
+  cursor: grab;
+  transition: filter 0.15s;
+  touch-action: none;
+}
+.garden-item:hover {
+  filter: brightness(1.08) drop-shadow(0 4px 10px rgba(0,0,0,0.2));
+}
+.garden-item.dragging {
+  cursor: grabbing;
+  filter: brightness(1.12) drop-shadow(0 8px 20px rgba(0,0,0,0.3));
+  z-index: 9999 !important;
+  transition: none;
+}
+
+/* ── Pulsante rimuovi ── */
+.g-remove-btn {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 22px;
+  height: 22px;
+  background: #E53935;
+  color: white;
+  border: 2px solid white;
+  border-radius: 50%;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, background 0.15s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  padding: 0;
+}
+.garden-item:hover .g-remove-btn { opacity: 1; pointer-events: all; }
+.g-remove-btn:hover { background: #B71C1C; }
+
+/* ── Stato vuoto ── */
+.garden-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 50;
+  pointer-events: none;
+}
+.garden-empty-icon { font-size: 2.4rem; opacity: 0.45; }
+.garden-empty-text {
+  font-size: 0.76rem;
+  color: rgba(0,0,0,0.38);
+  text-align: center;
+  line-height: 1.55;
+}
+.garden-empty-text span { font-size: 0.65rem; opacity: 0.72; }
+[data-theme="night"] .garden-empty-text { color: rgba(255,255,255,0.32); }
+
+/* ══════════════════════════════════
+   ANIMAZIONI OGGETTI
+══════════════════════════════════ */
+
+/* Alberi */
+.garden-item[data-id="tree"],
+.garden-item[data-id="cherryTree"] {
+  animation: gardenSway 5.5s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+@keyframes gardenSway {
+  0%,100% { rotate: 0deg; }
+  28%     { rotate:  1.8deg; }
+  60%     { rotate: -1.6deg; }
+}
+
+/* Girasole */
+.garden-item[data-id="sunflower"] { animation: gardenBob 4s ease-in-out infinite; }
+@keyframes gardenBob {
+  0%,100% { transform: translateY(0) scaleY(1); }
+  50%     { transform: translateY(-6px) scaleY(1.04); }
+}
+
+/* Farfalle */
+.garden-item[data-id="butterfly"] { animation: gardenFloat 7s ease-in-out infinite; }
+.garden-item[data-id="butterfly"] .g-butterfly-wings {
+  animation: gardenFlapWings 0.42s ease-in-out infinite alternate;
+  transform-origin: center 16px;
+}
+@keyframes gardenFloat {
+  0%   { translate: 0 0; }
+  25%  { translate: 10px -10px; }
+  50%  { translate: 18px 0; }
+  75%  { translate: 10px 10px; }
+  100% { translate: 0 0; }
+}
+@keyframes gardenFlapWings {
+  from { transform: scaleY(1); }
+  to   { transform: scaleY(0.3); }
+}
+
+/* Fontana */
+.garden-item[data-id="fountain"] .g-fountain-water {
+  animation: gardenFountainJet 1.5s ease-in-out infinite;
+}
+@keyframes gardenFountainJet {
+  0%,100% { transform: scaleY(1)   translateY(0);    opacity: 0.85; }
+  50%     { transform: scaleY(1.2) translateY(-6px); opacity: 0.5;  }
+}
+
+/* Lanterna */
+.garden-item[data-id="lantern"] { animation: gardenLanternGlow 3.2s ease-in-out infinite; }
+@keyframes gardenLanternGlow {
+  0%,100% { filter: drop-shadow(0 0 6px rgba(255,200,50,0.4)); }
+  50%     { filter: drop-shadow(0 0 18px rgba(255,200,50,0.75)); }
+}
+
+/* Arcobaleno */
+.garden-item[data-id="rainbow"] { animation: gardenRainbow 9s ease-in-out infinite; }
+@keyframes gardenRainbow {
+  0%,100% { opacity: 0.78; filter: saturate(1); }
+  50%     { opacity: 1;    filter: saturate(1.4); }
+}
+
+/* Laghetto */
+.garden-item[data-id="pond"] { animation: gardenPondRipple 4s ease-in-out infinite; }
+@keyframes gardenPondRipple {
+  0%,100% { filter: hue-rotate(0deg); }
+  50%     { filter: hue-rotate(12deg); }
+}
+
+/* Falò nel giardino */
+.garden-item[data-id="_campfire"] .cf-flame-outer {
+  animation: gFireOut 0.82s ease-in-out infinite alternate;
+  transform-origin: 26px 54px;
+}
+.garden-item[data-id="_campfire"] .cf-flame-mid {
+  animation: gFireMid 0.65s 0.1s ease-in-out infinite alternate;
+  transform-origin: 26px 54px;
+}
+.garden-item[data-id="_campfire"] .cf-flame-inner {
+  animation: gFireIn 0.5s 0.2s ease-in-out infinite alternate;
+  transform-origin: 26px 54px;
+}
+.garden-item[data-id="_campfire"] .cf-spark1 { animation: gSpark1 1.25s ease-in infinite; }
+.garden-item[data-id="_campfire"] .cf-spark2 { animation: gSpark2 0.95s 0.3s ease-in infinite; }
+.garden-item[data-id="_campfire"] .cf-spark3 { animation: gSpark3 1.55s 0.15s ease-in infinite; }
+@keyframes gFireOut  { from { transform: scaleX(1) scaleY(1); } to { transform: scaleX(0.88) scaleY(1.09); } }
+@keyframes gFireMid  { from { transform: scaleX(1) scaleY(1); } to { transform: scaleX(0.82) scaleY(1.12); } }
+@keyframes gFireIn   { from { transform: scaleX(1) scaleY(1); } to { transform: scaleX(0.78) scaleY(1.16); } }
+@keyframes gSpark1   { 0%{transform:translate(0,0);opacity:.9} 100%{transform:translate(-7px,-24px);opacity:0} }
+@keyframes gSpark2   { 0%{transform:translate(0,0);opacity:.9} 100%{transform:translate(6px,-30px);opacity:0} }
+@keyframes gSpark3   { 0%{transform:translate(0,0);opacity:.9} 100%{transform:translate(-4px,-18px);opacity:0} }
+
+/* Gatto nel giardino */
+.garden-item[data-id="_cat"] .cat-garden-zzz {
+  animation: gardenZzz 2.6s ease-in-out infinite;
+}
+@keyframes gardenZzz {
+  0%,100% { opacity: 0.35; transform: translateY(0);    }
+  50%     { opacity: 1;    transform: translateY(-5px); }
+}
+
+/* ══════════════════════════════════
+   NUOVI OGGETTI
+══════════════════════════════════ */
+
+/* Bambù — oscillazione */
+.garden-item[data-id="bamboo"] .g-bamboo-sway { animation: gardenSway 4s ease-in-out infinite; transform-origin: bottom center; }
+.garden-item[data-id="bamboo"]                { animation: gardenSway 3.8s 0.4s ease-in-out infinite; }
+
+/* Mulino — pale rotanti */
+.garden-item[data-id="windmill"] .g-windmill-blades {
+  animation: windmillSpin 3.5s linear infinite;
+  transform-origin: 34px 36px;
+  transform-box: view-box;
+}
+@keyframes windmillSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Cascata — acqua scorrevole */
+.garden-item[data-id="waterfall"] .g-waterfall-flow {
+  animation: waterfallFlow 1.4s ease-in-out infinite alternate;
+}
+.garden-item[data-id="waterfall"] .g-waterfall-splash {
+  animation: waterfallSplash 0.9s ease-in-out infinite alternate;
+}
+@keyframes waterfallFlow {
+  from { opacity: 0.4; transform: translateY(0); }
+  to   { opacity: 0.75; transform: translateY(5px); }
+}
+@keyframes waterfallSplash {
+  from { opacity: 0.3; transform: scaleX(1); }
+  to   { opacity: 0.7; transform: scaleX(1.4); }
+}
+
+/* Altalena */
+.garden-item[data-id="swing"] .g-swing-seat {
+  animation: swingSway 3.2s ease-in-out infinite;
+  transform-origin: 37px 4px;
+  transform-box: view-box;
+}
+@keyframes swingSway {
+  0%,100% { transform: rotate(-14deg); }
+  50%     { transform: rotate(14deg);  }
+}
+
+/* Mongolfiera */
+.garden-item[data-id="balloon"] { animation: balloonDrift 7s ease-in-out infinite; }
+@keyframes balloonDrift {
+  0%,100% { translate: 0 0; }
+  30%     { translate: 5px -7px; }
+  70%     { translate: -4px -4px; }
+}
+
+/* Casetta uccelli — uccellino che appare */
+.garden-item[data-id="birdhouse"] .g-birdhouse-bird {
+  animation: birdhousePop 9s ease-in-out infinite;
+  transform-origin: 29px 22px;
+}
+@keyframes birdhousePop {
+  0%,12%  { transform: translateY(0)   scale(1);   opacity: 1; }
+  16%     { transform: translateY(-14px) scale(0.7); opacity: 0; }
+  75%,100%{ transform: translateY(-14px) scale(0.7); opacity: 0; }
+  80%     { transform: translateY(0)   scale(1.1); opacity: 1; }
+  85%     { transform: translateY(0)   scale(1);   opacity: 1; }
+}
+
+/* ── Animali che camminano ── */
+.garden-item.g-animal-walking[data-id="_cat"],
+.garden-item.g-animal-walking[data-id="_dog"] {
+  animation: animalBob 0.48s ease-in-out infinite !important;
+}
+@keyframes animalBob {
+  0%,100% { margin-bottom: 0; }
+  50%     { margin-bottom: 4px; }
+}
+/* Mirror SVG verso sinistra durante cammino */
+.garden-item.g-face-left svg { transform: scaleX(-1); }
+
+/* ── Sparkle dopo sessione completata ── */
+.g-session-spark {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.3rem;
+  animation: sessionSpark 1.8s ease-out forwards;
+  pointer-events: none;
+  z-index: 500;
+}
+@keyframes sessionSpark {
+  0%   { translate: -50% 0;     scale: 0.5; opacity: 0; }
+  20%  { translate: -50% -10px; scale: 1.3; opacity: 1; }
+  70%  { translate: -50% -28px; scale: 1;   opacity: 0.9; }
+  100% { translate: -50% -44px; scale: 0.5; opacity: 0; }
+}
+
+/* ── Crescita oggetti (data-grow) ── */
+.garden-item[data-grow="1"] { filter: brightness(1.06) saturate(1.12); }
+.garden-item[data-grow="2"] { filter: brightness(1.14) saturate(1.25) drop-shadow(0 0 5px rgba(100,200,100,0.3)); }
+.garden-item[data-grow="3"] { filter: brightness(1.22) saturate(1.4)  drop-shadow(0 0 12px rgba(100,220,100,0.5)); }
+
+/* ══════════════════════════════════
+   TEMI
+══════════════════════════════════ */
+[data-theme="lavender"] .g-sky {
+  background: linear-gradient(180deg, #9C78C9 0%, #B39DDB 50%, #EDE7F6 85%);
+}
+[data-theme="lavender"] .garden-grass {
+  background: linear-gradient(180deg, #9CCC65 0%, #7CB342 30%, #558B2F 100%);
+}
+
+[data-theme="peach"] .g-sky {
+  background: linear-gradient(180deg, #FFA726 0%, #FFCC80 45%, #FFF3E0 85%);
+}
+[data-theme="peach"] .garden-grass {
+  background: linear-gradient(180deg, #A5D6A7 0%, #81C784 30%, #66BB6A 100%);
+}
+
+[data-theme="forest"] .g-sky {
+  background: linear-gradient(180deg, #1B5E20 0%, #388E3C 45%, #81C784 85%);
+}
+[data-theme="forest"] .garden-grass {
+  background: linear-gradient(180deg, #2E7D32 0%, #1B5E20 50%, #003300 100%);
+}
+
+[data-theme="sakura"] .g-sky {
+  background: linear-gradient(180deg, #F48FB1 0%, #F8BBD9 50%, #FCE4EC 85%);
+}
+[data-theme="sakura"] .garden-grass {
+  background: linear-gradient(180deg, #CE93D8 0%, #AB47BC 30%, #7B1FA2 100%);
+}
+
+[data-theme="sunset"] .g-sky {
+  background: linear-gradient(180deg, #E64A19 0%, #FF7043 35%, #FFCC80 75%);
+}
+[data-theme="sunset"] .garden-grass {
+  background: linear-gradient(180deg, #F57F17 0%, #E65100 30%, #BF360C 100%);
+}

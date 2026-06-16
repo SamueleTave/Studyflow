@@ -478,6 +478,16 @@ body.focus-mode .focus-exit-btn { display: flex !important; }
 }
 
 /* ══════════════════════════════════════
+   ANIMALI — GPU layer forzato sopra backdrop-filter
+═══════════════════════════════════════ */
+.cat-companion, .dog-companion, .fox-companion,
+.rabbit-companion, .parrot-companion, .owl-companion,
+.campfire-wrap, .animal-house {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* ══════════════════════════════════════
    PENSIERI ANIMALI
 ═══════════════════════════════════════ */
 .animal-bubble {

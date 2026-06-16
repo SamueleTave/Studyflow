@@ -1,0 +1,884 @@
+/* =====================================================
+   SHOP.CSS — Monete, shop, gatto, effetti, achievements
+   ===================================================== */
+
+/* ── Moneta SVG inline ── */
+.coin-svg { width:15px;height:15px;flex-shrink:0;vertical-align:middle }
+
+/* ── Contatore monete (sidebar + header) ── */
+.coin-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  background: rgba(255,255,255,0.5);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  transition: background 0.2s;
+}
+.coin-chip svg { color: #F59E0B; stroke: #F59E0B; }
+
+.sidebar-coin {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.38);
+  margin: 0 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.sidebar-coin svg { color: #F59E0B; stroke: #F59E0B; }
+
+/* ── Popup "+15 monete" ── */
+.coin-popup {
+  animation: coin-pop 2.2s ease forwards !important;
+}
+@keyframes coin-pop {
+  0%   { opacity:0; transform:translateY(12px) scale(0.8); }
+  12%  { opacity:1; transform:translateY(0) scale(1); }
+  72%  { opacity:1; transform:translateY(0) scale(1); }
+  100% { opacity:0; transform:translateY(-16px) scale(0.9); }
+}
+
+/* ── Achievement notification ── */
+.achiev-notif {
+  position: fixed; right: 18px; top: 76px; z-index: 1001;
+  background: var(--card); backdrop-filter: blur(22px);
+  border: 1px solid var(--card-border);
+  border-left: 4px solid #F59E0B;
+  padding: 14px 18px; border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  max-width: 290px;
+  animation: slide-right 3.5s ease forwards;
+}
+@keyframes slide-right {
+  0%   { opacity:0; transform:translateX(30px); }
+  10%  { opacity:1; transform:translateX(0); }
+  80%  { opacity:1; transform:translateX(0); }
+  100% { opacity:0; transform:translateX(30px); }
+}
+.achiev-tag   { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#F59E0B; }
+.achiev-name  { font-size:0.92rem; font-weight:700; margin:3px 0 2px; color:var(--text); }
+.achiev-desc  { font-size:0.72rem; color:var(--text-soft); }
+.achiev-coins { font-size:0.75rem; font-weight:700; color:var(--accent); margin-top:5px; }
+
+/* ── Sfida giornaliera ── */
+.challenge-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card);
+  backdrop-filter: blur(22px);
+  border: 1px solid var(--card-border);
+  border-left: 4px solid #F59E0B;
+  border-radius: 18px;
+  padding: 12px 20px;
+  box-shadow: var(--shadow);
+  animation: fadeInDown 0.5s ease;
+}
+.challenge-icon { font-size:1.4rem; flex-shrink:0 }
+.challenge-info { flex:1 }
+.challenge-title { font-size:0.78rem; font-weight:700; color:var(--text); }
+.challenge-desc  { font-size:0.7rem; color:var(--text-soft); margin-top:1px; }
+.challenge-prog-wrap {
+  flex:1; height:7px; background:rgba(255,255,255,0.5);
+  border-radius:4px; overflow:hidden; min-width:80px;
+}
+.challenge-prog-fill {
+  height:100%; border-radius:4px;
+  background:linear-gradient(90deg,#F59E0B,#F97316);
+  transition:width 0.5s ease;
+}
+.challenge-reward {
+  font-size:0.78rem; font-weight:700; color:#F59E0B;
+  display:flex; align-items:center; gap:4px; flex-shrink:0;
+}
+
+/* ── Stelle cadenti ── */
+.falling-star {
+  position: fixed; top:-6px;
+  width: 2px; height: 2px;
+  background: white; border-radius: 50%;
+  pointer-events: none; z-index: 998;
+  box-shadow: 0 0 4px white, 0 0 8px var(--accent);
+  animation: star-fall var(--sd, 2s) ease-in forwards;
+}
+@keyframes star-fall {
+  from { transform:translateY(0) translateX(0) rotate(30deg); opacity:1; }
+  to   { transform:translateY(110vh) translateX(60px) rotate(30deg); opacity:0; }
+}
+
+/* ── Bolle ── */
+.rising-bubble {
+  position: fixed; bottom: -70px;
+  border-radius: 50%;
+  pointer-events: none; z-index: 998;
+  background: radial-gradient(circle at 32% 28%,
+    rgba(255,255,255,0.95) 0%,
+    rgba(215,238,255,0.60) 14%,
+    rgba(190,215,255,0.22) 32%,
+    rgba(255,195,235,0.20) 52%,
+    rgba(170,255,225,0.14) 72%,
+    transparent 100%
+  );
+  border: 1.5px solid rgba(255,255,255,0.60);
+  box-shadow:
+    inset 3px 3px 10px rgba(255,255,255,0.75),
+    inset -2px -2px 7px rgba(180,205,255,0.28),
+    0 2px 14px rgba(180,215,255,0.20);
+}
+.rising-bubble.drift-a { animation: bubble-rise-a var(--bd,6s) cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+.rising-bubble.drift-b { animation: bubble-rise-b var(--bd,6s) cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+.rising-bubble.drift-c { animation: bubble-rise-c var(--bd,6s) cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+
+@keyframes bubble-rise-a {
+  0%   { transform:translateY(0) translateX(0) scale(0.5); opacity:0; }
+  7%   { opacity:0.88; transform:translateY(-3vh) translateX(0) scale(1); }
+  35%  { transform:translateY(-32vh) translateX(28px) scale(0.95); opacity:0.80; }
+  65%  { transform:translateY(-68vh) translateX(-18px) scale(0.82); opacity:0.60; }
+  100% { transform:translateY(-118vh) translateX(22px) scale(0.50); opacity:0; }
+}
+@keyframes bubble-rise-b {
+  0%   { transform:translateY(0) translateX(0) scale(0.5); opacity:0; }
+  7%   { opacity:0.88; transform:translateY(-3vh) translateX(0) scale(1); }
+  35%  { transform:translateY(-30vh) translateX(-32px) scale(0.95); opacity:0.80; }
+  65%  { transform:translateY(-65vh) translateX(22px) scale(0.82); opacity:0.60; }
+  100% { transform:translateY(-115vh) translateX(-14px) scale(0.50); opacity:0; }
+}
+@keyframes bubble-rise-c {
+  0%   { transform:translateY(0) translateX(0) scale(0.5); opacity:0; }
+  7%   { opacity:0.90; transform:translateY(-3vh) translateX(0) scale(1.05); }
+  40%  { transform:translateY(-36vh) translateX(10px) scale(0.93); opacity:0.82; }
+  70%  { transform:translateY(-72vh) translateX(-8px) scale(0.80); opacity:0.58; }
+  100% { transform:translateY(-116vh) translateX(6px) scale(0.48); opacity:0; }
+}
+
+/* ── Gatto compagno ── */
+.cat-companion {
+  cursor: pointer;
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.18));
+  opacity: 1;
+  user-select: none;
+  /* Transizioni di posizione impostate inline da JS */
+}
+.cat-companion.cat-hidden { opacity:0 !important; pointer-events:none !important; }
+
+/* Contenitore direzione (scaleX per flip) */
+.cat-dir-wrap { display:flex; flex-direction:column; align-items:center; }
+
+/* Contenitore corpo (bounce/breathe) */
+.cat-body-wrap { display:flex; flex-direction:column; align-items:center; }
+
+/* ── State: sleeping ── */
+.cat-companion.cat-sleeping .cat-body-wrap {
+  animation: cat-breathe 3.5s ease-in-out infinite;
+}
+.cat-companion.cat-sleeping .cat-tail {
+  animation: tail-wag-slow 4s ease-in-out infinite;
+  transform-origin: 28px 86px;
+  transform-box: view-box;
+}
+.cat-companion.cat-sleeping .cat-zzz {
+  animation: zzz-float 2.4s ease-in-out infinite;
+}
+
+/* ── State: sitting ── */
+.cat-companion.cat-sitting .cat-body-wrap {
+  animation: cat-breathe 4s ease-in-out infinite;
+}
+.cat-companion.cat-sitting .cat-tail {
+  animation: tail-wag-slow 3s ease-in-out infinite;
+  transform-origin: 28px 86px;
+  transform-box: view-box;
+}
+
+/* ── State: walking ── */
+.cat-companion.cat-walking .cat-body-wrap {
+  animation: cat-hop 0.42s ease-in-out infinite;
+}
+.cat-companion.cat-walking .cat-tail {
+  animation: tail-wag-fast 0.4s ease-in-out infinite;
+  transform-origin: 28px 86px;
+  transform-box: view-box;
+}
+/* Paws alternate while walking */
+.cat-companion.cat-walking .cat-paw-l {
+  animation: paw-lift 0.42s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+.cat-companion.cat-walking .cat-paw-r {
+  animation: paw-lift 0.42s 0.21s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ── Modalità 4 zampe ── */
+.cat-companion.cat-4legs .cat-rear-l,
+.cat-companion.cat-4legs .cat-rear-r { display: block !important; }
+
+.cat-companion.cat-4legs.cat-walking .cat-rear-l {
+  animation: paw-lift 0.42s 0.14s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+.cat-companion.cat-4legs.cat-walking .cat-rear-r {
+  animation: paw-lift 0.42s 0.35s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ── State: playing ── */
+.cat-companion.cat-playing .cat-body-wrap {
+  animation: cat-play-rock 0.6s ease-in-out infinite;
+}
+.cat-companion.cat-playing .cat-tail {
+  animation: tail-wag-fast 0.6s ease-in-out infinite;
+  transform-origin: 28px 86px;
+  transform-box: view-box;
+}
+.cat-companion.cat-playing .cat-play-paw {
+  animation: play-paw-swipe 0.7s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ── State: happy ── */
+.cat-companion.cat-happy .cat-body-wrap {
+  animation: cat-bounce-happy 0.38s ease-in-out infinite alternate;
+}
+.cat-companion.cat-happy .cat-tail {
+  animation: tail-wag-fast 0.3s ease-in-out infinite;
+  transform-origin: 28px 86px;
+  transform-box: view-box;
+}
+.cat-companion.cat-happy .cat-heart {
+  animation: heart-pop 0.4s ease;
+}
+
+/* ══ Keyframes ══ */
+@keyframes cat-breathe {
+  0%,100% { transform: scale(1) translateY(0); }
+  50%      { transform: scale(1.022) translateY(-2px); }
+}
+@keyframes cat-hop {
+  0%   { transform: translateY(0)    rotate(-1deg); }
+  22%  { transform: translateY(-9px) rotate(-2deg); }
+  50%  { transform: translateY(-2px) rotate(0deg);  }
+  72%  { transform: translateY(-7px) rotate(2deg);  }
+  100% { transform: translateY(0)    rotate(-1deg); }
+}
+@keyframes cat-bounce-happy {
+  from { transform: translateY(0) scale(1); }
+  to   { transform: translateY(-14px) scale(1.04); }
+}
+@keyframes cat-play-rock {
+  0%,100% { transform: rotate(-8deg) translateY(0); }
+  50%      { transform: rotate(8deg) translateY(-5px); }
+}
+
+@keyframes tail-wag-slow {
+  0%,60%,100% { transform: rotate(0deg); }
+  80%          { transform: rotate(14deg); }
+  92%          { transform: rotate(-4deg); }
+}
+@keyframes tail-wag-fast {
+  0%,100% { transform: rotate(-12deg); }
+  50%      { transform: rotate(20deg); }
+}
+
+@keyframes paw-lift {
+  0%,45%,100% { transform: translateY(0); }
+  22%          { transform: translateY(-9px) rotate(-20deg); }
+}
+@keyframes play-paw-swipe {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  40%      { transform: translateY(-14px) rotate(-35deg); }
+}
+
+@keyframes zzz-float {
+  0%,100% { transform:translateY(0); opacity:.5; }
+  50%      { transform:translateY(-7px); opacity:1; }
+}
+@keyframes heart-pop {
+  0%   { transform:scale(0) rotate(-20deg); }
+  60%  { transform:scale(1.35) rotate(5deg); }
+  100% { transform:scale(1) rotate(0deg); }
+}
+
+/* Timer glow intense (shop unlock) */
+body.glow-intense #ring-progress { filter: drop-shadow(0 0 20px var(--accent)) drop-shadow(0 0 40px var(--accent)); }
+
+/* Timer pulse mode (shop unlock) */
+body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out infinite !important; }
+@keyframes timer-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
+
+/* ── Color picker eventi ── */
+.event-color-picker {
+  display: flex; gap: 7px; flex-wrap: wrap;
+}
+.ecol {
+  width: 26px; height: 26px; border-radius: 50%;
+  cursor: pointer; border: 3px solid transparent;
+  transition: transform 0.15s, border-color 0.15s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  flex-shrink: 0;
+}
+.ecol:hover    { transform: scale(1.18); }
+.ecol.selected { border-color: white; transform: scale(1.22); box-shadow: 0 2px 10px rgba(0,0,0,0.28); }
+
+/* ══════════════════════════════════════
+   SHOP PAGE
+═══════════════════════════════════════ */
+.shop-page {
+  padding: 20px 22px 20px 18px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+
+/* Coin balance card */
+.coin-balance-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-radius: 22px;
+  padding: 22px 28px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  color: white;
+  animation: fadeInDown 0.5s ease;
+}
+.coin-balance-icon { font-size:2.5rem; }
+.coin-balance-val  { font-size:2.8rem; font-weight:800; line-height:1; }
+.coin-balance-label{ font-size:0.8rem; font-weight:500; opacity:.85; text-transform:uppercase; letter-spacing:.1em; }
+.coin-balance-total{ margin-top:3px; font-size:0.72rem; opacity:.7; }
+
+/* Daily deal in shop — versione più grande */
+.shop-page .daily-deal-card { border-radius: 20px; }
+.shop-page .deal-head   { padding: 11px 18px; }
+.shop-page .deal-body   { padding: 16px 18px 12px; gap: 16px; }
+.shop-page .deal-icon   { width: 56px; height: 56px; border-radius: 14px; }
+.shop-page .deal-icon svg { width: 28px; height: 28px; }
+.shop-page .deal-name   { font-size: 1rem; }
+.shop-page .deal-desc   { font-size: 0.72rem; }
+.shop-page .deal-sale   { font-size: 1.2rem; }
+.shop-page .deal-foot   { padding: 0 14px 14px; }
+.shop-page .deal-btn    { padding: 11px; font-size: 0.85rem; border-radius: 14px; }
+
+/* Sezione categoria */
+.shop-section { margin-bottom:4px; }
+.shop-section-title {
+  font-size:0.7rem; font-weight:700; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--text-soft);
+  margin-bottom:12px;
+  display:flex; align-items:center; gap:8px;
+}
+.shop-section-title::after {
+  content:''; flex:1; height:1px; background:rgba(255,255,255,0.5);
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.shop-card {
+  background: var(--card);
+  backdrop-filter: blur(22px);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 10px;
+  transition: all 0.25s;
+  animation: fadeInUp 0.4s ease backwards;
+  position: relative;
+  overflow: hidden;
+}
+.shop-card:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(0,0,0,0.1); }
+.shop-card.owned { border-color: var(--accent); }
+.shop-card.owned::after {
+  content: 'In possesso';
+  position:absolute; top:10px; right:10px;
+  font-size:0.6rem; font-weight:700; text-transform:uppercase;
+  color:var(--accent); letter-spacing:.08em;
+}
+
+.shop-icon {
+  width: 44px; height: 44px; border-radius: 13px;
+  background: linear-gradient(135deg, var(--accent)22, var(--accent-2)22);
+  border: 1px solid var(--card-border);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink: 0;
+}
+.shop-icon svg { width:22px; height:22px; stroke:var(--accent); stroke-width:1.8; fill:none; }
+
+.shop-name  { font-size:0.9rem; font-weight:700; color:var(--text); line-height:1.2; }
+.shop-desc  { font-size:0.72rem; color:var(--text-soft); line-height:1.4; flex:1; }
+
+.shop-footer { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:4px; }
+.shop-price {
+  display:flex; align-items:center; gap:5px;
+  font-size:0.85rem; font-weight:700; color:var(--text);
+}
+.shop-price svg { stroke:#F59E0B; }
+
+.btn-buy {
+  padding:6px 14px; border:none; border-radius:10px;
+  font-size:0.75rem; font-weight:600;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:white; cursor:pointer; transition:all 0.2s;
+  font-family:'Poppins',sans-serif;
+}
+.btn-buy:hover { transform:scale(1.05); box-shadow:0 4px 12px rgba(0,0,0,.12); }
+.btn-buy:disabled, .disabled-buy { background:rgba(0,0,0,0.12) !important; color:var(--text-soft) !important; cursor:not-allowed; transform:none !important; box-shadow:none !important; }
+
+.btn-toggle-on  { background:linear-gradient(135deg,var(--accent-2),#00ACC1); }
+.btn-toggle-off { background:rgba(0,0,0,0.1); color:var(--text-soft); }
+
+/* ── Achievements ── */
+.achiev-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.achiev-card {
+  background: var(--card);
+  backdrop-filter:blur(22px);
+  border:1px solid var(--card-border);
+  border-radius:16px; padding:14px;
+  display:flex; align-items:center; gap:12px;
+  transition:all .2s;
+  animation: fadeInUp 0.4s ease backwards;
+}
+.achiev-card.locked { opacity:.45; }
+.achiev-card.unlocked { border-color:var(--accent); }
+.achiev-badge {
+  width:38px; height:38px; border-radius:11px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.achiev-badge svg { width:20px; height:20px; stroke:white; fill:none; stroke-width:2; }
+.achiev-card.unlocked .achiev-badge { background:linear-gradient(135deg,var(--accent),var(--accent-2)); }
+.achiev-card.locked   .achiev-badge { background:rgba(0,0,0,0.1); }
+.achiev-body-name  { font-size:0.8rem; font-weight:700; color:var(--text); }
+.achiev-body-desc  { font-size:0.68rem; color:var(--text-soft); margin-top:1px; }
+.achiev-body-coins { font-size:0.68rem; font-weight:700; color:var(--accent); margin-top:3px; }
+
+@media (max-width:960px) {
+  .shop-page  { padding:12px; }
+  .shop-grid  { grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); }
+  .achiev-grid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
+}
+
+/* ── Gatto 4 zampe SVG — animazione camminata ── */
+
+/* Bob del corpo mentre cammina */
+.cat-companion.cat-4legs.cat-walking .cat-4legs-wrap {
+  animation: cat4BodyWalk 0.42s ease-in-out infinite;
+}
+@keyframes cat4BodyWalk {
+  0%,50%,100% { transform: translateY(0); }
+  25%,75%     { transform: translateY(-2px); }
+}
+
+/* Tutte le zampe e la coda usano coordinate viewport SVG per transform-origin */
+.cat4-lb1,.cat4-pb1,.cat4-lb2,.cat4-pb2,
+.cat4-lf1,.cat4-pf1,.cat4-lf2,.cat4-pf2,
+.cat4-tail { transform-box: view-box; }
+
+/* Coppia diagonale A: zampa post-dietro + zampa ant-davanti */
+.cat-companion.cat-walking .cat4-lb1,
+.cat-companion.cat-walking .cat4-pb1 {
+  transform-origin: 47px 70px;
+  animation: cat4LegA 0.42s ease-in-out infinite;
+}
+.cat-companion.cat-walking .cat4-lf2,
+.cat-companion.cat-walking .cat4-pf2 {
+  transform-origin: 92px 70px;
+  animation: cat4LegA 0.42s ease-in-out infinite;
+}
+/* Coppia diagonale B: zampa ant-dietro + zampa post-davanti (sfasata 180°) */
+.cat-companion.cat-walking .cat4-lb2,
+.cat-companion.cat-walking .cat4-pb2 {
+  transform-origin: 88px 70px;
+  animation: cat4LegB 0.42s ease-in-out infinite;
+}
+.cat-companion.cat-walking .cat4-lf1,
+.cat-companion.cat-walking .cat4-pf1 {
+  transform-origin: 51px 70px;
+  animation: cat4LegB 0.42s ease-in-out infinite;
+}
+@keyframes cat4LegA {
+  0%,100% { transform: rotate(-18deg); }
+  50%     { transform: rotate(15deg);  }
+}
+@keyframes cat4LegB {
+  0%,100% { transform: rotate(15deg);  }
+  50%     { transform: rotate(-18deg); }
+}
+/* Coda — sventola mentre cammina */
+.cat-companion.cat-walking .cat4-tail {
+  transform-origin: 36px 53px;
+  animation: cat4TailWalk 0.84s ease-in-out infinite;
+}
+@keyframes cat4TailWalk {
+  0%,100% { transform: rotate(-5deg); }
+  50%     { transform: rotate(8deg);  }
+}
+/* Coda felice */
+.cat-companion.cat-happy .cat4-tail {
+  transform-origin: 36px 53px;
+  animation: cat4TailHappy 0.28s ease-in-out 5;
+}
+@keyframes cat4TailHappy {
+  0%,100% { transform: rotate(-14deg); }
+  50%     { transform: rotate(14deg);  }
+}
+
+/* ══════════════════════════════════════
+   CAGNOLINO
+═══════════════════════════════════════ */
+.dog-companion {
+  cursor: pointer;
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.18));
+  user-select: none;
+}
+.dog-companion.dog-hidden { opacity:0 !important; pointer-events:none !important; }
+
+.dog-dir-wrap  { display:flex; flex-direction:column; align-items:center; }
+.dog-body-wrap { display:flex; flex-direction:column; align-items:center; }
+
+/* Respiro */
+.dog-companion.dog-sleeping .dog-body-wrap {
+  animation: cat-breathe 3.5s ease-in-out infinite;
+}
+.dog-companion.dog-sitting .dog-body-wrap {
+  animation: cat-breathe 4s ease-in-out infinite;
+}
+
+/* Camminata */
+.dog-companion.dog-walking .dog-body-wrap {
+  animation: cat4BodyWalk 0.42s ease-in-out infinite;
+}
+
+/* Happy */
+.dog-companion.dog-happy .dog-body-wrap {
+  animation: cat-bounce-happy 0.38s ease-in-out infinite alternate;
+}
+.dog-companion.dog-happy .dog-heart {
+  animation: heart-pop 0.4s ease;
+}
+
+/* ZZZ */
+.dog-companion.dog-sleeping .dog-zzz {
+  animation: zzz-float 2.4s ease-in-out infinite;
+}
+
+/* Tutti gli elementi zampe e coda usano coordinate SVG */
+.dog-lb1,.dog-pb1,.dog-lb2,.dog-pb2,
+.dog-lf1,.dog-pf1,.dog-lf2,.dog-pf2,
+.dog-tail { transform-box: view-box; }
+
+/* Coda — sleeping/sitting */
+.dog-companion.dog-sleeping .dog-tail,
+.dog-companion.dog-sitting  .dog-tail {
+  transform-origin: 34px 58px;
+  animation: tail-wag-slow 3.5s ease-in-out infinite;
+}
+/* Coda — walking */
+.dog-companion.dog-walking .dog-tail {
+  transform-origin: 34px 58px;
+  animation: dogTailWag 0.42s ease-in-out infinite;
+}
+/* Coda — happy (scodinzola veloce) */
+.dog-companion.dog-happy .dog-tail {
+  transform-origin: 34px 58px;
+  animation: dogTailWag 0.18s ease-in-out infinite;
+}
+
+/* Coppia diagonale A: zampa post-dietro + zampa ant-davanti */
+.dog-companion.dog-walking .dog-lb1,
+.dog-companion.dog-walking .dog-pb1 {
+  transform-origin: 51px 72px;
+  animation: cat4LegA 0.42s ease-in-out infinite;
+}
+.dog-companion.dog-walking .dog-lf2,
+.dog-companion.dog-walking .dog-pf2 {
+  transform-origin: 97px 72px;
+  animation: cat4LegA 0.42s ease-in-out infinite;
+}
+
+/* Coppia diagonale B: zampa ant-dietro + zampa post-davanti (sfasata 180°) */
+.dog-companion.dog-walking .dog-lb2,
+.dog-companion.dog-walking .dog-pb2 {
+  transform-origin: 93px 72px;
+  animation: cat4LegB 0.42s ease-in-out infinite;
+}
+.dog-companion.dog-walking .dog-lf1,
+.dog-companion.dog-walking .dog-pf1 {
+  transform-origin: 55px 72px;
+  animation: cat4LegB 0.42s ease-in-out infinite;
+}
+
+@keyframes dogTailWag {
+  0%,100% { transform: rotate(-16deg); }
+  50%     { transform: rotate(22deg);  }
+}
+
+/* ══════════════════════════════════════
+   FALÒ
+═══════════════════════════════════════ */
+.campfire-hidden { display:none !important; }
+
+/* Le fiamme si scalano dal basso (punto base y=72 nel viewBox 70x90) */
+.cf-flame-outer,
+.cf-flame-mid,
+.cf-flame-inner { transform-box: view-box; transform-origin: 35px 72px; }
+
+.cf-flame-outer {
+  animation: flameOuter 0.9s ease-in-out infinite alternate;
+}
+.cf-flame-mid {
+  animation: flameMiddle 0.65s ease-in-out infinite alternate;
+}
+.cf-flame-inner {
+  animation: flameInner 0.42s ease-in-out infinite alternate;
+}
+
+@keyframes flameOuter {
+  from { transform: scaleX(1)    scaleY(1);    }
+  to   { transform: scaleX(0.85) scaleY(1.07); }
+}
+@keyframes flameMiddle {
+  from { transform: scaleX(0.92) scaleY(1);    }
+  to   { transform: scaleX(1.1)  scaleY(0.94); }
+}
+@keyframes flameInner {
+  from { transform: scaleX(1)    scaleY(0.93); }
+  to   { transform: scaleX(0.87) scaleY(1.09); }
+}
+
+/* Scintille che salgono e svaniscono */
+.cf-spark { transform-box: view-box; }
+.cf-spark1 { animation: sparkUp 2.1s ease-out infinite; }
+.cf-spark2 { animation: sparkUp 2.1s ease-out 0.75s infinite; }
+.cf-spark3 { animation: sparkUp 2.1s ease-out 1.4s  infinite; }
+
+@keyframes sparkUp {
+  0%   { transform: translateY(0)     scale(1);   opacity: 0.9; }
+  40%  { transform: translateY(-20px) scale(0.75);opacity: 0.75; }
+  80%  { transform: translateY(-42px) scale(0.4); opacity: 0.3; }
+  100% { transform: translateY(-58px) scale(0);   opacity: 0;   }
+}
+
+/* ══════════════════════════════════════
+   GIARDINO — shop buttons
+═══════════════════════════════════════ */
+.garden-buy {
+  background: linear-gradient(135deg, #43A047, #66BB6A) !important;
+}
+.garden-buy:hover { box-shadow: 0 4px 14px rgba(67,160,71,0.35) !important; }
+
+.btn-garden-owned {
+  background: linear-gradient(135deg, #2E7D32, #43A047) !important;
+  color: white !important;
+}
+.btn-garden-owned:hover {
+  box-shadow: 0 4px 14px rgba(46,125,50,0.35) !important;
+}
+
+/* Garden section in shop */
+.shop-card.owned.garden-card {
+  border-color: #43A047;
+  background: linear-gradient(135deg,
+    rgba(67,160,71,0.08), var(--card));
+}
+.shop-card.owned.garden-card::after {
+  content: '🌿 Nel giardino';
+  color: #43A047;
+}
+
+/* ── Intestazione sezione giardino ── */
+.garden-section-title {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+}
+.garden-shop-count-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #43A047, #66BB6A);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+/* ── Banner giardino nello shop ── */
+.garden-shop-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(135deg, rgba(67,160,71,0.1), rgba(102,187,106,0.08));
+  border: 1px solid rgba(67,160,71,0.3);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.garden-shop-banner-text {
+  font-size: 0.76rem;
+  color: var(--text);
+  line-height: 1.5;
+  flex: 1;
+  min-width: 200px;
+}
+.garden-shop-link {
+  background: linear-gradient(135deg, #43A047, #66BB6A);
+  color: white;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 12px;
+  white-space: nowrap;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.garden-shop-link:hover {
+  transform: scale(1.04);
+  box-shadow: 0 4px 14px rgba(67,160,71,0.3);
+}
+
+/* ══════════════════════════════════════════════════
+   CONIGLIETTO
+   ══════════════════════════════════════════════════ */
+.rabbit-companion {
+  cursor: pointer;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.16));
+  user-select: none;
+}
+.rabbit-companion.rabbit-hidden { opacity:0 !important; pointer-events:none !important; }
+.rabbit-dir-wrap { display:flex; flex-direction:column; align-items:center; }
+
+.rabbit-companion.rabbit-sleeping svg { animation: cat-breathe 3.5s ease-in-out infinite; }
+.rabbit-companion.rabbit-sitting  svg { animation: cat-breathe 4.2s ease-in-out infinite; }
+.rabbit-companion.rabbit-hopping  svg { animation: rabbit-hop 0.45s ease-in-out infinite; }
+.rabbit-companion.rabbit-happy    svg { animation: rabbit-bounce 0.35s ease-in-out infinite alternate; }
+.rabbit-companion.rabbit-happy .rabbit-heart { animation: heart-pop 0.4s ease; }
+
+@keyframes rabbit-hop {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  30%       { transform: translateY(-14px) scaleY(1.05); }
+  55%       { transform: translateY(-4px) scaleY(0.96); }
+}
+@keyframes rabbit-bounce {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-10px); }
+}
+
+/* ══════════════════════════════════════════════════
+   PAPPAGALLO
+   ══════════════════════════════════════════════════ */
+.parrot-companion {
+  cursor: pointer;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.18));
+  user-select: none;
+}
+.parrot-companion.parrot-hidden { opacity:0 !important; pointer-events:none !important; }
+.parrot-dir-wrap { display:flex; flex-direction:column; align-items:center; }
+
+/* Parrot wing animations */
+.parrot-wing-l, .parrot-wing-r { transform-box: view-box; }
+.parrot-companion.parrot-flying .parrot-wing-l {
+  transform-origin: 30px 62px;
+  animation: parrot-flap-l 0.28s ease-in-out infinite;
+}
+.parrot-companion.parrot-flying .parrot-wing-r {
+  transform-origin: 70px 62px;
+  animation: parrot-flap-r 0.28s ease-in-out infinite;
+}
+@keyframes parrot-flap-l {
+  0%, 100% { transform: rotate(-32deg); }
+  50%      { transform: rotate(32deg);  }
+}
+@keyframes parrot-flap-r {
+  0%, 100% { transform: rotate(32deg);  }
+  50%      { transform: rotate(-32deg); }
+}
+
+.parrot-companion.parrot-perched svg  { animation: cat-breathe 4s ease-in-out infinite; }
+.parrot-companion.parrot-sleeping svg { animation: cat-breathe 5s ease-in-out infinite; }
+.parrot-companion.parrot-happy svg    { animation: rabbit-bounce 0.35s ease-in-out infinite alternate; }
+.parrot-companion.parrot-happy .parrot-heart { animation: heart-pop 0.4s ease; }
+
+/* ══════════════════════════════════════
+   CASETTE ANIMALI (animal houses)
+═══════════════════════════════════════ */
+.animal-house {
+  transition: opacity 0.3s;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.14));
+}
+.animal-house.house-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════
+   VOLPE
+═══════════════════════════════════════ */
+.fox-companion {
+  cursor: pointer;
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.18));
+  user-select: none;
+}
+.fox-companion.fox-hidden { opacity:0 !important; pointer-events:none !important; }
+.fox-dir-wrap { display:flex; flex-direction:column; align-items:center; }
+
+.fox-companion.fox-sleeping svg { animation: cat-breathe 3.5s ease-in-out infinite; }
+.fox-companion.fox-sitting  svg { animation: cat-breathe 4.2s ease-in-out infinite; }
+.fox-companion.fox-walking  svg { animation: cat-hop 0.45s ease-in-out infinite; }
+.fox-companion.fox-happy    svg { animation: cat-bounce-happy 0.38s ease-in-out infinite alternate; }
+.fox-companion.fox-happy .fox-heart { animation: heart-pop 0.4s ease; }
+.fox-companion.fox-sleeping .fox-zzz { animation: zzz-float 2.4s ease-in-out infinite; }
+
+/* ══════════════════════════════════════
+   GUFO
+═══════════════════════════════════════ */
+.owl-companion {
+  cursor: pointer;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.18));
+  user-select: none;
+}
+.owl-companion.owl-hidden { opacity:0 !important; pointer-events:none !important; }
+.owl-dir-wrap { display:flex; flex-direction:column; align-items:center; }
+
+/* Wing elements use view-box coords */
+.owl-wing-l, .owl-wing-r { transform-box: view-box; }
+
+.owl-companion.owl-flying .owl-wing-l {
+  transform-origin: 10px 52px;
+  animation: owl-wing-l-flap 0.38s ease-in-out infinite;
+}
+.owl-companion.owl-flying .owl-wing-r {
+  transform-origin: 70px 52px;
+  animation: owl-wing-r-flap 0.38s ease-in-out infinite;
+}
+@keyframes owl-wing-l-flap {
+  0%, 100% { transform: rotate(-20deg); }
+  50%      { transform: rotate(22deg);  }
+}
+@keyframes owl-wing-r-flap {
+  0%, 100% { transform: rotate(20deg);  }
+  50%      { transform: rotate(-22deg); }
+}
+
+.owl-companion.owl-perched  svg { animation: cat-breathe 4.5s ease-in-out infinite; }
+.owl-companion.owl-sleeping svg { animation: cat-breathe 5.5s ease-in-out infinite; }
+.owl-companion.owl-happy    svg { animation: rabbit-bounce 0.35s ease-in-out infinite alternate; }
+.owl-companion.owl-happy .owl-heart { animation: heart-pop 0.4s ease; }
+.owl-companion.owl-sleeping .owl-zzz { animation: zzz-float 2.8s ease-in-out infinite; }

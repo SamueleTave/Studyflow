@@ -663,7 +663,7 @@ function showAnimalThought(text, duration) {
   if (!b) {
     b = document.createElement('div');
     b.id = 'animal-bubble';
-    document.body.appendChild(b);
+    (document.querySelector('.app') || document.body).appendChild(b);
   }
   clearTimeout(b._hideTimer);
   b.textContent = text;
