@@ -29,7 +29,7 @@ function initFriends() {
 function _apiCall(method, path, body, cb) {
   var auth = JSON.parse(sessionStorage.getItem('sf_auth') || 'null');
   var token = auth && auth.token ? auth.token : '';
-  var BASE = (typeof API_BASE !== 'undefined') ? API_BASE : 'http://localhost:5002';
+  var BASE = (typeof API_BASE !== 'undefined') ? API_BASE : '/api';
   var opts = {
     method: method,
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
@@ -42,7 +42,7 @@ function _apiCall(method, path, body, cb) {
 }
 
 function loadFriends() {
-  _apiCall('GET', '/api/friends', null, function(err, data) {
+  _apiCall('GET', '/friends', null, function(err, data) {
     if (err || !Array.isArray(data)) return;
     _friendsState.friends = data;
     renderFriendsList();
@@ -50,7 +50,7 @@ function loadFriends() {
 }
 
 function loadFriendRequests() {
-  _apiCall('GET', '/api/friends/requests', null, function(err, data) {
+  _apiCall('GET', '/friends/requests', null, function(err, data) {
     if (err || !data) return;
     _friendsState.received = data.received || [];
     _friendsState.sent     = data.sent     || [];
@@ -59,7 +59,7 @@ function loadFriendRequests() {
 }
 
 function searchUsers(q) {
-  _apiCall('GET', '/api/friends/search?q=' + encodeURIComponent(q), null, function(err, data) {
+  _apiCall('GET', '/friends/search?q=' + encodeURIComponent(q), null, function(err, data) {
     if (err || !Array.isArray(data)) return;
     _friendsState.searchResults = data;
     renderSearchResults(data);
@@ -67,7 +67,7 @@ function searchUsers(q) {
 }
 
 function sendFriendRequest(username) {
-  _apiCall('POST', '/api/friends/request', { username: username }, function(err, data) {
+  _apiCall('POST', '/friends/request', { username: username }, function(err, data) {
     if (err || data.error) {
       _showFriendsToast(data && data.error ? data.error : 'Errore', true);
       return;
@@ -81,7 +81,7 @@ function sendFriendRequest(username) {
 }
 
 function acceptRequest(fid) {
-  _apiCall('POST', '/api/friends/' + fid + '/accept', null, function(err, data) {
+  _apiCall('POST', '/friends/' + fid + '/accept', null, function(err, data) {
     if (err || data.error) { _showFriendsToast(data && data.error ? data.error : 'Errore', true); return; }
     _showFriendsToast('Amicizia accettata!');
     loadFriends();
@@ -90,7 +90,7 @@ function acceptRequest(fid) {
 }
 
 function rejectRequest(fid) {
-  _apiCall('POST', '/api/friends/' + fid + '/reject', null, function(err, data) {
+  _apiCall('POST', '/friends/' + fid + '/reject', null, function(err, data) {
     if (err || data.error) { _showFriendsToast(data && data.error ? data.error : 'Errore', true); return; }
     _showFriendsToast('Richiesta rifiutata.');
     loadFriendRequests();
@@ -99,7 +99,7 @@ function rejectRequest(fid) {
 
 function removeFriend(fid, username) {
   if (!confirm('Rimuovere ' + username + ' dagli amici?')) return;
-  _apiCall('DELETE', '/api/friends/' + fid, null, function(err, data) {
+  _apiCall('DELETE', '/friends/' + fid, null, function(err, data) {
     if (err || data.error) { _showFriendsToast(data && data.error ? data.error : 'Errore', true); return; }
     _showFriendsToast(username + ' rimosso dagli amici.');
     loadFriends();

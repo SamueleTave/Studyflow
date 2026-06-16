@@ -383,6 +383,32 @@
     }
     .empty-state-icon { font-size: 2.5rem; margin-bottom: 12px; }
     .empty-state-text { font-size: 0.9rem; }
+
+    /* ── Ticket ── */
+    .ticket-row {
+      padding: 16px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      transition: background 0.15s;
+    }
+    .ticket-row:last-child { border-bottom: none; }
+    .ticket-row:hover { background: rgba(255,255,255,0.3); }
+    .ticket-row.unread { background: rgba(245,158,11,0.07); }
+    .ticket-avatar {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: #fff; font-size: 0.9rem;
+    }
+    .ticket-body { flex: 1; min-width: 0; }
+    .ticket-meta { display: flex; gap: 10px; align-items: center; margin-bottom: 5px; flex-wrap: wrap; }
+    .ticket-user { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    .ticket-date { font-size: 0.72rem; color: var(--text-soft); }
+    .ticket-new  { font-size: 0.62rem; font-weight: 700; background: #ef4444; color: #fff; border-radius: 5px; padding: 1px 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .ticket-msg  { font-size: 0.83rem; color: var(--text); line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+    .ticket-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -414,10 +440,10 @@
     <div class="admin-header-left">
       <a href="index.html" class="admin-back" title="Torna all'app">←</a>
       <span class="admin-title">Admin Panel</span>
-      <span class="admin-badge">kiwi07</span>
+      <span class="admin-badge">ADMIN</span>
     </div>
     <div class="admin-header-right">
-      <button class="admin-btn admin-btn-ghost" onclick="loadUsers()">↺ Aggiorna</button>
+      <button class="admin-btn admin-btn-ghost" id="refreshBtn" onclick="refreshAll()">↺ Aggiorna</button>
       <button class="admin-btn admin-btn-ghost" onclick="logout()">Esci</button>
     </div>
   </div>
@@ -449,6 +475,19 @@
       <span class="admin-table-title">Utenti registrati</span>
     </div>
     <div id="tableWrap">
+      <div class="empty-state">
+        <div class="empty-state-icon">⏳</div>
+        <div class="empty-state-text">Caricamento...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Segnalazioni -->
+  <div class="admin-table-card" style="margin-top:28px">
+    <div class="admin-table-head">
+      <span class="admin-table-title">🛠️ Segnalazioni utenti <span id="ticketBadge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:2px 8px;font-size:0.68rem;margin-left:8px;font-weight:700"></span></span>
+    </div>
+    <div id="ticketsWrap">
       <div class="empty-state">
         <div class="empty-state-icon">⏳</div>
         <div class="empty-state-text">Caricamento...</div>
@@ -672,6 +711,7 @@
       if (fx.parrotVisible) companions.push('🦜 Pappagallo');
       if (fx.foxVisible)    companions.push('🦊 Volpe');
       if (fx.owlVisible)    companions.push('🦉 Gufo');
+      if (fx.lionVisible)   companions.push('🦁 Leone');
       if (fx.campfire)      companions.push('🔥 Falò');
 
       /* Oggetti shop acquistati */
@@ -799,8 +839,99 @@
       .replace(/"/g,'&quot;');
   }
 
+  /* ── Tickets segnalazioni ── */
+  async function loadTickets() {
+    try {
+      const r = await apiFetch('/api/admin/tickets');
+      if (!r.ok) throw new Error();
+      const tickets = await r.json();
+      renderTickets(tickets);
+    } catch {
+      document.getElementById('ticketsWrap').innerHTML =
+        '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Errore caricamento segnalazioni</div></div>';
+    }
+  }
+
+  function renderTickets(tickets) {
+    const wrap  = document.getElementById('ticketsWrap');
+    const badge = document.getElementById('ticketBadge');
+    const unreadCount = tickets.filter(t => !t.is_read).length;
+    if (badge) {
+      badge.textContent = unreadCount + ' nuov' + (unreadCount === 1 ? 'a' : 'e');
+      badge.style.display = unreadCount ? 'inline' : 'none';
+    }
+    if (!tickets.length) {
+      wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Nessuna segnalazione</div></div>';
+      return;
+    }
+    wrap.innerHTML = tickets.map(t => {
+      const initial = (t.username || '?')[0].toUpperCase();
+      const newTag  = !t.is_read ? '<span class="ticket-new">Nuova</span>' : '';
+      return `<div class="ticket-row ${t.is_read ? '' : 'unread'}" id="ticket-${t.id}">
+        <div class="ticket-avatar">${initial}</div>
+        <div class="ticket-body">
+          <div class="ticket-meta">
+            <span class="ticket-user">@${escHtml(t.username || '?')}</span>
+            <span class="ticket-date">${fmtDate(t.created_at)}</span>
+            ${newTag}
+          </div>
+          <div class="ticket-msg">${escHtml(t.message)}</div>
+        </div>
+        <div class="ticket-actions">
+          ${!t.is_read ? `<button class="act-btn act-edit" onclick="markTicketRead(${t.id})">✓ Letto</button>` : ''}
+          <button class="act-btn act-delete" onclick="deleteTicket(${t.id})">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function markTicketRead(tid) {
+    try {
+      await apiFetch('/api/admin/tickets/' + tid + '/read', { method: 'POST' });
+      const row = document.getElementById('ticket-' + tid);
+      if (row) {
+        row.classList.remove('unread');
+        const actions = row.querySelector('.ticket-actions');
+        if (actions) {
+          const readBtn = actions.querySelector('.act-edit');
+          if (readBtn) readBtn.remove();
+        }
+        const newTag = row.querySelector('.ticket-new');
+        if (newTag) newTag.remove();
+      }
+      const badge = document.getElementById('ticketBadge');
+      if (badge) {
+        const cur = parseInt(badge.textContent) || 0;
+        const newCount = Math.max(0, cur - 1);
+        badge.textContent = newCount + ' nuov' + (newCount === 1 ? 'a' : 'e');
+        badge.style.display = newCount ? 'inline' : 'none';
+      }
+      toast('Segnalazione marcata come letta ✅');
+    } catch { toast('Errore'); }
+  }
+
+  async function deleteTicket(tid) {
+    if (!confirm('Eliminare questa segnalazione?')) return;
+    try {
+      await apiFetch('/api/admin/tickets/' + tid, { method: 'DELETE' });
+      const row = document.getElementById('ticket-' + tid);
+      if (row) row.remove();
+      toast('Segnalazione eliminata ✅');
+    } catch { toast('Errore'); }
+  }
+
+  /* ── Aggiorna tutto ── */
+  async function refreshAll() {
+    const btn = document.getElementById('refreshBtn');
+    if (btn) { btn.textContent = '⏳ Aggiornamento...'; btn.disabled = true; }
+    await Promise.all([loadUsers(), loadTickets()]);
+    if (btn) { btn.textContent = '↺ Aggiorna'; btn.disabled = false; }
+    toast('Dati aggiornati ✅');
+  }
+
   /* ── Avvio ── */
   loadUsers();
+  loadTickets();
 </script>
 </body>
 </html>

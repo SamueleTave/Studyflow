@@ -296,6 +296,7 @@ function initShared() {
   _injectHydrationToggle();
   checkAnimalMood();
   _initPresence();
+  _initHelpButton();
 }
 
 /* ══════════════════════════════════════
@@ -679,7 +680,7 @@ function checkAnimalMood() {
   // Mostra il fumetto solo se c'è almeno un animale attivo
   if (typeof coinData === 'undefined' || !coinData || !coinData.activeEffects) return;
   var fx = coinData.activeEffects;
-  if (!fx.catVisible && !fx.dogVisible && !fx.rabbitVisible && !fx.foxVisible && !fx.parrotVisible && !fx.owlVisible) return;
+  if (!fx.catVisible && !fx.dogVisible && !fx.rabbitVisible && !fx.foxVisible && !fx.parrotVisible && !fx.owlVisible && !fx.lionVisible) return;
 
   var s         = (typeof stats !== 'undefined') ? stats : {};
   var sessions  = s.sessions  || 0;
@@ -790,4 +791,94 @@ function _initPresence() {
   _pingPresence();
   _fetchOnline();
   setInterval(function() { _pingPresence(); _fetchOnline(); }, 60000);
+}
+
+/* ══════════════════════════════════════
+   FEATURE — SEGNALA PROBLEMA
+═══════════════════════════════════════ */
+function _initHelpButton() {
+  /* Inietta bottone nel fondo sidebar */
+  var sidebarBottom = document.querySelector('.sidebar-bottom');
+  if (sidebarBottom && !document.getElementById('help-report-btn')) {
+    var btn = document.createElement('button');
+    btn.id = 'help-report-btn';
+    btn.className = 'nav-link';
+    btn.setAttribute('onclick', 'openHelpModal()');
+    btn.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span class="nav-label">Problemi</span>';
+    sidebarBottom.insertBefore(btn, sidebarBottom.firstChild);
+  }
+
+  /* Crea modal help se non esiste */
+  if (!document.getElementById('help-modal-overlay')) {
+    var overlay = document.createElement('div');
+    overlay.id = 'help-modal-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.32);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px';
+    overlay.innerHTML = '<div style="background:var(--card);border:1px solid var(--card-border);border-radius:22px;box-shadow:0 24px 60px rgba(0,0,0,0.18);padding:30px 28px;max-width:440px;width:100%">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">' +
+        '<div style="font-size:1.05rem;font-weight:700;color:var(--text)">🛠️ Segnala un problema</div>' +
+        '<button onclick="closeHelpModal()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text-soft);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center">✕</button>' +
+      '</div>' +
+      '<div style="font-size:0.82rem;color:var(--text-soft);margin-bottom:14px">Descrivi il problema o lascia un suggerimento. Lo riceverò direttamente nel pannello admin.</div>' +
+      '<textarea id="help-modal-text" style="width:100%;min-height:110px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--card-border);background:var(--bg);color:var(--text);font-family:Poppins,sans-serif;font-size:0.88rem;resize:vertical;outline:none;transition:border-color 0.2s" placeholder="Descrivi il problema..." maxlength="2000"></textarea>' +
+      '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px">' +
+        '<button onclick="closeHelpModal()" style="padding:9px 18px;border-radius:10px;border:1.5px solid var(--card-border);background:rgba(255,255,255,0.4);color:var(--text-soft);font-family:Poppins,sans-serif;font-size:0.83rem;font-weight:600;cursor:pointer">Annulla</button>' +
+        '<button onclick="submitHelpReport()" id="help-submit-btn" style="padding:9px 20px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:Poppins,sans-serif;font-size:0.83rem;font-weight:600;cursor:pointer">Invia</button>' +
+      '</div>' +
+      '<div id="help-modal-msg" style="font-size:0.8rem;margin-top:10px;text-align:center;display:none"></div>' +
+    '</div>';
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeHelpModal(); });
+    document.body.appendChild(overlay);
+  }
+}
+
+function openHelpModal() {
+  var overlay = document.getElementById('help-modal-overlay');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  var ta = document.getElementById('help-modal-text');
+  if (ta) { ta.value = ''; ta.focus(); }
+  var msg = document.getElementById('help-modal-msg');
+  if (msg) msg.style.display = 'none';
+}
+
+function closeHelpModal() {
+  var overlay = document.getElementById('help-modal-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function submitHelpReport() {
+  var ta  = document.getElementById('help-modal-text');
+  var msg = (ta ? ta.value : '').trim();
+  if (!msg || msg.length < 5) {
+    var info = document.getElementById('help-modal-msg');
+    if (info) { info.textContent = 'Scrivi almeno qualche parola!'; info.style.color = '#dc2626'; info.style.display = 'block'; }
+    return;
+  }
+  var btn = document.getElementById('help-submit-btn');
+  if (btn) { btn.textContent = 'Invio...'; btn.disabled = true; }
+
+  var auth = _getAuth();
+  var api  = (typeof window.SF_API_BASE !== 'undefined') ? window.SF_API_BASE : '/api';
+  fetch(api + '/help', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (auth ? auth.token : '') },
+    body: JSON.stringify({ message: msg }),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (btn) { btn.textContent = 'Invia'; btn.disabled = false; }
+    var info = document.getElementById('help-modal-msg');
+    if (data.ok) {
+      if (info) { info.textContent = 'Messaggio inviato! Grazie per il feedback 🙏'; info.style.color = '#16a34a'; info.style.display = 'block'; }
+      if (ta) ta.value = '';
+      setTimeout(closeHelpModal, 2000);
+    } else {
+      if (info) { info.textContent = data.error || 'Errore invio'; info.style.color = '#dc2626'; info.style.display = 'block'; }
+    }
+  })
+  .catch(function() {
+    if (btn) { btn.textContent = 'Invia'; btn.disabled = false; }
+    var info = document.getElementById('help-modal-msg');
+    if (info) { info.textContent = 'Errore di connessione'; info.style.color = '#dc2626'; info.style.display = 'block'; }
+  });
 }

@@ -79,6 +79,15 @@ def init_db():
                 FOREIGN KEY (receiver_id)  REFERENCES users(id) ON DELETE CASCADE,
                 UNIQUE (requester_id, receiver_id)
             );
+            CREATE TABLE IF NOT EXISTS support_tickets (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id    INTEGER,
+                username   TEXT,
+                message    TEXT NOT NULL,
+                created_at TEXT DEFAULT (datetime('now','localtime')),
+                is_read    INTEGER DEFAULT 0,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+            );
         """)
 
 def _migrate_db():
@@ -268,7 +277,7 @@ def admin_list_users():
     get_auth_user(required=True, admin=True)
     with get_db() as c:
         users = c.execute(
-            "SELECT id, username, is_admin, created_at, last_seen FROM users ORDER BY last_seen DESC"
+            "SELECT id, username, is_admin, created_at, last_seen FROM users ORDER BY is_admin DESC, last_seen DESC"
         ).fetchall()
         result = []
         for u in users:
@@ -550,6 +559,52 @@ def friends_remove(fid):
         if not f:
             return jsonify({"error": "Amicizia non trovata"}), 404
         c.execute("DELETE FROM friendships WHERE id=?", (fid,))
+        c.commit()
+    return jsonify({"ok": True})
+
+# ──────────────────────────────────────────
+# API: HELP / SEGNALAZIONI
+# ──────────────────────────────────────────
+
+@app.route("/api/help", methods=["POST"])
+def help_submit():
+    me   = get_auth_user(required=True)
+    data = request.get_json(silent=True) or {}
+    msg  = (data.get("message") or "").strip()
+    if not msg or len(msg) < 5:
+        return jsonify({"error": "Messaggio troppo corto"}), 400
+    if len(msg) > 2000:
+        return jsonify({"error": "Messaggio troppo lungo"}), 400
+    with get_db() as c:
+        c.execute(
+            "INSERT INTO support_tickets (user_id, username, message) VALUES (?,?,?)",
+            (me["id"], me["username"], msg)
+        )
+        c.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/admin/tickets", methods=["GET"])
+def admin_tickets():
+    get_auth_user(required=True, admin=True)
+    with get_db() as c:
+        rows = c.execute(
+            "SELECT * FROM support_tickets ORDER BY is_read ASC, created_at DESC"
+        ).fetchall()
+    return jsonify(rows_list(rows))
+
+@app.route("/api/admin/tickets/<int:tid>/read", methods=["POST"])
+def admin_ticket_read(tid):
+    get_auth_user(required=True, admin=True)
+    with get_db() as c:
+        c.execute("UPDATE support_tickets SET is_read=1 WHERE id=?", (tid,))
+        c.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/admin/tickets/<int:tid>", methods=["DELETE"])
+def admin_ticket_delete(tid):
+    get_auth_user(required=True, admin=True)
+    with get_db() as c:
+        c.execute("DELETE FROM support_tickets WHERE id=?", (tid,))
         c.commit()
     return jsonify({"ok": True})
 
