@@ -374,9 +374,12 @@
 <div class="overlay" id="settingsModal" onclick="overlayClick(event)">
   <div class="modal">
     <div class="modal-hdr">
-      Impostazioni Timer
+      ⚙️ Impostazioni
       <button class="modal-close" onclick="closeSettings()">&#10005;</button>
     </div>
+
+    <!-- Sezione Timer -->
+    <div class="s-section-label">⏱ Timer</div>
     <div class="s-row">
       <div><div class="s-label">Tempo di Lavoro</div><div class="s-sub">minuti</div></div>
       <div class="num-ctrl">
@@ -402,39 +405,44 @@
       </div>
     </div>
     <div class="s-row">
-      <div><div class="s-label">Sessioni per Pausa Lunga</div></div>
+      <div><div class="s-label">Sessioni × Pausa Lunga</div></div>
       <div class="num-ctrl">
         <button class="num-btn" onclick="changeSetting('goal',-1)">&#8722;</button>
         <div class="num-val" id="sv-goal">4</div>
         <button class="num-btn" onclick="changeSetting('goal',1)">+</button>
       </div>
     </div>
+
+    <!-- Sezione Automazione -->
+    <div class="s-section-label" style="margin-top:8px">🤖 Automazione</div>
     <div class="s-row">
-      <div><div class="s-label">Auto-avvio Pausa</div><div class="s-sub">inizia la pausa automaticamente</div></div>
+      <div><div class="s-label">Auto-avvio Pausa</div><div class="s-sub">pausa parte in automatico</div></div>
       <button class="toggle" id="tog-autoBreak" onclick="toggleSetting('autoBreak')"></button>
     </div>
     <div class="s-row">
-      <div><div class="s-label">Auto-avvio Lavoro</div><div class="s-sub">riprendi il lavoro automaticamente</div></div>
+      <div><div class="s-label">Auto-avvio Lavoro</div><div class="s-sub">timer riparte in automatico</div></div>
       <button class="toggle" id="tog-autoWork" onclick="toggleSetting('autoWork')"></button>
     </div>
     <div class="s-row">
-      <div><div class="s-label">Suono al termine</div></div>
+      <div><div class="s-label">Suono al termine</div><div class="s-sub">notifica sonora fine sessione</div></div>
       <button class="toggle on" id="tog-sound" onclick="toggleSetting('sound')"></button>
     </div>
+
     <!-- Sezione Widget -->
-    <div class="s-row" style="border-top:1px solid var(--card-border);margin-top:6px;padding-top:14px;flex-direction:column;align-items:stretch;gap:10px">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div class="s-label">🧩 Widget</div>
-        <button onclick="openWidgetPicker();closeSettings()" style="font-size:0.75rem;color:var(--accent);background:none;border:none;cursor:pointer;font-family:Poppins,sans-serif;font-weight:600;padding:4px 8px;border-radius:8px;border:1px solid var(--accent)">+ Aggiungi</button>
-      </div>
-      <div id="settings-widget-list" style="display:flex;flex-direction:column;gap:6px"></div>
+    <div class="s-section-label" style="margin-top:8px">🧩 Widget</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:4px">
+      <div id="settings-widget-list"></div>
+      <button onclick="openWidgetPicker();closeSettings()" style="margin-top:4px;padding:8px;border-radius:10px;border:1.5px dashed var(--card-border);background:none;cursor:pointer;font-size:0.8rem;color:var(--accent);font-family:Poppins,sans-serif;font-weight:600;width:100%;transition:background 0.15s" onmouseover="this.style.background='rgba(var(--accent-rgb,99,102,241),0.07)'" onmouseout="this.style.background='none'">+ Aggiungi widget</button>
     </div>
-    <div class="s-row" style="border-top:1px solid var(--card-border);margin-top:6px;padding-top:14px">
+
+    <!-- Sezione Account -->
+    <div class="s-section-label" style="margin-top:8px">👤 Account</div>
+    <div class="s-row">
       <div>
-        <div class="s-label">Account</div>
-        <div class="s-sub" id="settings-user-label" style="margin-top:2px">—</div>
+        <div class="s-label" id="settings-user-label">—</div>
+        <div class="s-sub">utente collegato</div>
       </div>
-      <button onclick="logout()" style="padding:8px 18px;border-radius:10px;border:1.5px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);color:#dc2626;font-family:Poppins,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">Esci</button>
+      <button onclick="logout()" style="padding:8px 18px;border-radius:10px;border:1.5px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);color:#dc2626;font-family:Poppins,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.15s" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">Esci</button>
     </div>
   </div>
 </div>

@@ -270,21 +270,24 @@ function _renderSettingsWidgetList() {
     return w && _isUnlocked(id);
   });
   if (!added.length) {
-    list.innerHTML = '<div style="font-size:0.78rem;color:var(--text-soft)">Nessun widget aggiunto ancora</div>';
+    list.innerHTML = '<div style="font-size:0.78rem;color:var(--text-soft);padding:6px 0">Nessun widget aggiunto ancora</div>';
     return;
   }
+  const _sb = (active) => `padding:3px 9px;border-radius:7px;border:1.5px solid ${active?'var(--accent)':'var(--card-border)'};background:${active?'var(--accent)':'rgba(255,255,255,0.45)'};color:${active?'#fff':'var(--text-soft)'};font-size:0.68rem;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;transition:all 0.15s`;
   list.innerHTML = added.map(id => {
-    const w    = WIDGET_CATALOG.find(c => c.id === id);
-    const sz   = (_wState.sizes && _wState.sizes[id]) || 'sm';
+    const w      = WIDGET_CATALOG.find(c => c.id === id);
+    const sz     = (_wState.sizes && _wState.sizes[id]) || 'sm';
     const hidden = _wState.hidden.includes(id);
-    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:11px;border:1px solid var(--card-border);background:rgba(255,255,255,0.3)">
-      <span style="font-size:1.1rem">${w.icon}</span>
-      <span style="flex:1;font-size:0.82rem;font-weight:500;color:var(--text)">${w.label}</span>
-      <div style="display:flex;gap:4px;align-items:center">
-        <button onclick="setWidgetSize('${id}','sm')" style="padding:2px 7px;border-radius:6px;border:1px solid var(--card-border);background:${sz==='sm'?'var(--accent)':'rgba(255,255,255,0.5)'};color:${sz==='sm'?'#fff':'var(--text-soft)'};font-size:0.65rem;cursor:pointer;font-family:Poppins,sans-serif">S</button>
-        <button onclick="setWidgetSize('${id}','md')" style="padding:2px 7px;border-radius:6px;border:1px solid var(--card-border);background:${sz==='md'?'var(--accent)':'rgba(255,255,255,0.5)'};color:${sz==='md'?'#fff':'var(--text-soft)'};font-size:0.65rem;cursor:pointer;font-family:Poppins,sans-serif">M</button>
-        <button onclick="setWidgetSize('${id}','lg')" style="padding:2px 7px;border-radius:6px;border:1px solid var(--card-border);background:${sz==='lg'?'var(--accent)':'rgba(255,255,255,0.5)'};color:${sz==='lg'?'#fff':'var(--text-soft)'};font-size:0.65rem;cursor:pointer;font-family:Poppins,sans-serif">L</button>
-        <button onclick="toggleWidget('${id}');_renderSettingsWidgetList()" style="padding:2px 8px;border-radius:6px;border:1px solid ${hidden?'#22c55e':'#ef4444'};background:${hidden?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.08)'};color:${hidden?'#16a34a':'#dc2626'};font-size:0.65rem;cursor:pointer;font-family:Poppins,sans-serif;margin-left:2px">${hidden?'Mostra':'Nascondi'}</button>
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:1px solid var(--card-border);background:${hidden?'rgba(0,0,0,0.03)':'rgba(255,255,255,0.35)'};opacity:${hidden?'0.6':'1'}">
+      <span style="font-size:1rem;flex-shrink:0">${w.icon}</span>
+      <span style="flex:1;font-size:0.8rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${w.label}</span>
+      <div style="display:flex;gap:3px;align-items:center;flex-shrink:0">
+        <button onclick="setWidgetSize('${id}','sm');_renderSettingsWidgetList()" style="${_sb(sz==='sm')}">S</button>
+        <button onclick="setWidgetSize('${id}','md');_renderSettingsWidgetList()" style="${_sb(sz==='md')}">M</button>
+        <button onclick="setWidgetSize('${id}','lg');_renderSettingsWidgetList()" style="${_sb(sz==='lg')}">L</button>
+        <button onclick="toggleWidget('${id}');_renderSettingsWidgetList()" title="${hidden?'Mostra':'Nascondi'}"
+          style="margin-left:4px;width:28px;height:28px;border-radius:8px;border:1px solid var(--card-border);background:rgba(255,255,255,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:background 0.15s"
+          onmouseover="this.style.background='rgba(0,0,0,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.5)'">${hidden?'👁':'🚫'}</button>
       </div>
     </div>`;
   }).join('');

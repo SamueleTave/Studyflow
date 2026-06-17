@@ -271,10 +271,20 @@
   cursor: pointer; transition: all 0.2s;
 }
 .modal-close:hover { background: rgba(0,0,0,0.15); }
+.s-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  padding: 10px 0 4px;
+  border-top: 1px solid var(--card-border);
+  margin-top: 2px;
+}
 .s-row {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 13px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.55);
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.45);
 }
 .s-row:last-child { border-bottom: none; }
 .s-label { font-size: 0.84rem; font-weight: 500; }

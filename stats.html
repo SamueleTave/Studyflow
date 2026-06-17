@@ -85,7 +85,7 @@
           <div class="tdot" data-t="sakura"></div>
         </div>
       </div>
-      <div style="padding:4px 10px;display:flex;align-items:center;gap:8px">
+      <div id="backend-status-bar" style="padding:4px 10px;display:none;align-items:center;gap:8px">
         <div id="backend-dot" style="width:8px;height:8px;border-radius:50%;background:#BDBDBD;flex-shrink:0"></div>
         <span style="font-size:0.65rem;color:var(--text-soft)">Backend</span>
       </div>
@@ -116,8 +116,7 @@
 
     <!-- OFFLINE NOTICE -->
     <div class="offline-notice" id="offline-notice">
-      Backend non attivo. Avvia <code>python3 app.py</code> per le statistiche complete.
-      Le statistiche mostrate usano i dati del browser (localStorage).
+      Connessione al server in corso... Le statistiche potrebbero essere incomplete.
     </div>
 
     <!-- STAT CARDS -->
