@@ -784,11 +784,22 @@ function _wspShowPlaylistsPanel() {
 }
 
 let _wspPopup = null;
-function spotifyOAuthConnect() {
+async function spotifyOAuthConnect() {
   if (!_wspClientId) return;
+
+  // PKCE — genera code verifier e challenge
+  const arr = new Uint8Array(64);
+  crypto.getRandomValues(arr);
+  const verifier = btoa(String.fromCharCode(...arr)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  const digest   = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+  const challenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+
+  localStorage.setItem('sf_pkce_verifier',   verifier);
+  localStorage.setItem('sf_pkce_client_id',  _wspClientId);
+
   const redirectUri = encodeURIComponent(window.location.origin + '/spotify-callback.html');
   const scopes = encodeURIComponent('playlist-read-private playlist-read-collaborative user-library-read user-read-private');
-  const url = `https://accounts.spotify.com/authorize?client_id=${_wspClientId}&response_type=token&redirect_uri=${redirectUri}&scope=${scopes}&show_dialog=false`;
+  const url = `https://accounts.spotify.com/authorize?client_id=${_wspClientId}&response_type=code&code_challenge_method=S256&code_challenge=${challenge}&redirect_uri=${redirectUri}&scope=${scopes}&show_dialog=false`;
   _wspPopup = window.open(url, 'SpotifyLogin', 'width=480,height=660');
   window.addEventListener('message', _wspHandleMessage, { once: true });
 }
