@@ -70,25 +70,32 @@ class _Conn:
     def execute(self, sql, params=()):
         if self._cur is None:
             return self._conn.execute(sql, params)
-        # ? → %s
-        sql = sql.replace('?', '%s')
-        # datetime('now','localtime') → valore Python
-        n = sql.count("datetime('now','localtime')")
-        if n:
-            sql = sql.replace("datetime('now','localtime')", '%s')
-            params = tuple(params) + (_now(),) * n
-        # datetime('now','localtime','-N minutes/hours') → valore Python
-        def _repl_offset(m):
-            try:
-                parts = m.group(1).strip().split()
-                val  = int(parts[0])
-                unit = parts[1].rstrip('s')
-                kw   = {'minute': 'minutes', 'hour': 'hours', 'day': 'days'}.get(unit, 'minutes')
-                return "'" + (datetime.now() + timedelta(**{kw: val})).strftime('%Y-%m-%d %H:%M:%S') + "'"
-            except Exception:
-                return "'" + _now() + "'"
-        sql = re.sub(r"datetime\('now','localtime','([^']+)'\)", _repl_offset, sql)
-        self._cur.execute(sql, params)
+        # Rimuovi sintassi SQLite-only
+        sql = sql.replace('COLLATE NOCASE', '')
+        # Processa ? e datetime(...) da sinistra a destra per mantenere l'ordine dei parametri
+        params_list = list(params)
+        new_params  = []
+        param_idx   = 0
+        _TOK = re.compile(r"datetime\('now','localtime'(?:,'[^']*')?\)|\?")
+        def _sub(m):
+            nonlocal param_idx
+            t = m.group(0)
+            if t == '?':
+                new_params.append(params_list[param_idx] if param_idx < len(params_list) else None)
+                param_idx += 1
+            else:
+                off = re.search(r",'([^']+)'\)$", t)
+                if off:
+                    try:
+                        p = off.group(1).strip().split()
+                        kw  = {'minute':'minutes','hour':'hours','day':'days'}.get(p[1].rstrip('s'),'minutes')
+                        new_params.append((datetime.now() + timedelta(**{kw: int(p[0])})).strftime('%Y-%m-%d %H:%M:%S'))
+                    except Exception:
+                        new_params.append(_now())
+                else:
+                    new_params.append(_now())
+            return '%s'
+        self._cur.execute(_TOK.sub(_sub, sql), new_params)
         return self._cur
 
     def executescript(self, script):
@@ -273,7 +280,39 @@ def _migrate_db():
             conn = psycopg2.connect(DATABASE_URL)
             conn.autocommit = True
             cur = conn.cursor()
-            cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash TEXT")
+            _PG_DDL = [
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash TEXT",
+                "CREATE TABLE IF NOT EXISTS app_config (key TEXT PRIMARY KEY, value TEXT)",
+                """CREATE TABLE IF NOT EXISTS announcements (
+                    id SERIAL PRIMARY KEY, message TEXT NOT NULL,
+                    emoji TEXT DEFAULT '📢',
+                    created_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'))""",
+                """CREATE TABLE IF NOT EXISTS notifications (
+                    id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL,
+                    type TEXT DEFAULT 'info', message TEXT NOT NULL,
+                    emoji TEXT DEFAULT '🔔',
+                    created_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'),
+                    is_read INTEGER DEFAULT 0,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)""",
+                """CREATE TABLE IF NOT EXISTS challenges (
+                    id SERIAL PRIMARY KEY, creator_id INTEGER NOT NULL,
+                    title TEXT NOT NULL, target_min INTEGER NOT NULL DEFAULT 60,
+                    ends_at TEXT NOT NULL,
+                    created_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'),
+                    FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE)""",
+                """CREATE TABLE IF NOT EXISTS challenge_members (
+                    challenge_id INTEGER NOT NULL, user_id INTEGER NOT NULL,
+                    minutes_done INTEGER DEFAULT 0, completed INTEGER DEFAULT 0,
+                    joined_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'),
+                    PRIMARY KEY (challenge_id, user_id),
+                    FOREIGN KEY (challenge_id) REFERENCES challenges(id) ON DELETE CASCADE,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)""",
+            ]
+            for ddl in _PG_DDL:
+                try:
+                    cur.execute(ddl)
+                except Exception:
+                    pass
             cur.close()
             conn.close()
         except Exception:
@@ -440,9 +479,11 @@ def user_get_data():
 def user_sync_data():
     user = get_auth_user(required=True)
     data = request.get_json(silent=True) or {}
+    # sf_friends è gestita esclusivamente dagli endpoint /api/friends/*
+    _SERVER_MANAGED = {'sf_friends'}
     with get_db() as c:
         for key, value in data.items():
-            if isinstance(value, str):
+            if isinstance(value, str) and key not in _SERVER_MANAGED:
                 c.execute("""
                     INSERT INTO user_data (user_id, key, value, updated_at)
                     VALUES (?,?,?,datetime('now','localtime'))
@@ -1125,7 +1166,7 @@ def admin_announce():
         for u in users:
             c.execute(
                 "INSERT INTO notifications (user_id, type, message, emoji) VALUES (?, 'announce', ?, ?)",
-                (u[0], message, emoji)
+                (u["id"], message, emoji)
             )
         c.commit()
     return jsonify({"ok": True, "sent": len(users)})
@@ -1363,22 +1404,26 @@ def get_app_config():
 
 @app.route("/api/admin/config", methods=["POST"])
 def set_app_config():
-    me = get_auth_user(required=True)
-    if not me["is_admin"]:
-        return jsonify({"error": "non autorizzato"}), 403
-    data = request.get_json(force=True) or {}
-    key   = (data.get("key")   or "").strip()
-    value = (data.get("value") or "").strip()
-    if not key:
-        return jsonify({"error": "key richiesta"}), 400
-    with get_db() as c:
-        c.execute(
-            "INSERT INTO app_config (key, value) VALUES (?, ?)"
-            " ON CONFLICT(key) DO UPDATE SET value=excluded.value",
-            (key, value)
-        )
-        c.commit()
-    return jsonify({"ok": True})
+    try:
+        me = get_auth_user(required=True)
+        if not me["is_admin"]:
+            return jsonify({"error": "non autorizzato"}), 403
+        data = request.get_json(force=True) or {}
+        key   = (data.get("key")   or "").strip()
+        value = (data.get("value") or "").strip()
+        if not key:
+            return jsonify({"error": "key richiesta"}), 400
+        with get_db() as c:
+            c.execute(
+                "INSERT INTO app_config (key, value) VALUES (?, ?)"
+                " ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                (key, value)
+            )
+            c.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        import traceback
+        return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
 
 # ──────────────────────────────────────────
 # RUN

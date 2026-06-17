@@ -1036,16 +1036,24 @@
   async function saveSpotifyConfig() {
     const cid = (document.getElementById('spotifyClientId')?.value || '').trim();
     if (!cid) { toast('Incolla il Client ID prima'); return; }
-    const r = await apiFetch('/api/admin/config', {
-      method: 'POST',
-      body: JSON.stringify({ key: 'spotify_client_id', value: cid })
-    });
     const el = document.getElementById('spotify-cfg-status');
-    if (r.ok) {
-      if (el) { el.textContent = '✅ Client ID salvato! Gli utenti possono ora collegare Spotify.'; el.style.color = 'var(--accent)'; }
-      toast('Spotify configurato ✅');
-    } else {
-      if (el) { el.textContent = '❌ Errore durante il salvataggio'; el.style.color = '#ef4444'; }
+    try {
+      const r = await apiFetch('/api/admin/config', {
+        method: 'POST',
+        body: JSON.stringify({ key: 'spotify_client_id', value: cid })
+      });
+      if (r.ok) {
+        if (el) { el.textContent = '✅ Client ID salvato! Gli utenti possono ora collegare Spotify.'; el.style.color = 'var(--accent)'; }
+        toast('Spotify configurato ✅');
+      } else {
+        let errMsg = 'HTTP ' + r.status;
+        try { const b = await r.json(); errMsg += ': ' + (b.error || JSON.stringify(b)); } catch {}
+        if (el) { el.textContent = '❌ Errore ' + errMsg; el.style.color = '#ef4444'; }
+        console.error('saveSpotifyConfig error:', errMsg);
+      }
+    } catch(e) {
+      if (el) { el.textContent = '❌ Rete: ' + e.message; el.style.color = '#ef4444'; }
+      console.error('saveSpotifyConfig network error:', e);
     }
   }
 
