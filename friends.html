@@ -245,6 +245,33 @@
   font-weight: 700;
   margin-left: 4px;
 }
+
+/* ── Notifica card ── */
+.notif-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  background: rgba(255,255,255,0.28);
+  transition: background 0.15s;
+}
+.notif-card.notif-unread {
+  background: rgba(var(--accent-rgb,99,102,241),0.07);
+  border-color: rgba(var(--accent-rgb,99,102,241),0.25);
+}
+.notif-emoji { font-size: 1.3rem; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.notif-body  { flex: 1; min-width: 0; }
+.notif-msg   { font-size: 0.84rem; font-weight: 500; color: var(--text); line-height: 1.4; }
+.notif-time  { font-size: 0.68rem; color: var(--text-soft); margin-top: 3px; }
+.notif-read-btn {
+  padding: 4px 10px; border-radius: 8px; border: 1.5px solid var(--card-border);
+  background: transparent; color: var(--text-soft); font-size: 0.68rem;
+  font-family: Poppins, sans-serif; cursor: pointer; white-space: nowrap;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.notif-read-btn:hover { border-color: var(--accent); color: var(--accent); }
 </style>
 </head>
 <body>
@@ -332,6 +359,19 @@
                placeholder="Scrivi un username..." autocomplete="off" spellcheck="false">
       </div>
       <div id="friends-search-results"></div>
+    </div>
+
+    <!-- NOTIFICHE -->
+    <div class="friends-section" id="notif-section" style="display:none">
+      <div class="friends-section-title" style="justify-content:space-between">
+        🔔 Notifiche
+        <button onclick="markAllNotifsRead()" style="
+          font-size:0.7rem;font-family:Poppins,sans-serif;font-weight:600;
+          border:1.5px solid var(--card-border);background:transparent;
+          color:var(--text-soft);padding:3px 10px;border-radius:8px;cursor:pointer;
+        ">Segna tutte lette</button>
+      </div>
+      <div id="notif-list"></div>
     </div>
 
     <!-- RICHIESTE IN SOSPESO -->
@@ -477,16 +517,79 @@
     });
   }
 
+  /* ── Notifiche ── */
+  function loadNotifications() {
+    _apiCall('GET', '/notifications', null, function(err, data) {
+      if (err || !Array.isArray(data)) return;
+      renderNotifications(data);
+    });
+  }
+
+  function renderNotifications(notifs) {
+    var section = document.getElementById('notif-section');
+    var list    = document.getElementById('notif-list');
+    if (!section || !list) return;
+
+    var unread = notifs.filter(function(n) { return !n.is_read; });
+
+    if (!notifs.length) {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = '';
+
+    list.innerHTML = notifs.map(function(n) {
+      var dt  = n.created_at ? n.created_at.slice(0, 16).replace('T',' ') : '';
+      var cls = n.is_read ? 'notif-card' : 'notif-card notif-unread';
+      var btn = n.is_read
+        ? ''
+        : '<button class="notif-read-btn" onclick="markNotifRead(' + n.id + ')">✓ Letto</button>';
+      return '<div class="' + cls + '" id="notif-' + n.id + '">' +
+        '<span class="notif-emoji">' + (n.emoji || '🔔') + '</span>' +
+        '<div class="notif-body">' +
+          '<div class="notif-msg">' + _esc(n.message) + '</div>' +
+          '<div class="notif-time">' + dt + '</div>' +
+        '</div>' +
+        btn +
+      '</div>';
+    }).join('');
+  }
+
+  function markNotifRead(id) {
+    _apiCall('POST', '/notifications/' + id + '/read', null, function() {
+      var card = document.getElementById('notif-' + id);
+      if (card) {
+        card.classList.remove('notif-unread');
+        var btn = card.querySelector('.notif-read-btn');
+        if (btn) btn.remove();
+      }
+    });
+  }
+
+  function markAllNotifsRead() {
+    _apiCall('POST', '/notifications/read-all', null, function() {
+      document.querySelectorAll('.notif-card').forEach(function(c) {
+        c.classList.remove('notif-unread');
+        var btn = c.querySelector('.notif-read-btn');
+        if (btn) btn.remove();
+      });
+    });
+  }
+
   /* Aggiorna quando si torna sulla pagina */
   document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) { loadFriends(); loadFriendRequests(); }
+    if (!document.hidden) { loadFriends(); loadFriendRequests(); loadNotifications(); }
   });
 
-  /* Polling richieste ogni 15s (il destinatario vede la richiesta in tempo reale) */
+  /* Polling richieste ogni 15s */
   setInterval(function() { loadFriendRequests(); }, 15000);
-
   /* Auto-refresh online status ogni 20s */
   setInterval(function() { loadFriends(); }, 20000);
+  /* Polling notifiche ogni 30s */
+  setInterval(function() { loadNotifications(); }, 30000);
+
+  /* Carica notifiche subito */
+  loadNotifications();
 </script>
 </body>
 </html>

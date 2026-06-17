@@ -190,6 +190,16 @@ def init_db():
                 is_read    INTEGER DEFAULT 0,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
             );
+            CREATE TABLE IF NOT EXISTS notifications (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id    INTEGER NOT NULL,
+                type       TEXT DEFAULT 'info',
+                message    TEXT NOT NULL,
+                emoji      TEXT DEFAULT '🔔',
+                created_at TEXT DEFAULT (datetime('now','localtime')),
+                is_read    INTEGER DEFAULT 0,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
         """)
 
 def _sf_friends_list(c, user_id):
@@ -986,7 +996,6 @@ def friends_invite_bonus():
     if not ref_username:
         return jsonify({"error": "ref richiesto"}), 400
     with get_db() as c:
-        # Verifica che il bonus non sia già stato assegnato (controlla user_data)
         already = c.execute(
             "SELECT value FROM user_data WHERE user_id=? AND key='sf_invite_used'", (me["id"],)
         ).fetchone()
@@ -998,10 +1007,14 @@ def friends_invite_bonus():
         ).fetchone()
         if not inviter:
             return jsonify({"error": "invitante non trovato"}), 404
-        # +30 monete al nuovo utente
+        # +30 monete a entrambi
         _add_coins_userdata(c, me["id"], 30)
-        # +30 monete all'invitante
         _add_coins_userdata(c, inviter["id"], 30)
+        # Notifica all'invitante
+        c.execute("""
+            INSERT INTO notifications (user_id, type, message, emoji)
+            VALUES (?, 'invite', ?, '🎉')
+        """, (inviter["id"], f"{me['username']} si è registrato con il tuo invito! +30 🪙"))
         # Segna bonus usato (anti-exploit)
         c.execute("""
             INSERT INTO user_data (user_id, key, value, updated_at)
@@ -1010,6 +1023,37 @@ def friends_invite_bonus():
         """, (me["id"], "sf_invite_used", "1"))
         c.commit()
     return jsonify({"ok": True, "coins": 30})
+
+@app.route("/api/notifications", methods=["GET"])
+def notifications_list():
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        rows = c.execute(
+            """SELECT id, type, message, emoji, created_at, is_read
+               FROM notifications WHERE user_id=?
+               ORDER BY created_at DESC LIMIT 30""",
+            (me["id"],)
+        ).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route("/api/notifications/<int:nid>/read", methods=["POST"])
+def notification_read(nid):
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        c.execute(
+            "UPDATE notifications SET is_read=1 WHERE id=? AND user_id=?",
+            (nid, me["id"])
+        )
+        c.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/notifications/read-all", methods=["POST"])
+def notifications_read_all():
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        c.execute("UPDATE notifications SET is_read=1 WHERE user_id=?", (me["id"],))
+        c.commit()
+    return jsonify({"ok": True})
 
 # ──────────────────────────────────────────
 # API: PRESENZA SOCIALE
