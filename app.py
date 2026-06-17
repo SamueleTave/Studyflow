@@ -383,7 +383,7 @@ def static_files(path):
 
 @app.route("/api/status")
 def status():
-    return jsonify({"ok": True, "version": "2.0"})
+    return jsonify({"ok": True, "version": "2.0", "db": "postgresql" if USE_PG else "sqlite"})
 
 # ──────────────────────────────────────────
 # API: AUTH
@@ -609,6 +609,59 @@ def admin_delete_user(uid):
             return jsonify({"error": "Non puoi eliminare l'admin"}), 403
         c.execute("DELETE FROM user_data WHERE user_id=?", (uid,))
         c.execute("DELETE FROM users WHERE id=?", (uid,))
+        c.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/admin/users/create", methods=["POST"])
+def admin_create_user():
+    """Crea un utente (usato per restore se l'account è stato cancellato)."""
+    get_auth_user(required=True, admin=True)
+    data     = request.get_json(force=True) or {}
+    username = (data.get("username") or "").strip().lower()
+    pin      = str(data.get("pin") or "").strip()
+    if not username or len(username) < 2:
+        return jsonify({"error": "username non valido"}), 400
+    if not pin or not pin.isdigit() or not (4 <= len(pin) <= 8):
+        return jsonify({"error": "PIN non valido (4-8 cifre)"}), 400
+    pin_hash = _hash_pin(pin)
+    with get_db() as c:
+        existing = c.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
+        if existing:
+            return jsonify({"ok": True, "id": existing["id"], "created": False})
+        token = str(uuid.uuid4())
+        c.execute(
+            "INSERT INTO users (username, token, is_admin, pin_hash) VALUES (?,?,0,?)",
+            (username, token, pin_hash)
+        )
+        c.commit()
+        new_user = c.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
+    return jsonify({"ok": True, "id": new_user["id"], "created": True}), 201
+
+@app.route("/api/admin/friendship", methods=["POST"])
+def admin_create_friendship():
+    """Forza una friendship accepted tra due utenti (usato per restore)."""
+    get_auth_user(required=True, admin=True)
+    data = request.get_json(force=True) or {}
+    ua = (data.get("user_a") or "").strip().lower()
+    ub = (data.get("user_b") or "").strip().lower()
+    if not ua or not ub:
+        return jsonify({"error": "user_a e user_b richiesti"}), 400
+    with get_db() as c:
+        row_a = c.execute("SELECT id FROM users WHERE username=?", (ua,)).fetchone()
+        row_b = c.execute("SELECT id FROM users WHERE username=?", (ub,)).fetchone()
+        if not row_a or not row_b:
+            return jsonify({"error": "utente non trovato"}), 404
+        aid, bid = row_a["id"], row_b["id"]
+        c.execute("""
+            DELETE FROM friendships WHERE
+            (requester_id=? AND receiver_id=?) OR (requester_id=? AND receiver_id=?)
+        """, (aid, bid, bid, aid))
+        c.execute(
+            "INSERT INTO friendships (requester_id, receiver_id, status) VALUES (?,?,'accepted')",
+            (aid, bid)
+        )
+        _sf_friends_add(c, aid, ub)
+        _sf_friends_add(c, bid, ua)
         c.commit()
     return jsonify({"ok": True})
 
