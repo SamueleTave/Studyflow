@@ -61,7 +61,10 @@ async function syncToServer() {
   } catch {}
 }
 
-/* ── Carica dati dal server → localStorage ── */
+/* ── Carica dati dal server → localStorage ──
+   Ripristina SOLO le chiavi assenti in locale (es. dopo logout).
+   Non sovrascrive mai dati locali esistenti: l'utente potrebbe
+   avere dati più recenti di quelli sul server. */
 async function loadFromServer() {
   const auth = getAuth();
   if (!auth?.token) return false;
@@ -72,8 +75,8 @@ async function loadFromServer() {
     if (!r.ok) { if (r.status === 401) logout(); return false; }
     const data = await r.json();
     _SF_SYNC_KEYS.forEach(k => {
-      if (data[k] != null) {
-        /* usa l'originale per non innescare sync in loop */
+      /* Ripristina solo se la chiave non è già in localStorage */
+      if (data[k] != null && localStorage.getItem(k) == null) {
         _sfOrigSetItem(k, data[k]);
       }
     });
@@ -83,9 +86,10 @@ async function loadFromServer() {
 
 /* ── Auto-sync debounced su ogni setItem sf_ ── */
 const _sfOrigSetItem = localStorage.setItem.bind(localStorage);
+let _sfSyncSuppressed = false;   /* true durante il render iniziale */
 localStorage.setItem = function(key, value) {
   _sfOrigSetItem(key, value);
-  if (_SF_SYNC_KEYS.includes(key) && isLoggedIn()) _triggerSync();
+  if (!_sfSyncSuppressed && _SF_SYNC_KEYS.includes(key) && isLoggedIn()) _triggerSync();
 };
 let _sfSyncTimer = null;
 function _triggerSync() {
@@ -138,14 +142,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (isLoggedIn()) {
     const loaded = await loadFromServer();
     if (loaded) {
-      /* Aggiorna variabili in-memory e widget */
+      /* Sopprime il sync durante il render iniziale: le funzioni sotto
+         possono scrivere in localStorage (es. initCoins normalizza lo stato)
+         e non vogliamo inviare dati al server in questo momento */
+      _sfSyncSuppressed = true;
       if (typeof loadData  === 'function') loadData();
       if (typeof initCoins === 'function') initCoins();
       if (typeof _updateStreakBadge === 'function') _updateStreakBadge();
-      /* Widget: ricarica stato (gestisce Spotify e altri acquistati) */
       if (typeof _loadWidgetState            === 'function') _loadWidgetState();
       if (typeof _renderOrderedDynamicWidgets === 'function') _renderOrderedDynamicWidgets();
       if (typeof renderMiniTasks             === 'function') renderMiniTasks();
+      _sfSyncSuppressed = false;
     }
   }
 });
