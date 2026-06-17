@@ -7,7 +7,9 @@ const SF_AUTH_KEY  = 'sf_auth';
 const _SF_SYNC_KEYS = [
   'sf_coins','sf_garden','sf_widgets','sf_timer','sf_stats',
   'sf_sessions','sf_events','sf_daily_deal','sf_moods',
-  'sf_cfg','sf_tasks','sf_theme','sf_subjects','sf_notes','sf_friends'
+  'sf_cfg','sf_tasks','sf_theme','sf_subjects','sf_notes','sf_friends',
+  'sf_checkins','sf_work_label','sf_accent','sf_cs','sf_td','sf_ts','sf_work_dur',
+  'sf_countdown','sf_flash','sf_spotify'
 ];
 
 /* ── Lettura auth ── */
@@ -35,6 +37,7 @@ function requireAdmin() {
 function logout() {
   _SF_SYNC_KEYS.forEach(k => localStorage.removeItem(k));
   sessionStorage.removeItem(SF_AUTH_KEY);
+  sessionStorage.removeItem('sf_session_loaded');
   window.location.replace('login.html');
 }
 
@@ -48,7 +51,7 @@ async function syncToServer() {
     if (v !== null) payload[k] = v;
   });
   try {
-    await fetch((window.SF_API_BASE || '/api') + '/user/sync', {
+    const r = await fetch((window.SF_API_BASE || '/api') + '/user/sync', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -56,10 +59,26 @@ async function syncToServer() {
       },
       body: JSON.stringify(payload),
     });
+    if (r.ok) {
+      const res = await r.json();
+      /* Il server può rimandare correzioni (es. balance ripristinato dall'admin).
+         Le scriviamo in localStorage senza triggerare un altro sync. */
+      if (res.corrections && typeof res.corrections === 'object') {
+        _sfSyncSuppressed = true;
+        Object.entries(res.corrections).forEach(([k, v]) => {
+          if (_SF_SYNC_KEYS.includes(k)) _sfOrigSetItem(k, v);
+        });
+        _sfSyncSuppressed = false;
+        if (typeof initCoins === 'function') initCoins();
+      }
+    }
   } catch {}
 }
 
-/* ── Carica dati dal server → localStorage ── */
+/* ── Carica dati dal server → localStorage ──
+   Prima pagina della sessione (subito dopo login): carica TUTTO dal server.
+   Pagine successive (stessa sessione): ripristina solo le chiavi assenti.
+   Questo garantisce che dopo un restore admin i dati arrivino al prossimo login. */
 async function loadFromServer() {
   const auth = getAuth();
   if (!auth?.token) return false;
@@ -69,21 +88,25 @@ async function loadFromServer() {
     });
     if (!r.ok) { if (r.status === 401) logout(); return false; }
     const data = await r.json();
+    const isFirstLoad = !sessionStorage.getItem('sf_session_loaded');
     _SF_SYNC_KEYS.forEach(k => {
-      if (data[k] != null) {
-        /* usa l'originale per non innescare sync in loop */
+      /* Prima pagina della sessione: sovrascrive sempre (server è fonte di verità).
+         Pagine successive: ripristina solo le chiavi assenti in localStorage. */
+      if (data[k] != null && (isFirstLoad || localStorage.getItem(k) == null)) {
         _sfOrigSetItem(k, data[k]);
       }
     });
+    if (isFirstLoad) sessionStorage.setItem('sf_session_loaded', '1');
     return true;
   } catch { return false; }
 }
 
 /* ── Auto-sync debounced su ogni setItem sf_ ── */
 const _sfOrigSetItem = localStorage.setItem.bind(localStorage);
+let _sfSyncSuppressed = false;   /* true durante il render iniziale */
 localStorage.setItem = function(key, value) {
   _sfOrigSetItem(key, value);
-  if (_SF_SYNC_KEYS.includes(key) && isLoggedIn()) _triggerSync();
+  if (!_sfSyncSuppressed && _SF_SYNC_KEYS.includes(key) && isLoggedIn()) _triggerSync();
 };
 let _sfSyncTimer = null;
 function _triggerSync() {
@@ -127,7 +150,26 @@ function _initSettingsUser() {
   if (auth?.username) label.textContent = '@' + auth.username;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   _initSidebarUser();
   _initSettingsUser();
+
+  /* Ripristina dati dal server (widget sbloccati, monete, tasks, ecc.)
+     Chiamato qui così ogni pagina parte con i dati aggiornati dopo login/logout */
+  if (isLoggedIn()) {
+    const loaded = await loadFromServer();
+    if (loaded) {
+      /* Sopprime il sync durante il render iniziale: le funzioni sotto
+         possono scrivere in localStorage (es. initCoins normalizza lo stato)
+         e non vogliamo inviare dati al server in questo momento */
+      _sfSyncSuppressed = true;
+      if (typeof loadData  === 'function') loadData();
+      if (typeof initCoins === 'function') initCoins();
+      if (typeof _updateStreakBadge === 'function') _updateStreakBadge();
+      if (typeof _loadWidgetState            === 'function') _loadWidgetState();
+      if (typeof _renderOrderedDynamicWidgets === 'function') _renderOrderedDynamicWidgets();
+      if (typeof renderMiniTasks             === 'function') renderMiniTasks();
+      _sfSyncSuppressed = false;
+    }
+  }
 });

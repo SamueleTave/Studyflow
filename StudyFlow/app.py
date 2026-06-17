@@ -1,10 +1,11 @@
 """
-StudyFlow — Backend Flask + SQLite
+StudyFlow — Backend Flask
+SQLite in locale, PostgreSQL su Render (via DATABASE_URL).
 Avvia con: python3 app.py
-Poi apri: http://localhost:5002
 """
 
 import os
+import re
 import sqlite3
 import csv
 import io
@@ -20,14 +21,122 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 DB = "studyflow.db"
 
 # ──────────────────────────────────────────
-# DATABASE
+# DATABASE — SQLite locale / PostgreSQL Render
 # ──────────────────────────────────────────
 
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+USE_PG = bool(DATABASE_URL)
+
+if USE_PG:
+    import psycopg2
+    import psycopg2.extras
+    _IntegrityError = psycopg2.IntegrityError
+else:
+    _IntegrityError = sqlite3.IntegrityError
+
+
+def _now():
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+
+def _parse_dt(v):
+    """Normalizza stringa o oggetto datetime in datetime senza timezone."""
+    if v is None:
+        return None
+    if isinstance(v, datetime):
+        return v.replace(tzinfo=None)
+    s = str(v)[:19]
+    try:
+        return datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
+    except Exception:
+        return None
+
+
+class _Conn:
+    """Context manager unificato: sqlite3 in locale, psycopg2 su Render."""
+
+    def __init__(self):
+        if USE_PG:
+            self._conn = psycopg2.connect(DATABASE_URL)
+            self._cur  = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        else:
+            self._conn = sqlite3.connect(DB)
+            self._conn.row_factory = sqlite3.Row
+            self._conn.execute('PRAGMA foreign_keys = ON')
+            self._cur = None
+
+    def execute(self, sql, params=()):
+        if self._cur is None:
+            return self._conn.execute(sql, params)
+        # Rimuovi sintassi SQLite-only
+        sql = sql.replace('COLLATE NOCASE', '')
+        # Processa ? e datetime(...) da sinistra a destra per mantenere l'ordine dei parametri
+        params_list = list(params)
+        new_params  = []
+        param_idx   = 0
+        _TOK = re.compile(r"datetime\('now','localtime'(?:,'[^']*')?\)|\?")
+        def _sub(m):
+            nonlocal param_idx
+            t = m.group(0)
+            if t == '?':
+                new_params.append(params_list[param_idx] if param_idx < len(params_list) else None)
+                param_idx += 1
+            else:
+                off = re.search(r",'([^']+)'\)$", t)
+                if off:
+                    try:
+                        p = off.group(1).strip().split()
+                        kw  = {'minute':'minutes','hour':'hours','day':'days'}.get(p[1].rstrip('s'),'minutes')
+                        new_params.append((datetime.now() + timedelta(**{kw: int(p[0])})).strftime('%Y-%m-%d %H:%M:%S'))
+                    except Exception:
+                        new_params.append(_now())
+                else:
+                    new_params.append(_now())
+            return '%s'
+        self._cur.execute(_TOK.sub(_sub, sql), new_params)
+        return self._cur
+
+    def executescript(self, script):
+        if self._cur is None:
+            self._conn.executescript(script)
+            return
+        script = (script
+            .replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')
+            .replace('COLLATE NOCASE', '')
+            .replace("DEFAULT (datetime('now','localtime'))",
+                     "DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS')")
+            .replace("datetime('now','localtime')",
+                     "to_char(NOW(),'YYYY-MM-DD HH24:MI:SS')"))
+        self._conn.autocommit = True
+        for stmt in script.split(';'):
+            s = stmt.strip()
+            if s:
+                try:
+                    self._cur.execute(s)
+                except Exception:
+                    pass  # IF NOT EXISTS gestisce la maggior parte dei casi
+        self._conn.autocommit = False
+
+    def commit(self):
+        self._conn.commit()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, *_):
+        if self._cur is not None:
+            if exc_type:
+                self._conn.rollback()
+            else:
+                self._conn.commit()
+            self._cur.close()
+        self._conn.close()
+
+
 def get_db():
-    conn = sqlite3.connect(DB)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    return _Conn()
 
 def init_db():
     with get_db() as c:
@@ -88,6 +197,45 @@ def init_db():
                 is_read    INTEGER DEFAULT 0,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
             );
+            CREATE TABLE IF NOT EXISTS notifications (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id    INTEGER NOT NULL,
+                type       TEXT DEFAULT 'info',
+                message    TEXT NOT NULL,
+                emoji      TEXT DEFAULT '🔔',
+                created_at TEXT DEFAULT (datetime('now','localtime')),
+                is_read    INTEGER DEFAULT 0,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS announcements (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                message    TEXT NOT NULL,
+                emoji      TEXT DEFAULT '📢',
+                created_at TEXT DEFAULT (datetime('now','localtime'))
+            );
+            CREATE TABLE IF NOT EXISTS app_config (
+                key   TEXT PRIMARY KEY,
+                value TEXT
+            );
+            CREATE TABLE IF NOT EXISTS challenges (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                creator_id  INTEGER NOT NULL,
+                title       TEXT NOT NULL,
+                target_min  INTEGER NOT NULL DEFAULT 60,
+                ends_at     TEXT NOT NULL,
+                created_at  TEXT DEFAULT (datetime('now','localtime')),
+                FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS challenge_members (
+                challenge_id INTEGER NOT NULL,
+                user_id      INTEGER NOT NULL,
+                minutes_done INTEGER DEFAULT 0,
+                completed    INTEGER DEFAULT 0,
+                joined_at    TEXT DEFAULT (datetime('now','localtime')),
+                PRIMARY KEY (challenge_id, user_id),
+                FOREIGN KEY (challenge_id) REFERENCES challenges(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
         """)
 
 def _sf_friends_list(c, user_id):
@@ -127,12 +275,55 @@ def _add_coins_userdata(c, user_id, amount):
     """, (user_id, "sf_coins", json_lib.dumps(cd)))
 
 def _migrate_db():
-    with get_db() as c:
+    if USE_PG:
         try:
-            c.execute("ALTER TABLE users ADD COLUMN pin_hash TEXT")
-            c.commit()
-        except sqlite3.OperationalError:
+            conn = psycopg2.connect(DATABASE_URL)
+            conn.autocommit = True
+            cur = conn.cursor()
+            _PG_DDL = [
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash TEXT",
+                "CREATE TABLE IF NOT EXISTS app_config (key TEXT PRIMARY KEY, value TEXT)",
+                """CREATE TABLE IF NOT EXISTS announcements (
+                    id SERIAL PRIMARY KEY, message TEXT NOT NULL,
+                    emoji TEXT DEFAULT '📢',
+                    created_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'))""",
+                """CREATE TABLE IF NOT EXISTS notifications (
+                    id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL,
+                    type TEXT DEFAULT 'info', message TEXT NOT NULL,
+                    emoji TEXT DEFAULT '🔔',
+                    created_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'),
+                    is_read INTEGER DEFAULT 0,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)""",
+                """CREATE TABLE IF NOT EXISTS challenges (
+                    id SERIAL PRIMARY KEY, creator_id INTEGER NOT NULL,
+                    title TEXT NOT NULL, target_min INTEGER NOT NULL DEFAULT 60,
+                    ends_at TEXT NOT NULL,
+                    created_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'),
+                    FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE)""",
+                """CREATE TABLE IF NOT EXISTS challenge_members (
+                    challenge_id INTEGER NOT NULL, user_id INTEGER NOT NULL,
+                    minutes_done INTEGER DEFAULT 0, completed INTEGER DEFAULT 0,
+                    joined_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'),
+                    PRIMARY KEY (challenge_id, user_id),
+                    FOREIGN KEY (challenge_id) REFERENCES challenges(id) ON DELETE CASCADE,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)""",
+            ]
+            for ddl in _PG_DDL:
+                try:
+                    cur.execute(ddl)
+                except Exception:
+                    pass
+            cur.close()
+            conn.close()
+        except Exception:
             pass
+    else:
+        with get_db() as c:
+            try:
+                c.execute("ALTER TABLE users ADD COLUMN pin_hash TEXT")
+                c.commit()
+            except sqlite3.OperationalError:
+                pass
 
 init_db()
 _migrate_db()
@@ -180,8 +371,10 @@ def forbidden(e):
 def index():
     return send_from_directory(".", "index.html")
 
-@app.route("/<path:path>")
+@app.route("/<path:path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 def static_files(path):
+    if path.startswith("api/") or path == "api":
+        abort(404)
     return send_from_directory(".", path)
 
 # ──────────────────────────────────────────
@@ -190,7 +383,7 @@ def static_files(path):
 
 @app.route("/api/status")
 def status():
-    return jsonify({"ok": True, "version": "2.0"})
+    return jsonify({"ok": True, "version": "2.0", "db": "postgresql" if USE_PG else "sqlite"})
 
 # ──────────────────────────────────────────
 # API: AUTH
@@ -288,21 +481,48 @@ def user_get_data():
 def user_sync_data():
     user = get_auth_user(required=True)
     data = request.get_json(silent=True) or {}
+    # sf_friends è gestita esclusivamente dagli endpoint /api/friends/*
+    _SERVER_MANAGED = {'sf_friends'}
+    corrections = {}   # chiavi da rimandare al client con i valori corretti
     with get_db() as c:
         for key, value in data.items():
-            if isinstance(value, str):
-                c.execute("""
-                    INSERT INTO user_data (user_id, key, value, updated_at)
-                    VALUES (?,?,?,datetime('now','localtime'))
-                    ON CONFLICT(user_id, key)
-                    DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
-                """, (user["id"], key, value))
+            if not isinstance(value, str) or key in _SERVER_MANAGED:
+                continue
+            # Protezione sf_coins: se l'admin ha impostato un _adminTs che il client
+            # non conosce ancora, protegge balance e shop e propaga il timestamp.
+            if key == 'sf_coins':
+                try:
+                    client_c = json_lib.loads(value)
+                    srv_row = c.execute(
+                        "SELECT value FROM user_data WHERE user_id=? AND key='sf_coins'",
+                        (user["id"],)
+                    ).fetchone()
+                    if srv_row and srv_row["value"]:
+                        server_c = json_lib.loads(srv_row["value"])
+                        srv_ts = server_c.get('_adminTs', '')
+                        cli_ts = client_c.get('_adminTs', '')
+                        if srv_ts and srv_ts != cli_ts:
+                            # Admin ha aggiornato i dati: protegge balance e shop,
+                            # inietta il timestamp e rimanda la correzione al client.
+                            client_c['balance'] = server_c['balance']
+                            client_c['shop']    = server_c.get('shop', client_c.get('shop', {}))
+                            client_c['_adminTs'] = srv_ts
+                            value = json_lib.dumps(client_c)
+                            corrections['sf_coins'] = value
+                except Exception:
+                    pass
+            c.execute("""
+                INSERT INTO user_data (user_id, key, value, updated_at)
+                VALUES (?,?,?,datetime('now','localtime'))
+                ON CONFLICT(user_id, key)
+                DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+            """, (user["id"], key, value))
         c.execute(
             "UPDATE users SET last_seen=datetime('now','localtime') WHERE id=?",
             (user["id"],)
         )
         c.commit()
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "corrections": corrections})
 
 # ──────────────────────────────────────────
 # API: ADMIN
@@ -392,6 +612,59 @@ def admin_delete_user(uid):
         c.commit()
     return jsonify({"ok": True})
 
+@app.route("/api/admin/users/create", methods=["POST"])
+def admin_create_user():
+    """Crea un utente (usato per restore se l'account è stato cancellato)."""
+    get_auth_user(required=True, admin=True)
+    data     = request.get_json(force=True) or {}
+    username = (data.get("username") or "").strip().lower()
+    pin      = str(data.get("pin") or "").strip()
+    if not username or len(username) < 2:
+        return jsonify({"error": "username non valido"}), 400
+    if not pin or not pin.isdigit() or not (4 <= len(pin) <= 8):
+        return jsonify({"error": "PIN non valido (4-8 cifre)"}), 400
+    pin_hash = _hash_pin(pin)
+    with get_db() as c:
+        existing = c.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
+        if existing:
+            return jsonify({"ok": True, "id": existing["id"], "created": False})
+        token = str(uuid.uuid4())
+        c.execute(
+            "INSERT INTO users (username, token, is_admin, pin_hash) VALUES (?,?,0,?)",
+            (username, token, pin_hash)
+        )
+        c.commit()
+        new_user = c.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
+    return jsonify({"ok": True, "id": new_user["id"], "created": True}), 201
+
+@app.route("/api/admin/friendship", methods=["POST"])
+def admin_create_friendship():
+    """Forza una friendship accepted tra due utenti (usato per restore)."""
+    get_auth_user(required=True, admin=True)
+    data = request.get_json(force=True) or {}
+    ua = (data.get("user_a") or "").strip().lower()
+    ub = (data.get("user_b") or "").strip().lower()
+    if not ua or not ub:
+        return jsonify({"error": "user_a e user_b richiesti"}), 400
+    with get_db() as c:
+        row_a = c.execute("SELECT id FROM users WHERE username=?", (ua,)).fetchone()
+        row_b = c.execute("SELECT id FROM users WHERE username=?", (ub,)).fetchone()
+        if not row_a or not row_b:
+            return jsonify({"error": "utente non trovato"}), 404
+        aid, bid = row_a["id"], row_b["id"]
+        c.execute("""
+            DELETE FROM friendships WHERE
+            (requester_id=? AND receiver_id=?) OR (requester_id=? AND receiver_id=?)
+        """, (aid, bid, bid, aid))
+        c.execute(
+            "INSERT INTO friendships (requester_id, receiver_id, status) VALUES (?,?,'accepted')",
+            (aid, bid)
+        )
+        _sf_friends_add(c, aid, ub)
+        _sf_friends_add(c, bid, ua)
+        c.commit()
+    return jsonify({"ok": True})
+
 @app.route("/api/admin/users/<int:uid>/data", methods=["GET"])
 def admin_get_user_data(uid):
     get_auth_user(required=True, admin=True)
@@ -411,6 +684,15 @@ def admin_set_user_data(uid):
         return jsonify({"error": "key richiesta"}), 400
     if not isinstance(value, str):
         value = json_lib.dumps(value)
+    # Quando admin imposta sf_coins aggiunge _adminTs: il sync del client non
+    # sovrascriverà il balance finché il client non scarica la versione aggiornata.
+    if key == 'sf_coins':
+        try:
+            coins = json_lib.loads(value)
+            coins['_adminTs'] = _now()
+            value = json_lib.dumps(coins)
+        except Exception:
+            pass
     with get_db() as c:
         c.execute("""
             INSERT INTO user_data (user_id, key, value, updated_at)
@@ -500,15 +782,11 @@ def friends_list():
         presence_at = r["presence_at"] if isinstance(r, dict) else r["presence_at"]
         last_seen   = r["last_seen"]   if isinstance(r, dict) else r["last_seen"]
         if presence_at:
-            try:
-                pu = datetime.strptime(presence_at, "%Y-%m-%d %H:%M:%S")
-                online = (now - pu).total_seconds() < 180
-            except Exception: pass
+            pu = _parse_dt(presence_at)
+            if pu: online = (now - pu).total_seconds() < 180
         if not online and last_seen:
-            try:
-                ls = datetime.strptime(last_seen, "%Y-%m-%d %H:%M:%S")
-                online = (now - ls).total_seconds() < 300
-            except Exception: pass
+            ls = _parse_dt(last_seen)
+            if ls: online = (now - ls).total_seconds() < 300
         fid = r["friendship_id"] if isinstance(r, dict) else r["friendship_id"]
         result.append({
             "id":            r["id"],
@@ -717,17 +995,20 @@ def add_session():
     duration = data.get("duration")
     if not duration:
         return jsonify({"error": "duration required"}), 400
+    params = (
+        data.get("date", date.today().isoformat()),
+        int(duration),
+        data.get("subject", ""),
+    )
     with get_db() as c:
-        cur = c.execute(
-            "INSERT INTO sessions (date, duration, subject) VALUES (?,?,?)",
-            (
-                data.get("date", date.today().isoformat()),
-                int(duration),
-                data.get("subject", ""),
-            )
-        )
+        if USE_PG:
+            cur    = c.execute("INSERT INTO sessions (date, duration, subject) VALUES (?,?,?) RETURNING id", params)
+            new_id = cur.fetchone()[0]
+        else:
+            cur    = c.execute("INSERT INTO sessions (date, duration, subject) VALUES (?,?,?)", params)
+            new_id = cur.lastrowid
         c.commit()
-    return jsonify({"id": cur.lastrowid, "ok": True}), 201
+    return jsonify({"id": new_id, "ok": True}), 201
 
 # ──────────────────────────────────────────
 # API: STATISTICHE
@@ -817,15 +1098,18 @@ def add_subject():
     name = data.get("name", "").strip()
     if not name:
         return jsonify({"error": "name required"}), 400
+    params = (name, data.get("color", "#29B6F6"), data.get("goal_min", 60))
     with get_db() as c:
         try:
-            cur = c.execute(
-                "INSERT INTO subjects (name, color, goal_min) VALUES (?,?,?)",
-                (name, data.get("color", "#29B6F6"), data.get("goal_min", 60))
-            )
+            if USE_PG:
+                cur    = c.execute("INSERT INTO subjects (name, color, goal_min) VALUES (?,?,?) RETURNING id", params)
+                new_id = cur.fetchone()[0]
+            else:
+                cur    = c.execute("INSERT INTO subjects (name, color, goal_min) VALUES (?,?,?)", params)
+                new_id = cur.lastrowid
             c.commit()
-            return jsonify({"id": cur.lastrowid, "ok": True}), 201
-        except sqlite3.IntegrityError:
+            return jsonify({"id": new_id, "ok": True}), 201
+        except _IntegrityError:
             return jsonify({"error": "materia gia' esistente"}), 409
 
 @app.route("/api/subjects/<int:sid>", methods=["DELETE"])
@@ -858,6 +1142,121 @@ def export_csv():
     return resp
 
 # ──────────────────────────────────────────
+# API: BONUS INVITO
+# ──────────────────────────────────────────
+
+@app.route("/api/friends/invite-bonus", methods=["POST"])
+def friends_invite_bonus():
+    """Chiamato una sola volta quando un nuovo utente si registra via link ?ref=USERNAME.
+    Dà 30 monete all'invitante e 30 monete al nuovo utente."""
+    me   = get_auth_user(required=True)
+    data = request.get_json(silent=True) or {}
+    ref_username = (data.get("ref") or "").strip()
+    if not ref_username:
+        return jsonify({"error": "ref richiesto"}), 400
+    with get_db() as c:
+        already = c.execute(
+            "SELECT value FROM user_data WHERE user_id=? AND key='sf_invite_used'", (me["id"],)
+        ).fetchone()
+        if already:
+            return jsonify({"error": "bonus già usato"}), 400
+        inviter = c.execute(
+            "SELECT id FROM users WHERE username=? COLLATE NOCASE AND id!=?",
+            (ref_username, me["id"])
+        ).fetchone()
+        if not inviter:
+            return jsonify({"error": "invitante non trovato"}), 404
+        # +30 monete a entrambi
+        _add_coins_userdata(c, me["id"], 30)
+        _add_coins_userdata(c, inviter["id"], 30)
+        # Notifica all'invitante
+        c.execute("""
+            INSERT INTO notifications (user_id, type, message, emoji)
+            VALUES (?, 'invite', ?, '🎉')
+        """, (inviter["id"], f"{me['username']} si è registrato con il tuo invito! +30 🪙"))
+        # Segna bonus usato (anti-exploit)
+        c.execute("""
+            INSERT INTO user_data (user_id, key, value, updated_at)
+            VALUES (?,?,?,datetime('now','localtime'))
+            ON CONFLICT(user_id, key) DO UPDATE SET value=excluded.value
+        """, (me["id"], "sf_invite_used", "1"))
+        c.commit()
+    return jsonify({"ok": True, "coins": 30})
+
+@app.route("/api/notifications", methods=["GET"])
+def notifications_list():
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        # Inietta annunci globali non ancora ricevuti (match sul messaggio)
+        missing = c.execute("""
+            SELECT id, message, emoji FROM announcements
+            WHERE message NOT IN (
+                SELECT message FROM notifications
+                WHERE user_id = ? AND type = 'announce'
+            )
+        """, (me["id"],)).fetchall()
+        for ann in missing:
+            c.execute(
+                "INSERT INTO notifications (user_id, type, message, emoji) VALUES (?, 'announce', ?, ?)",
+                (me["id"], ann[1], ann[2])
+            )
+        if missing:
+            c.commit()
+        rows = c.execute(
+            """SELECT id, type, message, emoji, created_at, is_read
+               FROM notifications WHERE user_id=?
+               ORDER BY created_at DESC LIMIT 30""",
+            (me["id"],)
+        ).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route("/api/notifications/<int:nid>/read", methods=["POST"])
+def notification_read(nid):
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        c.execute(
+            "UPDATE notifications SET is_read=1 WHERE id=? AND user_id=?",
+            (nid, me["id"])
+        )
+        c.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/notifications/read-all", methods=["POST"])
+def notifications_read_all():
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        c.execute("UPDATE notifications SET is_read=1 WHERE user_id=?", (me["id"],))
+        c.commit()
+    return jsonify({"ok": True})
+
+# ──────────────────────────────────────────
+# API: ANNUNCI ADMIN
+# ──────────────────────────────────────────
+
+@app.route("/api/admin/notifications/announce", methods=["POST"])
+def admin_announce():
+    me = get_auth_user(required=True)
+    if not me["is_admin"]:
+        return jsonify({"error": "non autorizzato"}), 403
+    data = request.get_json(force=True) or {}
+    message = (data.get("message") or "").strip()
+    emoji   = (data.get("emoji")   or "📢").strip() or "📢"
+    if not message:
+        return jsonify({"error": "messaggio richiesto"}), 400
+    with get_db() as c:
+        # Salva annuncio globale (per utenti futuri)
+        c.execute("INSERT INTO announcements (message, emoji) VALUES (?, ?)", (message, emoji))
+        # Crea notifica per tutti gli utenti esistenti
+        users = c.execute("SELECT id FROM users").fetchall()
+        for u in users:
+            c.execute(
+                "INSERT INTO notifications (user_id, type, message, emoji) VALUES (?, 'announce', ?, ?)",
+                (u["id"], message, emoji)
+            )
+        c.commit()
+    return jsonify({"ok": True, "sent": len(users)})
+
+# ──────────────────────────────────────────
 # API: PRESENZA SOCIALE
 # ──────────────────────────────────────────
 
@@ -881,17 +1280,235 @@ def presence_ping():
 
 @app.route("/api/presence/online", methods=["GET"])
 def presence_online():
-    get_auth_user(required=True)
+    me = get_auth_user(required=True)
+    five_min_ago = (datetime.now() - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
     with get_db() as c:
-        rows = c.execute("""
-            SELECT u.username, p.page, p.studying, p.updated_at
-            FROM presence p
-            JOIN users u ON u.id = p.user_id
-            WHERE p.updated_at >= datetime('now','localtime','-5 minutes')
-              AND u.username != 'kiwi07'
-            ORDER BY p.studying DESC, p.updated_at DESC
-        """).fetchall()
+        # Raccoglie ID amici da entrambe le fonti (friendships + sf_friends legacy)
+        fs_rows = c.execute(
+            """SELECT CASE WHEN f.requester_id=? THEN f.receiver_id ELSE f.requester_id END as fid
+               FROM friendships f
+               WHERE (f.requester_id=? OR f.receiver_id=?) AND f.status='accepted'""",
+            (me["id"], me["id"], me["id"])
+        ).fetchall()
+        friend_ids = {r["fid"] for r in fs_rows}
+        for uname in _sf_friends_list(c, me["id"]):
+            u = c.execute("SELECT id FROM users WHERE username=?", (uname,)).fetchone()
+            if u:
+                friend_ids.add(u["id"])
+        if not friend_ids:
+            return jsonify([])
+        placeholders = ','.join(['?' for _ in friend_ids])
+        rows = c.execute(
+            f"""SELECT u.username, p.page, p.studying, p.updated_at
+                FROM presence p
+                JOIN users u ON u.id = p.user_id
+                WHERE p.updated_at >= ?
+                  AND u.id != ?
+                  AND u.id IN ({placeholders})
+                ORDER BY p.studying DESC, p.updated_at DESC""",
+            (five_min_ago, me["id"], *friend_ids)
+        ).fetchall()
     return jsonify([dict(r) for r in rows])
+
+# ──────────────────────────────────────────
+# API: HEATMAP & LEADERBOARD
+# ──────────────────────────────────────────
+
+@app.route("/api/stats/heatmap", methods=["GET"])
+def stats_heatmap():
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        row = c.execute(
+            "SELECT value FROM user_data WHERE user_id=? AND key='sf_sessions'",
+            (me["id"],)
+        ).fetchone()
+    result = {}
+    if row and row["value"]:
+        try:
+            for s in json_lib.loads(row["value"]):
+                d = (s.get("date") or s.get("endedAt") or "")[:10]
+                if d:
+                    result[d] = result.get(d, 0) + int(s.get("duration") or 25)
+        except Exception:
+            pass
+    return jsonify(result)
+
+def _user_weekly_minutes(c, uid, week_start):
+    row = c.execute(
+        "SELECT value FROM user_data WHERE user_id=? AND key='sf_sessions'", (uid,)
+    ).fetchone()
+    minutes = 0
+    if row and row["value"]:
+        try:
+            for s in json_lib.loads(row["value"]):
+                d = (s.get("date") or s.get("endedAt") or "")[:10]
+                if d >= week_start:
+                    minutes += int(s.get("duration") or 25)
+        except Exception:
+            pass
+    return minutes
+
+@app.route("/api/leaderboard", methods=["GET"])
+def leaderboard():
+    me = get_auth_user(required=True)
+    today = date.today()
+    week_start = (today - timedelta(days=today.weekday())).isoformat()
+    with get_db() as c:
+        fs_rows = c.execute(
+            """SELECT CASE WHEN f.requester_id=? THEN f.receiver_id ELSE f.requester_id END as fid
+               FROM friendships f
+               WHERE (f.requester_id=? OR f.receiver_id=?) AND f.status='accepted'""",
+            (me["id"], me["id"], me["id"])
+        ).fetchall()
+        friend_ids = {r["fid"] for r in fs_rows}
+        for uname in _sf_friends_list(c, me["id"]):
+            u2 = c.execute("SELECT id FROM users WHERE username=?", (uname,)).fetchone()
+            if u2:
+                friend_ids.add(u2["id"])
+        all_ids = list(friend_ids | {me["id"]})
+        result = []
+        for uid in all_ids:
+            u2 = c.execute("SELECT username FROM users WHERE id=?", (uid,)).fetchone()
+            if not u2:
+                continue
+            mins = _user_weekly_minutes(c, uid, week_start)
+            result.append({
+                "user_id":  uid,
+                "username": u2["username"],
+                "minutes":  mins,
+                "hours":    round(mins / 60, 1),
+                "is_me":    uid == me["id"],
+            })
+    result.sort(key=lambda x: -x["minutes"])
+    return jsonify(result)
+
+# ──────────────────────────────────────────
+# API: SFIDE CON AMICI
+# ──────────────────────────────────────────
+
+@app.route("/api/challenges", methods=["GET"])
+def list_challenges():
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        fs_rows = c.execute(
+            """SELECT CASE WHEN f.requester_id=? THEN f.receiver_id ELSE f.requester_id END as fid
+               FROM friendships f
+               WHERE (f.requester_id=? OR f.receiver_id=?) AND f.status='accepted'""",
+            (me["id"], me["id"], me["id"])
+        ).fetchall()
+        friend_ids = {r["fid"] for r in fs_rows}
+        for uname in _sf_friends_list(c, me["id"]):
+            u2 = c.execute("SELECT id FROM users WHERE username=?", (uname,)).fetchone()
+            if u2:
+                friend_ids.add(u2["id"])
+        visible_ids = list(friend_ids | {me["id"]})
+        if not visible_ids:
+            return jsonify([])
+        ph = ','.join(['?' for _ in visible_ids])
+        rows = c.execute(
+            f"""SELECT ch.*, u.username as creator_name,
+                  (SELECT COUNT(*) FROM challenge_members cm WHERE cm.challenge_id=ch.id) as member_count,
+                  (SELECT minutes_done FROM challenge_members cm2 WHERE cm2.challenge_id=ch.id AND cm2.user_id=?) as my_minutes,
+                  (SELECT completed FROM challenge_members cm3 WHERE cm3.challenge_id=ch.id AND cm3.user_id=?) as my_completed
+                FROM challenges ch
+                JOIN users u ON u.id=ch.creator_id
+                WHERE ch.creator_id IN ({ph})
+                ORDER BY ch.created_at DESC LIMIT 20""",
+            (me["id"], me["id"], *visible_ids)
+        ).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route("/api/challenges", methods=["POST"])
+def create_challenge():
+    me = get_auth_user(required=True)
+    data = request.get_json(force=True) or {}
+    title      = (data.get("title") or "").strip()[:80]
+    target_min = int(data.get("target_min") or 60)
+    ends_at    = (data.get("ends_at") or "").strip()
+    if not title or not ends_at:
+        return jsonify({"error": "titolo e data richiesti"}), 400
+    with get_db() as c:
+        cur = c.execute(
+            "INSERT INTO challenges (creator_id, title, target_min, ends_at) VALUES (?,?,?,?)",
+            (me["id"], title, target_min, ends_at)
+        )
+        cid = cur.lastrowid
+        c.execute(
+            "INSERT INTO challenge_members (challenge_id, user_id) VALUES (?,?)",
+            (cid, me["id"])
+        )
+        c.commit()
+    return jsonify({"ok": True, "id": cid})
+
+@app.route("/api/challenges/<int:cid>/join", methods=["POST"])
+def join_challenge(cid):
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        ch = c.execute("SELECT id FROM challenges WHERE id=?", (cid,)).fetchone()
+        if not ch:
+            return jsonify({"error": "sfida non trovata"}), 404
+        exists = c.execute(
+            "SELECT 1 FROM challenge_members WHERE challenge_id=? AND user_id=?", (cid, me["id"])
+        ).fetchone()
+        if not exists:
+            c.execute(
+                "INSERT INTO challenge_members (challenge_id, user_id) VALUES (?,?)",
+                (cid, me["id"])
+            )
+            c.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/challenges/<int:cid>/progress", methods=["POST"])
+def update_challenge_progress(cid):
+    me = get_auth_user(required=True)
+    data = request.get_json(force=True) or {}
+    minutes = int(data.get("minutes") or 0)
+    with get_db() as c:
+        ch = c.execute("SELECT target_min FROM challenges WHERE id=?", (cid,)).fetchone()
+        if not ch:
+            return jsonify({"error": "sfida non trovata"}), 404
+        completed = 1 if minutes >= ch["target_min"] else 0
+        c.execute("""
+            INSERT INTO challenge_members (challenge_id, user_id, minutes_done, completed)
+            VALUES (?,?,?,?)
+            ON CONFLICT(challenge_id, user_id)
+            DO UPDATE SET minutes_done=excluded.minutes_done, completed=excluded.completed
+        """, (cid, me["id"], minutes, completed))
+        c.commit()
+    return jsonify({"ok": True, "completed": bool(completed)})
+
+# ──────────────────────────────────────────
+# API: CONFIG APPLICAZIONE
+# ──────────────────────────────────────────
+
+@app.route("/api/config", methods=["GET"])
+def get_app_config():
+    with get_db() as c:
+        rows = c.execute("SELECT key, value FROM app_config").fetchall()
+    return jsonify({r["key"]: r["value"] for r in rows})
+
+@app.route("/api/admin/config", methods=["POST"])
+def set_app_config():
+    try:
+        me = get_auth_user(required=True)
+        if not me["is_admin"]:
+            return jsonify({"error": "non autorizzato"}), 403
+        data = request.get_json(force=True) or {}
+        key   = (data.get("key")   or "").strip()
+        value = (data.get("value") or "").strip()
+        if not key:
+            return jsonify({"error": "key richiesta"}), 400
+        with get_db() as c:
+            c.execute(
+                "INSERT INTO app_config (key, value) VALUES (?, ?)"
+                " ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                (key, value)
+            )
+            c.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        import traceback
+        return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
 
 # ──────────────────────────────────────────
 # RUN
