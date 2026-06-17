@@ -371,7 +371,7 @@ def forbidden(e):
 def index():
     return send_from_directory(".", "index.html")
 
-@app.route("/<path:path>")
+@app.route("/<path:path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 def static_files(path):
     if path.startswith("api/") or path == "api":
         abort(404)
