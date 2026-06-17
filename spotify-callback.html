@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Spotify — StudyFlow</title>
+  <style>
+    body { margin: 0; display: flex; align-items: center; justify-content: center;
+           min-height: 100vh; font-family: sans-serif; background: #1DB954; color: #fff; }
+    p { font-size: 1rem; opacity: 0.85; }
+  </style>
+</head>
+<body>
+<p>Connessione a Spotify...</p>
+<script>
+  (function() {
+    var hash = window.location.hash.substring(1);
+    var params = {};
+    hash.split('&').forEach(function(p) {
+      var kv = p.split('=');
+      if (kv[0]) params[kv[0]] = decodeURIComponent(kv[1] || '');
+    });
+    if (window.opener && params.access_token) {
+      window.opener.postMessage(
+        { type: 'sf_spotify_token', token: params.access_token, expires_in: params.expires_in },
+        window.location.origin
+      );
+      document.querySelector('p').textContent = 'Connesso! Puoi chiudere questa finestra.';
+      setTimeout(function() { window.close(); }, 1200);
+    } else {
+      document.querySelector('p').textContent = 'Errore di connessione. Riprova.';
+    }
+  })();
+</script>
+</body>
+</html>

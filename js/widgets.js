@@ -23,12 +23,12 @@ const WIDGET_CATALOG = [
   { id: 'calc',       label: 'Calcolatrice',          icon: '🔢', free: true  },
 ];
 
-/* Stato: order = lista ordinata di widget AGGIUNTI dall'utente,
-   hidden = nascosti, unlocked = widget premium sbloccati */
+/* Stato: order, hidden, unlocked, sizes = { id: 'sm'|'md'|'lg' } */
 let _wState = {
   order:    ['deal', 'cal', 'tasks'],
   hidden:   [],
   unlocked: [],
+  sizes:    {},
 };
 
 function _loadWidgetState() {
@@ -39,11 +39,31 @@ function _loadWidgetState() {
     if (s.order)    _wState.order    = s.order;
     if (s.hidden)   _wState.hidden   = s.hidden;
     if (s.unlocked) _wState.unlocked = s.unlocked;
+    if (s.sizes)    _wState.sizes    = s.sizes;
   } catch {}
 }
 
 function _saveWidgetState() {
   try { localStorage.setItem(WIDGET_KEY, JSON.stringify(_wState)); } catch {}
+}
+
+function setWidgetSize(id, size) {
+  _wState.sizes[id] = size;
+  _saveWidgetState();
+  const col = document.getElementById('widget-column');
+  const el  = col && col.querySelector(`[data-widget-id="${id}"]`);
+  if (el) _applyWidgetSize(el, id);
+  _refreshPickerList();
+}
+
+function _applyWidgetSize(el, id) {
+  el.classList.remove('wcard-sm', 'wcard-md', 'wcard-lg');
+  const sz = _wState.sizes[id] || 'sm';
+  if (sz !== 'sm') el.classList.add('wcard-' + sz);
+  /* aggiorna pulsanti resize attivi */
+  el.querySelectorAll('.wrs-btn').forEach(btn => {
+    btn.classList.toggle('wrs-active', btn.dataset.size === sz);
+  });
 }
 
 function _isUnlocked(id) {
@@ -60,7 +80,16 @@ function initWidgets() {
   _enableDragDrop();
 }
 
-/* Applica ordine e visibilità ai widget STATICI (già in HTML) */
+function _resizeBtnsHTML(id) {
+  const sz = _wState.sizes[id] || 'sm';
+  return `<div class="wrs-bar">
+    <button class="wrs-btn${sz==='sm'?' wrs-active':''}" data-size="sm" onclick="setWidgetSize('${id}','sm')" title="Compatto">▬</button>
+    <button class="wrs-btn${sz==='md'?' wrs-active':''}" data-size="md" onclick="setWidgetSize('${id}','md')" title="Medio">▭</button>
+    <button class="wrs-btn${sz==='lg'?' wrs-active':''}" data-size="lg" onclick="setWidgetSize('${id}','lg')" title="Grande">□</button>
+  </div>`;
+}
+
+/* Applica ordine, visibilità e size ai widget STATICI (già in HTML) */
 function _applyStaticWidgetState() {
   const col = document.getElementById('widget-column');
   if (!col) return;
@@ -70,6 +99,11 @@ function _applyStaticWidgetState() {
     const idx = _wState.order.indexOf(id);
     el.style.order   = idx >= 0 ? String(idx * 10) : '0';
     el.style.display = _wState.hidden.includes(id) ? 'none' : '';
+    _applyWidgetSize(el, id);
+    /* Inietta pulsanti resize se non già presenti */
+    if (!el.querySelector('.wrs-bar')) {
+      el.insertAdjacentHTML('beforeend', _resizeBtnsHTML(id));
+    }
   });
 }
 
@@ -94,8 +128,9 @@ function _renderOrderedDynamicWidgets() {
     el.dataset.widgetId = id;
     el.style.display = isHidden ? 'none' : '';
     el.style.order   = String(_wState.order.indexOf(id) * 10);
-    el.innerHTML = _buildWidgetHTML(id);
+    el.innerHTML = _buildWidgetHTML(id) + _resizeBtnsHTML(id);
     col.appendChild(el);
+    _applyWidgetSize(el, id);
     _initDynamicWidget(id);
   });
 }
@@ -605,36 +640,191 @@ function completeFlash() {
 /* ══════════════════════════════════
    WIDGET: SPOTIFY  (id='spotify')
 ══════════════════════════════════ */
+/* ══════════════════════════════════════
+   WIDGET: SPOTIFY  (id='spotify')
+   Modalità: link (embed) o account (OAuth Implicit Grant)
+══════════════════════════════════════ */
 function _spotifyHTML() {
-  return `<div class="card-title" style="justify-content:space-between">
-    🎵 Spotify
-    <span style="font-size:0.6rem;color:var(--text-soft);font-weight:400">incolla link</span>
-  </div>
-  <div class="wsp-setup" id="wsp-setup">
-    <input class="wsp-url-input" id="wsp-url" type="url"
-      placeholder="https://open.spotify.com/playlist/...">
-    <div class="wsp-hint">Funziona con tracce, playlist e album</div>
-    <button class="wsp-save-btn" onclick="saveSpotify()">▶ Carica</button>
-  </div>
-  <div class="wsp-embed-wrap" id="wsp-embed-wrap" style="display:none">
-    <iframe id="wsp-iframe" class="wsp-iframe" height="152"
-      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-      loading="lazy" frameborder="0" allowfullscreen></iframe>
-    <button class="wsp-reset-btn" onclick="resetSpotify()">✕ Cambia link</button>
+  return `<div class="card-title">🎵 Spotify</div>
+  <div id="wsp-root">
+    <div id="wsp-setup">
+      <div class="wsp-tabs">
+        <button class="wsp-tab wsp-tab-active" id="wsp-tab-link" onclick="wspSwitchTab('link')">🔗 Link</button>
+        <button class="wsp-tab" id="wsp-tab-oauth" onclick="wspSwitchTab('oauth')">🎧 Account</button>
+      </div>
+      <div id="wsp-panel-link">
+        <input class="wsp-url-input" id="wsp-url" type="url"
+          placeholder="https://open.spotify.com/playlist/...">
+        <div class="wsp-hint">Playlist, album o canzone — ascolto completo se sei loggato su Spotify</div>
+        <button class="wsp-save-btn" onclick="saveSpotify()">▶ Carica</button>
+      </div>
+      <div id="wsp-panel-oauth" style="display:none">
+        <div id="wsp-cid-setup" style="display:none">
+          <div class="wsp-hint" style="margin-bottom:8px">
+            Per collegare il tuo account:<br>
+            1. Vai su <b>developer.spotify.com</b> → crea un'app<br>
+            2. Nelle impostazioni app aggiungi come Redirect URI:<br>
+            <code id="wsp-redirect-uri" style="font-size:0.7rem;word-break:break-all;color:var(--accent)"></code><br>
+            3. Copia il <b>Client ID</b> e incollalo qui:
+          </div>
+          <input class="wsp-url-input" id="wsp-cid-input" type="text" placeholder="Client ID Spotify...">
+          <button class="wsp-save-btn" onclick="wspSaveClientId()">Salva e Connetti</button>
+        </div>
+        <div id="wsp-oauth-main">
+          <button class="wsp-connect-btn" onclick="spotifyOAuthConnect()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+            Connetti Spotify
+          </button>
+          <div class="wsp-hint">Accedi con il tuo account Spotify e scegli cosa ascoltare</div>
+          <button class="wsp-hint-link" onclick="wspShowCidSetup()">⚙️ Configura Client ID</button>
+        </div>
+        <div id="wsp-playlists" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <span style="font-size:0.78rem;font-weight:600;color:var(--text)">Le tue playlist</span>
+            <button onclick="wspLogout()" style="font-size:0.68rem;color:var(--text-soft);background:none;border:none;cursor:pointer">Disconnetti</button>
+          </div>
+          <div id="wsp-playlist-list" style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </div>
+    <div id="wsp-embed-wrap" style="display:none">
+      <iframe id="wsp-iframe" class="wsp-iframe" height="352"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy" frameborder="0" allowfullscreen></iframe>
+      <button class="wsp-reset-btn" onclick="resetSpotify()">✕ Cambia</button>
+    </div>
   </div>`;
 }
+
 function _parseSpotifyURL(url) {
   const m = url.match(/open\.spotify\.com\/(track|playlist|album|episode|artist)\/([A-Za-z0-9]+)/);
   return m ? { type: m[1], id: m[2] } : null;
 }
+
 function _initSpotify() {
+  /* Ripristina embed salvato */
   try {
     const raw = localStorage.getItem('sf_spotify');
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    if (data && data.embedURL) _showSpotifyEmbed(data);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data && data.embedURL) { _showSpotifyEmbed(data); return; }
+    }
   } catch {}
+  /* Ripristina token OAuth e mostra playlist */
+  const token = localStorage.getItem('sf_spotify_token');
+  if (token) {
+    const cid = document.getElementById('wsp-redirect-uri');
+    if (cid) cid.textContent = window.location.origin + '/spotify-callback.html';
+    wspSwitchTab('oauth');
+    _wspFetchPlaylists(token);
+  }
 }
+
+function wspSwitchTab(tab) {
+  document.getElementById('wsp-tab-link')?.classList.toggle('wsp-tab-active', tab === 'link');
+  document.getElementById('wsp-tab-oauth')?.classList.toggle('wsp-tab-active', tab === 'oauth');
+  document.getElementById('wsp-panel-link').style.display  = tab === 'link'  ? '' : 'none';
+  document.getElementById('wsp-panel-oauth').style.display = tab === 'oauth' ? '' : 'none';
+  if (tab === 'oauth') {
+    const uri = document.getElementById('wsp-redirect-uri');
+    if (uri) uri.textContent = window.location.origin + '/spotify-callback.html';
+  }
+}
+
+function wspShowCidSetup() {
+  document.getElementById('wsp-cid-setup').style.display = '';
+  document.getElementById('wsp-oauth-main').style.display = 'none';
+  const saved = localStorage.getItem('sf_spotify_client_id') || '';
+  const inp = document.getElementById('wsp-cid-input');
+  if (inp) inp.value = saved;
+}
+
+function wspSaveClientId() {
+  const v = (document.getElementById('wsp-cid-input')?.value || '').trim();
+  if (!v) return;
+  localStorage.setItem('sf_spotify_client_id', v);
+  document.getElementById('wsp-cid-setup').style.display = 'none';
+  document.getElementById('wsp-oauth-main').style.display = '';
+  spotifyOAuthConnect();
+}
+
+let _wspPopup = null;
+function spotifyOAuthConnect() {
+  const clientId = localStorage.getItem('sf_spotify_client_id');
+  if (!clientId) { wspShowCidSetup(); return; }
+  const redirectUri = encodeURIComponent(window.location.origin + '/spotify-callback.html');
+  const scopes = encodeURIComponent('playlist-read-private playlist-read-collaborative user-library-read user-read-private');
+  const url = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${redirectUri}&scope=${scopes}&show_dialog=false`;
+  _wspPopup = window.open(url, 'SpotifyLogin', 'width=480,height=660');
+  window.addEventListener('message', _wspHandleMessage, { once: true });
+}
+
+function _wspHandleMessage(e) {
+  if (!e.data || e.data.type !== 'sf_spotify_token') return;
+  const token = e.data.token;
+  if (!token) return;
+  /* Salva token con scadenza */
+  const expires = Date.now() + (parseInt(e.data.expires_in || 3600) - 60) * 1000;
+  localStorage.setItem('sf_spotify_token', token);
+  localStorage.setItem('sf_spotify_token_exp', String(expires));
+  if (_wspPopup) { try { _wspPopup.close(); } catch {} _wspPopup = null; }
+  _wspFetchPlaylists(token);
+}
+
+function _wspGetToken() {
+  const token = localStorage.getItem('sf_spotify_token');
+  const exp   = parseInt(localStorage.getItem('sf_spotify_token_exp') || '0');
+  if (!token || Date.now() > exp) { wspLogout(); return null; }
+  return token;
+}
+
+async function _wspFetchPlaylists(token) {
+  const listEl = document.getElementById('wsp-playlist-list');
+  const panel  = document.getElementById('wsp-playlists');
+  const main   = document.getElementById('wsp-oauth-main');
+  if (panel) panel.style.display = '';
+  if (main)  main.style.display  = 'none';
+  if (listEl) listEl.innerHTML = '<div style="color:var(--text-soft);font-size:0.8rem;padding:8px 0">Caricamento...</div>';
+  try {
+    const res = await fetch('https://api.spotify.com/v1/me/playlists?limit=50', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) { wspLogout(); return; }
+    const data = await res.json();
+    const items = data.items || [];
+    if (!listEl) return;
+    if (!items.length) {
+      listEl.innerHTML = '<div style="color:var(--text-soft);font-size:0.8rem">Nessuna playlist trovata</div>';
+      return;
+    }
+    listEl.innerHTML = items.map(p => {
+      const img = (p.images && p.images[0]) ? `<img src="${p.images[0].url}" width="36" height="36" style="border-radius:6px;object-fit:cover;flex-shrink:0">` : '<span style="width:36px;height:36px;border-radius:6px;background:var(--card-border);display:inline-block;flex-shrink:0"></span>';
+      return `<div onclick="wspLoadPlaylist('${p.id}')" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:10px;cursor:pointer;border:1px solid var(--card-border);background:rgba(255,255,255,0.3);transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.55)'" onmouseout="this.style.background='rgba(255,255,255,0.3)'">
+        ${img}
+        <div style="min-width:0">
+          <div style="font-size:0.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+          <div style="font-size:0.68rem;color:var(--text-soft)">${p.tracks?.total || 0} brani</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch { if (listEl) listEl.innerHTML = '<div style="color:#ef4444;font-size:0.8rem">Errore caricamento</div>'; }
+}
+
+function wspLoadPlaylist(playlistId) {
+  const data = { embedURL: `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0` };
+  try { localStorage.setItem('sf_spotify', JSON.stringify(data)); } catch {}
+  _showSpotifyEmbed(data);
+}
+
+function wspLogout() {
+  localStorage.removeItem('sf_spotify_token');
+  localStorage.removeItem('sf_spotify_token_exp');
+  const panel = document.getElementById('wsp-playlists');
+  const main  = document.getElementById('wsp-oauth-main');
+  if (panel) panel.style.display = 'none';
+  if (main)  main.style.display  = '';
+}
+
 function saveSpotify() {
   const inp    = document.getElementById('wsp-url');
   const url    = (inp?.value || '').trim();
@@ -644,28 +834,27 @@ function saveSpotify() {
     return;
   }
   const embedURL = `https://open.spotify.com/embed/${parsed.type}/${parsed.id}?utm_source=generator&theme=0`;
-  const height   = (parsed.type === 'track' || parsed.type === 'episode') ? 152 : 352;
-  const data = { embedURL, height };
+  const data = { embedURL };
   try { localStorage.setItem('sf_spotify', JSON.stringify(data)); } catch {}
   _showSpotifyEmbed(data);
 }
+
 function _showSpotifyEmbed(data) {
   const setup = document.getElementById('wsp-setup');
   const wrap  = document.getElementById('wsp-embed-wrap');
   const frame = document.getElementById('wsp-iframe');
   if (setup) setup.style.display = 'none';
   if (wrap)  wrap.style.display  = '';
-  if (frame) { frame.src = data.embedURL; frame.height = data.height; }
+  if (frame) frame.src = data.embedURL;
 }
+
 function resetSpotify() {
   try { localStorage.removeItem('sf_spotify'); } catch {}
   const setup = document.getElementById('wsp-setup');
   const wrap  = document.getElementById('wsp-embed-wrap');
-  const inp   = document.getElementById('wsp-url');
   const frame = document.getElementById('wsp-iframe');
   if (setup) setup.style.display = '';
   if (wrap)  wrap.style.display  = 'none';
-  if (inp)   inp.value = '';
   if (frame) frame.src = '';
 }
 

@@ -200,6 +200,12 @@ def init_db():
                 is_read    INTEGER DEFAULT 0,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
+            CREATE TABLE IF NOT EXISTS announcements (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                message    TEXT NOT NULL,
+                emoji      TEXT DEFAULT '📢',
+                created_at TEXT DEFAULT (datetime('now','localtime'))
+            );
         """)
 
 def _sf_friends_list(c, user_id):
@@ -1028,6 +1034,25 @@ def friends_invite_bonus():
 def notifications_list():
     me = get_auth_user(required=True)
     with get_db() as c:
+        # Inietta annunci globali che l'utente non ha ancora ricevuto
+        missing = c.execute("""
+            SELECT id, message, emoji FROM announcements
+            WHERE id NOT IN (
+                SELECT COALESCE(ann_ref, -1) FROM notifications WHERE user_id = ?
+            )
+        """, (me["id"],)).fetchall()
+        # Fallback: match per messaggio se ann_ref non esiste ancora
+        existing_msgs = {r[0] for r in c.execute(
+            "SELECT message FROM notifications WHERE user_id=? AND type='announce'", (me["id"],)
+        ).fetchall()}
+        for ann in missing:
+            if ann[1] not in existing_msgs:
+                c.execute(
+                    "INSERT INTO notifications (user_id, type, message, emoji) VALUES (?, 'announce', ?, ?)",
+                    (me["id"], ann[1], ann[2])
+                )
+        if missing:
+            c.commit()
         rows = c.execute(
             """SELECT id, type, message, emoji, created_at, is_read
                FROM notifications WHERE user_id=?
@@ -1070,11 +1095,14 @@ def admin_announce():
     if not message:
         return jsonify({"error": "messaggio richiesto"}), 400
     with get_db() as c:
+        # Salva annuncio globale (per utenti futuri)
+        c.execute("INSERT INTO announcements (message, emoji) VALUES (?, ?)", (message, emoji))
+        # Crea notifica per tutti gli utenti esistenti
         users = c.execute("SELECT id FROM users").fetchall()
         for u in users:
             c.execute(
                 "INSERT INTO notifications (user_id, type, message, emoji) VALUES (?, 'announce', ?, ?)",
-                (u["id"] if isinstance(u, dict) else u[0], message, emoji)
+                (u[0], message, emoji)
             )
         c.commit()
     return jsonify({"ok": True, "sent": len(users)})
