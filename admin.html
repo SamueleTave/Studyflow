@@ -578,6 +578,12 @@
     </div>
   </div>
 
+  <!-- Banner SQLite warning (nascosto di default, mostrato se db=sqlite) -->
+  <div id="sqlite-warning" style="display:none;background:#ef4444;color:#fff;padding:12px 20px;font-size:0.85rem;font-weight:600;text-align:center;letter-spacing:0.02em">
+    ⚠️ ATTENZIONE: Render sta usando SQLite — tutti i dati vengono cancellati ad ogni deploy/restart!
+    Vai su Render → Environment → aggiungi la variabile DATABASE_URL con la stringa di connessione PostgreSQL.
+  </div>
+
   <!-- Stats -->
   <div class="admin-stats-row" id="statsRow">
     <div class="admin-stat-card">
@@ -1096,11 +1102,19 @@
 
   /* ── Elimina utente ── */
   async function deleteUser(uid, username) {
-    if (!confirm('Eliminare definitivamente @' + username + '?\nTutti i dati verranno persi.')) return;
+    const typed = prompt(
+      '⚠️ OPERAZIONE IRREVERSIBILE\n\nScrivi il nome utente "' + username + '" per confermare l\'eliminazione:'
+    );
+    if (typed === null) return;
+    if (typed.trim().toLowerCase() !== username.toLowerCase()) {
+      toast('Nome utente non corrispondente — eliminazione annullata ❌');
+      return;
+    }
     try {
       const r = await apiFetch('/api/admin/users/' + uid, { method: 'DELETE' });
       if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Errore'); }
       _users = _users.filter(u => u.id !== uid);
+      sessionStorage.setItem('_sf_admin_users', JSON.stringify(_users));
       renderStats(_users);
       renderTable(_users);
       toast('@' + username + ' eliminato ✅');
@@ -1277,6 +1291,18 @@
   /* ── Avvio ── */
   loadUsers();
   loadTickets();
+
+  /* ── Controllo DB: avvisa se Render usa SQLite invece di PostgreSQL ── */
+  (async function _checkDb() {
+    try {
+      const r = await apiFetch('/api/status');
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d.db === 'sqlite') {
+        document.getElementById('sqlite-warning').style.display = 'block';
+      }
+    } catch {}
+  })();
 </script>
 </body>
 </html>
