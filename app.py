@@ -483,6 +483,7 @@ def user_sync_data():
     data = request.get_json(silent=True) or {}
     # sf_friends è gestita esclusivamente dagli endpoint /api/friends/*
     _SERVER_MANAGED = {'sf_friends'}
+    corrections = {}   # chiavi da rimandare al client con i valori corretti
     with get_db() as c:
         for key, value in data.items():
             if not isinstance(value, str) or key in _SERVER_MANAGED:
@@ -501,12 +502,13 @@ def user_sync_data():
                         srv_ts = server_c.get('_adminTs', '')
                         cli_ts = client_c.get('_adminTs', '')
                         if srv_ts and srv_ts != cli_ts:
-                            # Admin ha aggiornato i dati: il client non sa ancora.
-                            # Protegge balance e shop; inietta il timestamp per allineare.
+                            # Admin ha aggiornato i dati: protegge balance e shop,
+                            # inietta il timestamp e rimanda la correzione al client.
                             client_c['balance'] = server_c['balance']
                             client_c['shop']    = server_c.get('shop', client_c.get('shop', {}))
                             client_c['_adminTs'] = srv_ts
                             value = json_lib.dumps(client_c)
+                            corrections['sf_coins'] = value
                 except Exception:
                     pass
             c.execute("""
@@ -520,7 +522,7 @@ def user_sync_data():
             (user["id"],)
         )
         c.commit()
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "corrections": corrections})
 
 # ──────────────────────────────────────────
 # API: ADMIN

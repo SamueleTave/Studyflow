@@ -51,7 +51,7 @@ async function syncToServer() {
     if (v !== null) payload[k] = v;
   });
   try {
-    await fetch((window.SF_API_BASE || '/api') + '/user/sync', {
+    const r = await fetch((window.SF_API_BASE || '/api') + '/user/sync', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,6 +59,19 @@ async function syncToServer() {
       },
       body: JSON.stringify(payload),
     });
+    if (r.ok) {
+      const res = await r.json();
+      /* Il server può rimandare correzioni (es. balance ripristinato dall'admin).
+         Le scriviamo in localStorage senza triggerare un altro sync. */
+      if (res.corrections && typeof res.corrections === 'object') {
+        _sfSyncSuppressed = true;
+        Object.entries(res.corrections).forEach(([k, v]) => {
+          if (_SF_SYNC_KEYS.includes(k)) _sfOrigSetItem(k, v);
+        });
+        _sfSyncSuppressed = false;
+        if (typeof initCoins === 'function') initCoins();
+      }
+    }
   } catch {}
 }
 
