@@ -27,6 +27,9 @@ async function checkBackend() {
 }
 
 function _updateStatusDot() {
+  const bar = document.getElementById("backend-status-bar");
+  const auth = typeof getAuth === 'function' ? getAuth() : null;
+  if (bar) bar.style.display = auth?.is_admin ? 'flex' : 'none';
   const dot = document.getElementById("backend-dot");
   if (!dot) return;
   if (backendOk) {

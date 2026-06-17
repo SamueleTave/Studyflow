@@ -541,6 +541,30 @@
     </div>
   </div>
 
+  <!-- Configurazione Spotify -->
+  <div class="admin-table-card" style="margin-top:28px">
+    <div class="admin-table-head">
+      <span class="admin-table-title">🎵 Configurazione Spotify</span>
+    </div>
+    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px">
+      <p style="font-size:0.82rem;color:var(--text-soft);margin:0">
+        Imposta il Client ID una sola volta — tutti gli utenti potranno collegare il loro account Spotify senza configurazioni tecniche.<br>
+        URI di reindirizzamento da aggiungere nella tua app Spotify:<br>
+        <code id="admin-spotify-uri" style="font-size:0.72rem;color:var(--accent);word-break:break-all;display:block;margin-top:4px"></code>
+      </p>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input type="text" id="spotifyClientId" placeholder="Client ID Spotify (32 caratteri)..."
+          style="flex:1;padding:11px 16px;border-radius:12px;border:1.5px solid var(--card-border);background:var(--bg);color:var(--text);font-family:Poppins,sans-serif;font-size:0.88rem;outline:none;transition:border-color 0.2s"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--card-border)'">
+        <button onclick="saveSpotifyConfig()"
+          style="padding:11px 20px;border-radius:12px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:Poppins,sans-serif;font-weight:600;font-size:0.88rem;white-space:nowrap;transition:opacity 0.15s">
+          💾 Salva
+        </button>
+      </div>
+      <div id="spotify-cfg-status" style="font-size:0.8rem;color:var(--text-soft)"></div>
+    </div>
+  </div>
+
 </div>
 
 <script src="js/config.js"></script>
@@ -1004,6 +1028,39 @@
     if (btn) { btn.textContent = '↺ Aggiorna'; btn.disabled = false; }
     toast('Dati aggiornati ✅');
   }
+
+  /* ── Configurazione Spotify ── */
+  document.getElementById('admin-spotify-uri').textContent =
+    window.location.origin.replace(/\/admin\.html.*$/, '') + '/spotify-callback.html';
+
+  async function saveSpotifyConfig() {
+    const cid = (document.getElementById('spotifyClientId')?.value || '').trim();
+    if (!cid) { toast('Incolla il Client ID prima'); return; }
+    const r = await apiFetch('/api/admin/config', {
+      method: 'POST',
+      body: JSON.stringify({ key: 'spotify_client_id', value: cid })
+    });
+    const el = document.getElementById('spotify-cfg-status');
+    if (r.ok) {
+      if (el) { el.textContent = '✅ Client ID salvato! Gli utenti possono ora collegare Spotify.'; el.style.color = 'var(--accent)'; }
+      toast('Spotify configurato ✅');
+    } else {
+      if (el) { el.textContent = '❌ Errore durante il salvataggio'; el.style.color = '#ef4444'; }
+    }
+  }
+
+  (async function _loadSpotifyConfig() {
+    try {
+      const r = await apiFetch('/api/config');
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d.spotify_client_id) {
+        document.getElementById('spotifyClientId').value = d.spotify_client_id;
+        const el = document.getElementById('spotify-cfg-status');
+        if (el) { el.textContent = '✅ Client ID configurato'; el.style.color = 'var(--accent)'; }
+      }
+    } catch {}
+  })();
 
   /* ── Avvio ── */
   loadUsers();

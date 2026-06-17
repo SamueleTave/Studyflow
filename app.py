@@ -206,6 +206,10 @@ def init_db():
                 emoji      TEXT DEFAULT '📢',
                 created_at TEXT DEFAULT (datetime('now','localtime'))
             );
+            CREATE TABLE IF NOT EXISTS app_config (
+                key   TEXT PRIMARY KEY,
+                value TEXT
+            );
         """)
 
 def _sf_friends_list(c, user_id):
@@ -1149,6 +1153,31 @@ def presence_online():
             ORDER BY p.studying DESC, p.updated_at DESC
         """, (five_min_ago, 'kiwi07', me['id'], me['id'])).fetchall()
     return jsonify([dict(r) for r in rows])
+
+# ──────────────────────────────────────────
+# API: CONFIG APPLICAZIONE
+# ──────────────────────────────────────────
+
+@app.route("/api/config", methods=["GET"])
+def get_app_config():
+    with get_db() as c:
+        rows = c.execute("SELECT key, value FROM app_config").fetchall()
+    return jsonify({r["key"]: r["value"] for r in rows})
+
+@app.route("/api/admin/config", methods=["POST"])
+def set_app_config():
+    me = get_auth_user(required=True)
+    if not me["is_admin"]:
+        return jsonify({"error": "non autorizzato"}), 403
+    data = request.get_json(force=True) or {}
+    key   = (data.get("key")   or "").strip()
+    value = (data.get("value") or "").strip()
+    if not key:
+        return jsonify({"error": "key richiesta"}), 400
+    with get_db() as c:
+        c.execute("INSERT OR REPLACE INTO app_config (key, value) VALUES (?, ?)", (key, value))
+        c.commit()
+    return jsonify({"ok": True})
 
 # ──────────────────────────────────────────
 # RUN

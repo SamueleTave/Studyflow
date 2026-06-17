@@ -642,50 +642,38 @@ function completeFlash() {
 ══════════════════════════════════ */
 /* ══════════════════════════════════════
    WIDGET: SPOTIFY  (id='spotify')
-   Modalità: link (embed) o account (OAuth Implicit Grant)
+   Connetti account (OAuth) o incolla link embed.
+   Client ID gestito dall'admin — utenti vedono solo "Connetti".
 ══════════════════════════════════════ */
 function _spotifyHTML() {
   return `<div class="card-title">🎵 Spotify</div>
   <div id="wsp-root">
-    <div id="wsp-setup">
-      <div class="wsp-tabs">
-        <button class="wsp-tab wsp-tab-active" id="wsp-tab-link" onclick="wspSwitchTab('link')">🔗 Link</button>
-        <button class="wsp-tab" id="wsp-tab-oauth" onclick="wspSwitchTab('oauth')">🎧 Account</button>
+    <div id="wsp-loading" style="color:var(--text-soft);font-size:0.8rem;padding:10px 0">Caricamento...</div>
+    <div id="wsp-choose" style="display:none;flex-direction:column;gap:10px">
+      <button class="wsp-connect-btn" onclick="spotifyOAuthConnect()" id="wsp-oauth-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+        Connetti Spotify
+      </button>
+      <div id="wsp-no-cid" style="display:none;font-size:0.72rem;color:var(--text-soft);text-align:center;padding:4px 0">🔧 Collegamento in configurazione</div>
+      <div style="text-align:center;font-size:0.7rem;color:var(--text-soft)">oppure</div>
+      <button onclick="wspModeLink()" style="padding:9px;border-radius:10px;border:1px solid var(--card-border);background:rgba(255,255,255,0.3);cursor:pointer;font-size:0.8rem;color:var(--text);font-family:Poppins,sans-serif">
+        🔗 Incolla link playlist
+      </button>
+    </div>
+    <div id="wsp-link-mode" style="display:none">
+      <input class="wsp-url-input" id="wsp-url" type="url" placeholder="https://open.spotify.com/playlist/...">
+      <div class="wsp-hint">Playlist, album o canzone</div>
+      <div style="display:flex;gap:8px">
+        <button class="wsp-save-btn" onclick="saveSpotify()" style="flex:1">▶ Carica</button>
+        <button onclick="wspModeChoose()" style="padding:9px 14px;border-radius:10px;border:1px solid var(--card-border);background:none;cursor:pointer;color:var(--text-soft);font-size:0.78rem;font-family:Poppins,sans-serif">← Indietro</button>
       </div>
-      <div id="wsp-panel-link">
-        <input class="wsp-url-input" id="wsp-url" type="url"
-          placeholder="https://open.spotify.com/playlist/...">
-        <div class="wsp-hint">Playlist, album o canzone — ascolto completo se sei loggato su Spotify</div>
-        <button class="wsp-save-btn" onclick="saveSpotify()">▶ Carica</button>
+    </div>
+    <div id="wsp-playlists" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:0.78rem;font-weight:600;color:var(--text)">Le tue playlist</span>
+        <button onclick="wspLogout()" style="font-size:0.68rem;color:var(--text-soft);background:none;border:none;cursor:pointer">Disconnetti</button>
       </div>
-      <div id="wsp-panel-oauth" style="display:none">
-        <div id="wsp-cid-setup" style="display:none">
-          <div class="wsp-hint" style="margin-bottom:8px">
-            Per collegare il tuo account:<br>
-            1. Vai su <b>developer.spotify.com</b> → crea un'app<br>
-            2. Nelle impostazioni app aggiungi come Redirect URI:<br>
-            <code id="wsp-redirect-uri" style="font-size:0.7rem;word-break:break-all;color:var(--accent)"></code><br>
-            3. Copia il <b>Client ID</b> e incollalo qui:
-          </div>
-          <input class="wsp-url-input" id="wsp-cid-input" type="text" placeholder="Client ID Spotify...">
-          <button class="wsp-save-btn" onclick="wspSaveClientId()">Salva e Connetti</button>
-        </div>
-        <div id="wsp-oauth-main">
-          <button class="wsp-connect-btn" onclick="spotifyOAuthConnect()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-            Connetti Spotify
-          </button>
-          <div class="wsp-hint">Accedi con il tuo account Spotify e scegli cosa ascoltare</div>
-          <button class="wsp-hint-link" onclick="wspShowCidSetup()">⚙️ Configura Client ID</button>
-        </div>
-        <div id="wsp-playlists" style="display:none">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <span style="font-size:0.78rem;font-weight:600;color:var(--text)">Le tue playlist</span>
-            <button onclick="wspLogout()" style="font-size:0.68rem;color:var(--text-soft);background:none;border:none;cursor:pointer">Disconnetti</button>
-          </div>
-          <div id="wsp-playlist-list" style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto"></div>
-        </div>
-      </div>
+      <div id="wsp-playlist-list" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto"></div>
     </div>
     <div id="wsp-embed-wrap" style="display:none">
       <iframe id="wsp-iframe" class="wsp-iframe" height="352"
@@ -701,60 +689,74 @@ function _parseSpotifyURL(url) {
   return m ? { type: m[1], id: m[2] } : null;
 }
 
-function _initSpotify() {
-  /* Ripristina embed salvato */
+let _wspClientId = null;
+
+async function _initSpotify() {
+  /* 1. Ripristina embed salvato */
   try {
     const raw = localStorage.getItem('sf_spotify');
     if (raw) {
       const data = JSON.parse(raw);
-      if (data && data.embedURL) { _showSpotifyEmbed(data); return; }
+      if (data?.embedURL) { _showSpotifyEmbed(data); return; }
     }
   } catch {}
-  /* Ripristina token OAuth e mostra playlist */
-  const token = localStorage.getItem('sf_spotify_token');
+  /* 2. Ripristina token OAuth valido → mostra playlist */
+  const token = _wspGetToken();
   if (token) {
-    const cid = document.getElementById('wsp-redirect-uri');
-    if (cid) cid.textContent = window.location.origin + '/spotify-callback.html';
-    wspSwitchTab('oauth');
+    _wspHideAll();
+    _wspShowPlaylistsPanel();
     _wspFetchPlaylists(token);
+    return;
   }
+  /* 3. Fetch client_id dal backend (impostato dall'admin) */
+  try {
+    const apiBase = window.SF_API_BASE || '/api';
+    const r = await fetch(apiBase + '/config');
+    if (r.ok) {
+      const d = await r.json();
+      _wspClientId = d.spotify_client_id || null;
+    }
+  } catch {}
+  /* 4. Mostra scelta */
+  wspModeChoose();
 }
 
-function wspSwitchTab(tab) {
-  document.getElementById('wsp-tab-link')?.classList.toggle('wsp-tab-active', tab === 'link');
-  document.getElementById('wsp-tab-oauth')?.classList.toggle('wsp-tab-active', tab === 'oauth');
-  document.getElementById('wsp-panel-link').style.display  = tab === 'link'  ? '' : 'none';
-  document.getElementById('wsp-panel-oauth').style.display = tab === 'oauth' ? '' : 'none';
-  if (tab === 'oauth') {
-    const uri = document.getElementById('wsp-redirect-uri');
-    if (uri) uri.textContent = window.location.origin + '/spotify-callback.html';
-  }
+function _wspHideAll() {
+  ['wsp-loading', 'wsp-choose', 'wsp-link-mode', 'wsp-playlists', 'wsp-embed-wrap'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
 }
 
-function wspShowCidSetup() {
-  document.getElementById('wsp-cid-setup').style.display = '';
-  document.getElementById('wsp-oauth-main').style.display = 'none';
-  const saved = localStorage.getItem('sf_spotify_client_id') || '';
-  const inp = document.getElementById('wsp-cid-input');
-  if (inp) inp.value = saved;
+function wspModeChoose() {
+  _wspHideAll();
+  const choose = document.getElementById('wsp-choose');
+  if (choose) choose.style.display = 'flex';
+  /* Nascondi pulsante OAuth se non c'è il client_id */
+  const oauthBtn = document.getElementById('wsp-oauth-btn');
+  const noCid   = document.getElementById('wsp-no-cid');
+  if (oauthBtn) oauthBtn.style.display = _wspClientId ? '' : 'none';
+  if (noCid)   noCid.style.display    = _wspClientId ? 'none' : '';
 }
 
-function wspSaveClientId() {
-  const v = (document.getElementById('wsp-cid-input')?.value || '').trim();
-  if (!v) return;
-  localStorage.setItem('sf_spotify_client_id', v);
-  document.getElementById('wsp-cid-setup').style.display = 'none';
-  document.getElementById('wsp-oauth-main').style.display = '';
-  spotifyOAuthConnect();
+function wspModeLink() {
+  _wspHideAll();
+  const el = document.getElementById('wsp-link-mode');
+  if (el) el.style.display = '';
+}
+
+function _wspShowPlaylistsPanel() {
+  _wspHideAll();
+  const el = document.getElementById('wsp-playlists');
+  if (el) el.style.display = '';
 }
 
 let _wspPopup = null;
 function spotifyOAuthConnect() {
-  const clientId = localStorage.getItem('sf_spotify_client_id');
-  if (!clientId) { wspShowCidSetup(); return; }
+  if (!_wspClientId) return;
   const redirectUri = encodeURIComponent(window.location.origin + '/spotify-callback.html');
   const scopes = encodeURIComponent('playlist-read-private playlist-read-collaborative user-library-read user-read-private');
-  const url = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${redirectUri}&scope=${scopes}&show_dialog=false`;
+  const url = `https://accounts.spotify.com/authorize?client_id=${_wspClientId}&response_type=token&redirect_uri=${redirectUri}&scope=${scopes}&show_dialog=false`;
   _wspPopup = window.open(url, 'SpotifyLogin', 'width=480,height=660');
   window.addEventListener('message', _wspHandleMessage, { once: true });
 }
@@ -763,27 +765,27 @@ function _wspHandleMessage(e) {
   if (!e.data || e.data.type !== 'sf_spotify_token') return;
   const token = e.data.token;
   if (!token) return;
-  /* Salva token con scadenza */
   const expires = Date.now() + (parseInt(e.data.expires_in || 3600) - 60) * 1000;
   localStorage.setItem('sf_spotify_token', token);
   localStorage.setItem('sf_spotify_token_exp', String(expires));
   if (_wspPopup) { try { _wspPopup.close(); } catch {} _wspPopup = null; }
+  _wspShowPlaylistsPanel();
   _wspFetchPlaylists(token);
 }
 
 function _wspGetToken() {
   const token = localStorage.getItem('sf_spotify_token');
   const exp   = parseInt(localStorage.getItem('sf_spotify_token_exp') || '0');
-  if (!token || Date.now() > exp) { wspLogout(); return null; }
+  if (!token || Date.now() > exp) {
+    localStorage.removeItem('sf_spotify_token');
+    localStorage.removeItem('sf_spotify_token_exp');
+    return null;
+  }
   return token;
 }
 
 async function _wspFetchPlaylists(token) {
   const listEl = document.getElementById('wsp-playlist-list');
-  const panel  = document.getElementById('wsp-playlists');
-  const main   = document.getElementById('wsp-oauth-main');
-  if (panel) panel.style.display = '';
-  if (main)  main.style.display  = 'none';
   if (listEl) listEl.innerHTML = '<div style="color:var(--text-soft);font-size:0.8rem;padding:8px 0">Caricamento...</div>';
   try {
     const res = await fetch('https://api.spotify.com/v1/me/playlists?limit=50', {
@@ -798,7 +800,9 @@ async function _wspFetchPlaylists(token) {
       return;
     }
     listEl.innerHTML = items.map(p => {
-      const img = (p.images && p.images[0]) ? `<img src="${p.images[0].url}" width="36" height="36" style="border-radius:6px;object-fit:cover;flex-shrink:0">` : '<span style="width:36px;height:36px;border-radius:6px;background:var(--card-border);display:inline-block;flex-shrink:0"></span>';
+      const img = (p.images && p.images[0])
+        ? `<img src="${p.images[0].url}" width="36" height="36" style="border-radius:6px;object-fit:cover;flex-shrink:0">`
+        : '<span style="width:36px;height:36px;border-radius:6px;background:var(--card-border);display:inline-block;flex-shrink:0"></span>';
       return `<div onclick="wspLoadPlaylist('${p.id}')" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:10px;cursor:pointer;border:1px solid var(--card-border);background:rgba(255,255,255,0.3);transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.55)'" onmouseout="this.style.background='rgba(255,255,255,0.3)'">
         ${img}
         <div style="min-width:0">
@@ -819,10 +823,7 @@ function wspLoadPlaylist(playlistId) {
 function wspLogout() {
   localStorage.removeItem('sf_spotify_token');
   localStorage.removeItem('sf_spotify_token_exp');
-  const panel = document.getElementById('wsp-playlists');
-  const main  = document.getElementById('wsp-oauth-main');
-  if (panel) panel.style.display = 'none';
-  if (main)  main.style.display  = '';
+  wspModeChoose();
 }
 
 function saveSpotify() {
@@ -840,22 +841,18 @@ function saveSpotify() {
 }
 
 function _showSpotifyEmbed(data) {
-  const setup = document.getElementById('wsp-setup');
+  _wspHideAll();
   const wrap  = document.getElementById('wsp-embed-wrap');
   const frame = document.getElementById('wsp-iframe');
-  if (setup) setup.style.display = 'none';
-  if (wrap)  wrap.style.display  = '';
+  if (wrap)  wrap.style.display = '';
   if (frame) frame.src = data.embedURL;
 }
 
 function resetSpotify() {
   try { localStorage.removeItem('sf_spotify'); } catch {}
-  const setup = document.getElementById('wsp-setup');
-  const wrap  = document.getElementById('wsp-embed-wrap');
   const frame = document.getElementById('wsp-iframe');
-  if (setup) setup.style.display = '';
-  if (wrap)  wrap.style.display  = 'none';
   if (frame) frame.src = '';
+  wspModeChoose();
 }
 
 /* ══════════════════════════════════
