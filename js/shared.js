@@ -739,7 +739,9 @@ function checkAnimalMood() {
 var _presenceStudying = false;
 
 function setPresenceStudying(v) {
+  const changed = (_presenceStudying !== !!v);
   _presenceStudying = !!v;
+  if (changed) _pingPresence(); // ping immediato al cambio di stato
 }
 
 function _getAuth() {

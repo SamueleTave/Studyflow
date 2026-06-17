@@ -815,6 +815,236 @@
 }
 .wmd-lbl { font-size: 0.7rem; color: var(--text-soft); text-align: center; }
 
+/* ── Widget Bacheca (Post-it board) ── */
+.wba-board {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 6px; margin-bottom: 6px;
+}
+.wba-note {
+  position: relative; min-height: 78px; border-radius: 9px;
+  border: 1.5px solid; padding: 8px 8px 8px 8px; padding-top: 22px;
+  font-size: 0.72rem; line-height: 1.45; color: var(--text); word-break: break-word;
+}
+.wba-note[data-color="yellow"] { background: rgba(255,235,59,0.14); border-color: rgba(255,200,0,0.35); }
+.wba-note[data-color="pink"]   { background: rgba(233,30,99,0.11);  border-color: rgba(233,30,99,0.32); }
+.wba-note[data-color="blue"]   { background: rgba(33,150,243,0.11); border-color: rgba(33,150,243,0.32); }
+.wba-note[data-color="green"]  { background: rgba(76,175,80,0.11);  border-color: rgba(76,175,80,0.32); }
+.wba-note[data-color="purple"] { background: rgba(156,39,176,0.11); border-color: rgba(156,39,176,0.32); }
+.wba-note-del {
+  position: absolute; top: 4px; right: 4px;
+  width: 16px; height: 16px; border: none; background: rgba(0,0,0,0.15);
+  border-radius: 50%; color: var(--text-soft); font-size: 0.5rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+}
+.wba-note-del:hover { background: rgba(239,68,68,0.6); color: #fff; }
+.wba-note-text { font-size: 0.72rem; }
+.wba-empty {
+  font-size: 0.72rem; color: var(--text-soft); text-align: center; padding: 12px 0;
+}
+.wba-add-btn {
+  padding: 3px 10px; border-radius: 8px; border: 1.5px solid var(--accent);
+  background: transparent; color: var(--accent); font-family: Poppins, sans-serif;
+  font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+}
+.wba-add-btn:hover { background: var(--accent); color: #fff; }
+.wba-add-form {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px; border-radius: 10px; background: rgba(0,0,0,0.06);
+}
+.wba-add-input {
+  width: 100%; min-height: 68px; resize: none; box-sizing: border-box;
+  background: rgba(255,255,255,0.06); border: 1.5px solid var(--card-border);
+  border-radius: 8px; color: var(--text); font-family: Poppins, sans-serif;
+  font-size: 0.78rem; line-height: 1.5; padding: 8px 10px;
+}
+.wba-add-input:focus { outline: none; border-color: var(--accent); }
+.wba-color-row { display: flex; gap: 8px; align-items: center; }
+.wba-cdot {
+  width: 18px; height: 18px; border-radius: 50%; cursor: pointer; transition: transform 0.15s;
+}
+.wba-cdot:hover { transform: scale(1.22); }
+.wba-cdot[data-c="yellow"] { background: #FFEB3B; }
+.wba-cdot[data-c="pink"]   { background: #E91E63; }
+.wba-cdot[data-c="blue"]   { background: #2196F3; }
+.wba-cdot[data-c="green"]  { background: #4CAF50; }
+.wba-cdot[data-c="purple"] { background: #9C27B0; }
+.wba-cancel-btn {
+  flex: 1; padding: 7px; border-radius: 8px; border: 1.5px solid var(--card-border);
+  background: transparent; color: var(--text-soft); font-family: Poppins, sans-serif;
+  font-size: 0.72rem; cursor: pointer;
+}
+.wba-save-btn {
+  flex: 2; padding: 7px; border-radius: 8px; border: none;
+  background: var(--accent); color: #fff; font-family: Poppins, sans-serif;
+  font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
+}
+.wba-save-btn:hover { opacity: 0.85; }
+
+/* ── Widget Countdown ── */
+.wcd-setup { display: flex; flex-direction: column; gap: 8px; }
+.wcd-input, .wcd-date {
+  width: 100%; padding: 8px 12px; border-radius: 10px; box-sizing: border-box;
+  border: 1.5px solid var(--card-border); background: rgba(255,255,255,0.04);
+  color: var(--text); font-family: Poppins, sans-serif; font-size: 0.78rem;
+  transition: border-color 0.2s;
+}
+.wcd-input:focus, .wcd-date:focus { outline: none; border-color: var(--accent); }
+.wcd-date { color-scheme: dark; }
+.wcd-save-btn {
+  padding: 8px; border-radius: 10px; border: none; cursor: pointer;
+  background: var(--accent); color: #fff; font-family: Poppins, sans-serif;
+  font-size: 0.78rem; font-weight: 600; transition: opacity 0.2s;
+}
+.wcd-save-btn:hover { opacity: 0.85; }
+.wcd-display { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.wcd-name {
+  font-size: 0.75rem; font-weight: 600; color: var(--accent);
+  text-align: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.wcd-timer {
+  font-family: 'Orbitron', sans-serif; font-size: 1.55rem; font-weight: 700;
+  color: var(--text); letter-spacing: 3px; line-height: 1.1;
+}
+.wcd-timer.wcd-expired { color: var(--accent); font-size: 1rem; font-family: Poppins, sans-serif; letter-spacing: 0; }
+.wcd-labels {
+  display: grid; grid-template-columns: repeat(4, 1fr); width: 100%;
+  text-align: center; font-size: 0.56rem; color: var(--text-soft); font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.wcd-reset-btn {
+  margin-top: 2px; padding: 5px 14px; border-radius: 8px;
+  border: 1.5px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.06);
+  color: #ef4444; font-family: Poppins, sans-serif; font-size: 0.68rem;
+  font-weight: 600; cursor: pointer; transition: background 0.15s;
+}
+.wcd-reset-btn:hover { background: rgba(239,68,68,0.14); }
+
+/* ── Widget Sfida Flash ── */
+.wfl-body { display: flex; flex-direction: column; gap: 10px; }
+.wfl-challenge-text {
+  font-size: 0.82rem; font-weight: 500; color: var(--text);
+  line-height: 1.5; text-align: center; padding: 10px 6px;
+  background: rgba(var(--accent-rgb,99,102,241),0.06);
+  border-radius: 10px; border: 1.5px dashed rgba(var(--accent-rgb,99,102,241),0.22);
+}
+.wfl-done-label {
+  font-size: 0.75rem; color: var(--text-soft); text-align: center;
+  line-height: 1.4;
+}
+.wfl-btn {
+  padding: 9px; border-radius: 10px; border: 1.5px solid var(--accent);
+  background: transparent; color: var(--accent); font-family: Poppins, sans-serif;
+  font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.wfl-btn:hover { background: var(--accent); color: #fff; }
+.wfl-btn.wfl-done {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2, var(--accent)));
+  color: #fff; border-color: transparent; pointer-events: none;
+}
+
+/* ── Widget Spotify ── */
+.wsp-setup { display: flex; flex-direction: column; gap: 8px; }
+.wsp-url-input {
+  width: 100%; padding: 8px 12px; border-radius: 10px; box-sizing: border-box;
+  border: 1.5px solid var(--card-border); background: rgba(255,255,255,0.04);
+  color: var(--text); font-family: Poppins, sans-serif; font-size: 0.78rem;
+  transition: border-color 0.2s;
+}
+.wsp-url-input:focus { outline: none; border-color: #1DB954; }
+.wsp-hint { font-size: 0.62rem; color: var(--text-soft); }
+.wsp-save-btn {
+  padding: 9px; border-radius: 10px; border: none; cursor: pointer;
+  background: #1DB954; color: #fff; font-family: Poppins, sans-serif;
+  font-size: 0.8rem; font-weight: 700; transition: opacity 0.2s; letter-spacing: 0.3px;
+}
+.wsp-save-btn:hover { opacity: 0.85; }
+.wsp-embed-wrap { display: flex; flex-direction: column; gap: 8px; }
+.wsp-iframe { width: 100%; border-radius: 12px; border: none; }
+.wsp-reset-btn {
+  padding: 6px; border-radius: 8px; border: 1.5px solid rgba(239,68,68,0.3);
+  background: rgba(239,68,68,0.06); color: #ef4444; font-family: Poppins, sans-serif;
+  font-size: 0.68rem; font-weight: 600; cursor: pointer; transition: background 0.15s;
+}
+.wsp-reset-btn:hover { background: rgba(239,68,68,0.14); }
+
+/* ── Widget Task Casuale ── */
+.wtr-body { transition: opacity 0.14s; }
+.wtr-empty { font-size: 0.75rem; color: var(--text-soft); text-align: center; padding: 14px 0; line-height: 1.55; }
+.wtr-card { display: flex; flex-direction: column; gap: 8px; }
+.wtr-name { font-size: 0.88rem; font-weight: 600; color: var(--text); line-height: 1.3; }
+.wtr-subject { font-size: 0.72rem; color: var(--text-soft); }
+.wtr-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.wtr-pri {
+  font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.wtr-pri-high { background: rgba(239,68,68,0.15);   color: #ef4444; }
+.wtr-pri-med  { background: rgba(249,115,22,0.15);  color: #f97316; }
+.wtr-pri-norm { background: rgba(99,102,241,0.15);  color: var(--accent); }
+.wtr-pri-low  { background: rgba(34,197,94,0.15);   color: #22c55e; }
+.wtr-due { font-size: 0.68rem; color: var(--text-soft); }
+.wtr-done-btn {
+  padding: 8px; border-radius: 10px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff;
+  font-family: Poppins, sans-serif; font-size: 0.78rem; font-weight: 600;
+  transition: opacity 0.2s;
+}
+.wtr-done-btn:hover { opacity: 0.85; }
+.wtr-shuffle-btn {
+  padding: 3px 10px; border-radius: 8px; border: 1.5px solid var(--card-border);
+  background: transparent; color: var(--text-soft); font-size: 0.78rem;
+  cursor: pointer; transition: all 0.15s; font-family: Poppins, sans-serif;
+}
+.wtr-shuffle-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Widget Calcolatrice ── */
+.calc-wrap { display: flex; flex-direction: column; gap: 8px; }
+.calc-display {
+  background: rgba(0,0,0,0.22); border-radius: 10px; padding: 10px 14px;
+  text-align: right; font-family: 'Orbitron', monospace; font-size: 1.5rem;
+  font-weight: 700; color: var(--text); letter-spacing: 1px;
+  min-height: 50px; display: flex; align-items: center; justify-content: flex-end;
+  overflow: hidden; word-break: break-all;
+}
+.calc-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; }
+.calc-btn {
+  padding: 11px 0; border-radius: 9px; border: none; cursor: pointer;
+  font-family: Poppins, sans-serif; font-size: 0.9rem; font-weight: 600;
+  background: rgba(255,255,255,0.08); color: var(--text);
+  transition: background 0.1s, transform 0.08s; user-select: none;
+}
+.calc-btn:hover  { background: rgba(255,255,255,0.16); }
+.calc-btn:active { transform: scale(0.91); }
+.calc-fn  { background: rgba(255,255,255,0.05); color: var(--text-soft); }
+.calc-fn:hover { background: rgba(255,255,255,0.12); }
+.calc-op  { background: var(--accent); color: #fff; }
+.calc-op:hover { opacity: 0.82; background: var(--accent); }
+.calc-zero { grid-column: span 2; text-align: left; padding-left: 20px; }
+
+/* ── Drag & Drop widget ── */
+.w-drag-handle {
+  text-align: center; font-size: 0.65rem; letter-spacing: 5px;
+  color: var(--text-soft); opacity: 0; cursor: grab;
+  user-select: none; margin-bottom: 4px; line-height: 1;
+  transition: opacity 0.15s;
+}
+.card[data-widget-id]:hover .w-drag-handle { opacity: 0.35; }
+[data-widget-id].w-dragging { opacity: 0.38; pointer-events: none; }
+[data-widget-id].w-dragover {
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+}
+
+/* ── Sfida Flash — skip btn ── */
+.wfl-skip-btn {
+  flex: 1; padding: 9px; border-radius: 10px;
+  border: 1.5px solid var(--card-border); background: transparent;
+  color: var(--text-soft); font-family: Poppins, sans-serif;
+  font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.18s;
+}
+.wfl-skip-btn:hover { border-color: var(--accent); color: var(--accent); }
+.wfl-btn { flex: 2; }
+
 /* ── Responsive ── */
 @media (max-width: 1040px) {
   .timer-grid { grid-template-columns: 300px 1fr; }

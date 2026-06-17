@@ -755,15 +755,31 @@
       loadTx.textContent = 'Caricamento dati...';
 
       try {
-        const keys = ['sf_coins','sf_garden','sf_widgets','sf_timer','sf_stats',
-                      'sf_sessions','sf_events','sf_daily_deal','sf_moods',
-                      'sf_cfg','sf_tasks','sf_theme'];
+        /* Pulisci SEMPRE i dati del vecchio account prima di caricare il nuovo */
+        _SF_SYNC_KEYS.forEach(k => localStorage.removeItem(k));
+
         const dr = await fetch((window.SF_API_BASE || '/api') + '/user/data', {
           headers: { 'Authorization': 'Bearer ' + data.token }
         });
         if (dr.ok) {
           const sd = await dr.json();
-          keys.forEach(k => { if (sd[k] != null) localStorage.setItem(k, sd[k]); });
+          /* Carica TUTTE le chiavi sync, non solo la lista parziale precedente */
+          _SF_SYNC_KEYS.forEach(k => { if (sd[k] != null) localStorage.setItem(k, sd[k]); });
+        }
+
+        /* Bonus invito: se l'URL ha ?ref=USERNAME e l'utente è nuovo */
+        if (data.new_user) {
+          const refUser = new URLSearchParams(window.location.search).get('ref');
+          if (refUser && refUser.trim()) {
+            loadTx.textContent = '🎁 Bonus invito...';
+            try {
+              await fetch((window.SF_API_BASE || '/api') + '/friends/invite-bonus', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + data.token },
+                body: JSON.stringify({ ref: refUser.trim() })
+              });
+            } catch {}
+          }
         }
       } catch {}
 

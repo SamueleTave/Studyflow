@@ -15,6 +15,12 @@ const WIDGET_CATALOG = [
   { id: 'music',     label: 'Suoni Ambientali',      icon: '🎵', free: false, price: 80 },
   { id: 'stats',     label: 'Mini Statistiche',      icon: '📊', free: false, price: 50 },
   { id: 'mood',      label: 'Mood Tracker',          icon: '😊', free: false, price: 60 },
+  { id: 'postit',     label: 'Bacheca Post-it',        icon: '📌', free: true  },
+  { id: 'countdown',  label: 'Countdown Scadenza',    icon: '⏳', free: false, price: 70 },
+  { id: 'flash',      label: 'Sfida Flash',           icon: '⚡', free: true  },
+  { id: 'spotify',    label: 'Spotify',               icon: '🎵', free: false, price: 100 },
+  { id: 'taskrandom', label: 'Task Casuale',          icon: '🎲', free: true  },
+  { id: 'calc',       label: 'Calcolatrice',          icon: '🔢', free: true  },
 ];
 
 /* Stato: order = lista ordinata di widget AGGIUNTI dall'utente,
@@ -51,6 +57,7 @@ function initWidgets() {
   _applyStaticWidgetState();
   _renderOrderedDynamicWidgets();
   _addPersonalizeButton();
+  _enableDragDrop();
 }
 
 /* Applica ordine e visibilità ai widget STATICI (già in HTML) */
@@ -71,7 +78,7 @@ function _renderOrderedDynamicWidgets() {
   const col = document.getElementById('widget-column');
   if (!col) return;
 
-  const dynamicIds = ['quote', 'focusgoal', 'music', 'stats', 'mood'];
+  const dynamicIds = ['quote', 'focusgoal', 'music', 'stats', 'mood', 'postit', 'countdown', 'flash', 'spotify', 'taskrandom', 'calc'];
 
   dynamicIds.forEach(id => {
     const inOrder    = _wState.order.includes(id);
@@ -99,6 +106,12 @@ function _buildWidgetHTML(id) {
   if (id === 'music')     return _musicHTML();
   if (id === 'stats')     return _statsHTML();
   if (id === 'mood')      return _moodHTML();
+  if (id === 'postit')     return _postitHTML();
+  if (id === 'countdown')  return _countdownHTML();
+  if (id === 'flash')      return _flashHTML();
+  if (id === 'spotify')    return _spotifyHTML();
+  if (id === 'taskrandom') return _taskRandomHTML();
+  if (id === 'calc')       return _calcHTML();
   return '';
 }
 
@@ -107,6 +120,12 @@ function _initDynamicWidget(id) {
   if (id === 'focusgoal') _refreshFocusGoal();
   if (id === 'stats')     _refreshStats();
   if (id === 'mood')      _initMoodWidget();
+  if (id === 'postit')     _initPostit();
+  if (id === 'countdown')  _initCountdown();
+  if (id === 'flash')      _initFlash();
+  if (id === 'spotify')    _initSpotify();
+  if (id === 'taskrandom') _initTaskRandom();
+  if (id === 'calc')       _initCalc();
 }
 
 /* ── Pulsante Personalizza ── */
@@ -169,19 +188,17 @@ function toggleWidget(id) {
   const inOrder = _wState.order.includes(id);
 
   if (!inOrder) {
-    /* Aggiunge il widget per la prima volta */
     _wState.order.push(id);
     _wState.hidden = _wState.hidden.filter(x => x !== id);
     _saveWidgetState();
     _renderOrderedDynamicWidgets();
     _applyStaticWidgetState();
+    _enableDragDrop();
   } else if (!_wState.hidden.includes(id)) {
-    /* Nasconde widget già visibile */
     _wState.hidden.push(id);
     if (el) el.style.display = 'none';
     _saveWidgetState();
   } else {
-    /* Mostra widget nascosto */
     _wState.hidden = _wState.hidden.filter(x => x !== id);
     if (el) el.style.display = '';
     _saveWidgetState();
@@ -191,17 +208,14 @@ function toggleWidget(id) {
 
 function unlockWidget(id, price) {
   if (typeof spendCoins !== 'function') return;
-  if (!spendCoins(price)) {
-    _refreshPickerList(); /* aggiorna per mostrare saldo aggiornato */
-    return;
-  }
+  if (!spendCoins(price)) { _refreshPickerList(); return; }
   if (!_wState.unlocked.includes(id)) _wState.unlocked.push(id);
-  /* Aggiunge automaticamente il widget appena sbloccato */
   if (!_wState.order.includes(id)) _wState.order.push(id);
   _wState.hidden = _wState.hidden.filter(x => x !== id);
   _saveWidgetState();
   _renderOrderedDynamicWidgets();
   _applyStaticWidgetState();
+  _enableDragDrop();
   _refreshPickerList();
 }
 
@@ -338,4 +352,522 @@ function _setMoodUI(idx) {
   const lbl = document.getElementById('wmd-lbl');
   if (lbl) lbl.textContent = _WMOODS[idx] + ' ' + _MLBL[idx];
   document.querySelectorAll('.wmd-btn').forEach((b, i) => b.classList.toggle('wmd-active', i === idx));
+}
+
+/* ══════════════════════════════════
+   WIDGET: BACHECA POST-IT  (id='postit')
+══════════════════════════════════ */
+const _WBA_COLORS = ['yellow','pink','blue','green','purple'];
+let _wbaSelColor = 'yellow';
+
+function _loadBachecaNotes() {
+  try {
+    const raw = localStorage.getItem('sf_notes') || '[]';
+    const p   = JSON.parse(raw);
+    if (Array.isArray(p)) return p;
+    if (typeof p === 'string' && p.trim()) return [{ id: Date.now(), text: p, color: 'yellow' }];
+    return [];
+  } catch {
+    const raw = localStorage.getItem('sf_notes') || '';
+    return raw.trim() ? [{ id: Date.now(), text: raw, color: 'yellow' }] : [];
+  }
+}
+function _saveBachecaNotes(notes) {
+  try { localStorage.setItem('sf_notes', JSON.stringify(notes)); } catch {}
+}
+function _renderBacheca() {
+  const board = document.getElementById('wba-board');
+  const empty = document.getElementById('wba-empty');
+  if (!board) return;
+  const notes = _loadBachecaNotes();
+  if (notes.length === 0) {
+    board.innerHTML = '';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  board.innerHTML = notes.map(n => `
+    <div class="wba-note" data-color="${n.color}" data-id="${n.id}">
+      <button class="wba-note-del" onclick="deleteBachecaNote(${n.id})">✕</button>
+      <div class="wba-note-text">${String(n.text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+}
+function _postitHTML() {
+  return `<div class="card-title" style="justify-content:space-between">
+    📌 Bacheca
+    <button class="wba-add-btn" onclick="openBachecaAdd()">+ Nota</button>
+  </div>
+  <div class="wba-board" id="wba-board"></div>
+  <div class="wba-empty" id="wba-empty">Nessuna nota — aggiungi la prima! ✨</div>
+  <div class="wba-add-form" id="wba-add-form" style="display:none">
+    <textarea class="wba-add-input" id="wba-add-input" maxlength="150" placeholder="Scrivi la nota..."></textarea>
+    <div class="wba-color-row">
+      ${_WBA_COLORS.map((c,i)=>`<div class="wba-cdot" data-c="${c}" onclick="selectBachecaColor('${c}')" style="${i===0?'outline:2px solid var(--accent);outline-offset:2px':''}"></div>`).join('')}
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="wba-cancel-btn" onclick="closeBachecaAdd()">Annulla</button>
+      <button class="wba-save-btn"   onclick="saveBachecaNote()">Aggiungi ✓</button>
+    </div>
+  </div>`;
+}
+function _initPostit() { _renderBacheca(); }
+
+function openBachecaAdd() {
+  const f = document.getElementById('wba-add-form');
+  if (f) f.style.display = '';
+  const inp = document.getElementById('wba-add-input');
+  if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 50); }
+  _wbaSelColor = 'yellow';
+  document.querySelectorAll('.wba-cdot').forEach((d, i) => {
+    d.style.outline = i === 0 ? '2px solid var(--accent)' : '';
+    d.style.outlineOffset = i === 0 ? '2px' : '';
+  });
+}
+function closeBachecaAdd() {
+  const f = document.getElementById('wba-add-form');
+  if (f) f.style.display = 'none';
+}
+function selectBachecaColor(color) {
+  _wbaSelColor = color;
+  document.querySelectorAll('.wba-cdot').forEach(d => {
+    const on = d.dataset.c === color;
+    d.style.outline = on ? '2px solid var(--accent)' : '';
+    d.style.outlineOffset = on ? '2px' : '';
+  });
+}
+function saveBachecaNote() {
+  const inp  = document.getElementById('wba-add-input');
+  const text = (inp?.value || '').trim();
+  if (!text) return;
+  const notes = _loadBachecaNotes();
+  notes.push({ id: Date.now(), text, color: _wbaSelColor });
+  _saveBachecaNotes(notes);
+  _renderBacheca();
+  closeBachecaAdd();
+}
+function deleteBachecaNote(id) {
+  const notes = _loadBachecaNotes().filter(n => n.id !== id);
+  _saveBachecaNotes(notes);
+  _renderBacheca();
+}
+
+/* ══════════════════════════════════
+   WIDGET: COUNTDOWN  (id='countdown')
+══════════════════════════════════ */
+function _countdownHTML() {
+  return `<div class="card-title">⏳ Countdown Scadenza</div>
+    <div class="wcd-setup" id="wcd-setup">
+      <input class="wcd-input" id="wcd-title" maxlength="30" placeholder="Nome (es. Esame Matematica)...">
+      <input class="wcd-date"  id="wcd-date"  type="date">
+      <button class="wcd-save-btn" onclick="saveCountdown()">✓ Salva</button>
+    </div>
+    <div class="wcd-display" id="wcd-display" style="display:none">
+      <div class="wcd-name" id="wcd-name">—</div>
+      <div class="wcd-timer" id="wcd-timer">00:00:00:00</div>
+      <div class="wcd-labels"><span>giorni</span><span>ore</span><span>min</span><span>sec</span></div>
+      <button class="wcd-reset-btn" onclick="resetCountdown()">✕ Cambia</button>
+    </div>`;
+}
+let _wcdInterval = null;
+function _initCountdown() {
+  try {
+    const raw = localStorage.getItem('sf_countdown');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data && data.date) _showCountdownDisplay(data);
+  } catch {}
+}
+function saveCountdown() {
+  const title = (document.getElementById('wcd-title')?.value || '').trim();
+  const date  = document.getElementById('wcd-date')?.value;
+  if (!date) return;
+  const data = { title: title || 'Scadenza', date };
+  try { localStorage.setItem('sf_countdown', JSON.stringify(data)); } catch {}
+  _showCountdownDisplay(data);
+}
+function _showCountdownDisplay(data) {
+  const setup   = document.getElementById('wcd-setup');
+  const display = document.getElementById('wcd-display');
+  const nameEl  = document.getElementById('wcd-name');
+  if (setup)   setup.style.display   = 'none';
+  if (display) display.style.display = 'flex';
+  if (nameEl)  nameEl.textContent    = data.title;
+  clearInterval(_wcdInterval);
+  _tickCountdown(data.date);
+  _wcdInterval = setInterval(() => _tickCountdown(data.date), 1000);
+}
+function _tickCountdown(dateStr) {
+  const el  = document.getElementById('wcd-timer');
+  if (!el) { clearInterval(_wcdInterval); return; }
+  const parts = dateStr.split('-').map(Number);
+  const target = new Date(parts[0], parts[1] - 1, parts[2], 23, 59, 59); // fine giornata, fuso locale
+  const diff = target - Date.now();
+  if (diff <= 0) {
+    el.className = 'wcd-timer wcd-expired';
+    el.textContent = '🎉 Giorno dell\'evento!';
+    const labels = el.nextElementSibling;
+    if (labels) labels.style.display = 'none';
+    clearInterval(_wcdInterval);
+    return;
+  }
+  const dd = Math.floor(diff / 86400000);
+  const h  = Math.floor((diff % 86400000) / 3600000);
+  const m  = Math.floor((diff % 3600000)  / 60000);
+  const s  = Math.floor((diff % 60000)    / 1000);
+  el.className = 'wcd-timer';
+  el.textContent = `${String(dd).padStart(2,'0')}:${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function resetCountdown() {
+  clearInterval(_wcdInterval);
+  try { localStorage.removeItem('sf_countdown'); } catch {}
+  const setup   = document.getElementById('wcd-setup');
+  const display = document.getElementById('wcd-display');
+  if (setup)   setup.style.display   = 'flex';
+  if (display) display.style.display = 'none';
+  const ti = document.getElementById('wcd-title');
+  const dt = document.getElementById('wcd-date');
+  if (ti) ti.value = '';
+  if (dt) dt.value = '';
+}
+
+/* ══════════════════════════════════
+   WIDGET: SFIDA FLASH  (id='flash')
+══════════════════════════════════ */
+const _FLASH_CHALLENGES = [
+  { t: '💧 Bevi un bicchiere d\'acqua prima di iniziare la sessione.' },
+  { t: '🧘 Fai 5 respiri profondi. Inspira 4s, tieni 4s, espira 6s.' },
+  { t: '🚶 Alzati e cammina per 2 minuti. Poi torna pronto a studiare.' },
+  { t: '📱 Metti il telefono in un altro stanza per la prossima ora.' },
+  { t: '✍️ Scrivi 3 cose che vuoi capire bene oggi.' },
+  { t: '🪟 Apri la finestra e prenditi 30 secondi d\'aria fresca.' },
+  { t: '🎯 Scegli UN concetto difficile da capire OGGI a fondo.' },
+  { t: '🌱 Fai 10 salti o 10 flessioni — muovi il corpo, attiva il cervello!' },
+  { t: '📖 Leggi la prima pagina del capitolo di oggi ad alta voce.' },
+  { t: '🍎 Mangia qualcosa di sano prima di studiare. Il cervello ha fame.' },
+  { t: '🔕 Attiva la modalità silenziosa. Niente notifiche per 25 minuti.' },
+  { t: '🕯️ Sistema la scrivania. Un ambiente ordinato = una mente ordinata.' },
+  { t: '⏰ Decidi esattamente a che ora finisci di studiare oggi.' },
+  { t: '📝 Scrivi la cosa più importante che hai imparato ieri.' },
+  { t: '🤝 Spiega ad alta voce come se lo spiegassi a un amico l\'argomento di oggi.' },
+];
+function _flashHTML() {
+  return `<div class="card-title">⚡ Sfida Flash</div>
+    <div class="wfl-body">
+      <div class="wfl-challenge-text" id="wfl-text">...</div>
+      <div style="display:flex;gap:6px">
+        <button class="wfl-skip-btn" id="wfl-skip" onclick="skipFlash()">🔀 Salta</button>
+        <button class="wfl-btn" id="wfl-btn" onclick="completeFlash()">Completa ✓</button>
+      </div>
+    </div>`;
+}
+function _getFlashData() {
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const d = JSON.parse(localStorage.getItem('sf_flash') || '{}');
+    if (d.date === today) return d;
+  } catch {}
+  return { date: today, done: false, skips: 0 };
+}
+function _initFlash() {
+  const data   = _getFlashData();
+  const seed   = [...data.date].reduce((a,c) => a + c.charCodeAt(0), 0);
+  const idx    = (seed + (data.skips || 0)) % _FLASH_CHALLENGES.length;
+  const textEl = document.getElementById('wfl-text');
+  const btnEl  = document.getElementById('wfl-btn');
+  const skipEl = document.getElementById('wfl-skip');
+  if (textEl) textEl.textContent = _FLASH_CHALLENGES[idx].t;
+  if (data.done) {
+    if (btnEl)  { btnEl.textContent = '✅ Fatto! +3 🪙'; btnEl.classList.add('wfl-done'); }
+    if (skipEl) skipEl.style.display = 'none';
+  } else {
+    if (btnEl)  { btnEl.textContent = 'Completa ✓'; btnEl.classList.remove('wfl-done'); }
+    if (skipEl) skipEl.style.display = '';
+  }
+}
+function skipFlash() {
+  const data = _getFlashData();
+  if (data.done) return;
+  data.skips = (data.skips || 0) + 1;
+  try { localStorage.setItem('sf_flash', JSON.stringify(data)); } catch {}
+  /* piccola animazione */
+  const textEl = document.getElementById('wfl-text');
+  if (textEl) { textEl.style.opacity = '0.2'; setTimeout(() => { textEl.style.opacity='1'; _initFlash(); }, 180); }
+  else _initFlash();
+}
+function completeFlash() {
+  const data = _getFlashData();
+  data.done = true;
+  try { localStorage.setItem('sf_flash', JSON.stringify(data)); } catch {}
+  if (typeof addCoins === 'function') addCoins(3);
+  _initFlash();
+}
+
+/* ══════════════════════════════════
+   WIDGET: SPOTIFY  (id='spotify')
+══════════════════════════════════ */
+function _spotifyHTML() {
+  return `<div class="card-title" style="justify-content:space-between">
+    🎵 Spotify
+    <span style="font-size:0.6rem;color:var(--text-soft);font-weight:400">incolla link</span>
+  </div>
+  <div class="wsp-setup" id="wsp-setup">
+    <input class="wsp-url-input" id="wsp-url" type="url"
+      placeholder="https://open.spotify.com/playlist/...">
+    <div class="wsp-hint">Funziona con tracce, playlist e album</div>
+    <button class="wsp-save-btn" onclick="saveSpotify()">▶ Carica</button>
+  </div>
+  <div class="wsp-embed-wrap" id="wsp-embed-wrap" style="display:none">
+    <iframe id="wsp-iframe" class="wsp-iframe" height="152"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy" frameborder="0" allowfullscreen></iframe>
+    <button class="wsp-reset-btn" onclick="resetSpotify()">✕ Cambia link</button>
+  </div>`;
+}
+function _parseSpotifyURL(url) {
+  const m = url.match(/open\.spotify\.com\/(track|playlist|album|episode|artist)\/([A-Za-z0-9]+)/);
+  return m ? { type: m[1], id: m[2] } : null;
+}
+function _initSpotify() {
+  try {
+    const raw = localStorage.getItem('sf_spotify');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data && data.embedURL) _showSpotifyEmbed(data);
+  } catch {}
+}
+function saveSpotify() {
+  const inp    = document.getElementById('wsp-url');
+  const url    = (inp?.value || '').trim();
+  const parsed = _parseSpotifyURL(url);
+  if (!parsed) {
+    if (inp) { inp.style.borderColor = '#ef4444'; setTimeout(() => { inp.style.borderColor = ''; }, 1600); }
+    return;
+  }
+  const embedURL = `https://open.spotify.com/embed/${parsed.type}/${parsed.id}?utm_source=generator&theme=0`;
+  const height   = (parsed.type === 'track' || parsed.type === 'episode') ? 152 : 352;
+  const data = { embedURL, height };
+  try { localStorage.setItem('sf_spotify', JSON.stringify(data)); } catch {}
+  _showSpotifyEmbed(data);
+}
+function _showSpotifyEmbed(data) {
+  const setup = document.getElementById('wsp-setup');
+  const wrap  = document.getElementById('wsp-embed-wrap');
+  const frame = document.getElementById('wsp-iframe');
+  if (setup) setup.style.display = 'none';
+  if (wrap)  wrap.style.display  = '';
+  if (frame) { frame.src = data.embedURL; frame.height = data.height; }
+}
+function resetSpotify() {
+  try { localStorage.removeItem('sf_spotify'); } catch {}
+  const setup = document.getElementById('wsp-setup');
+  const wrap  = document.getElementById('wsp-embed-wrap');
+  const inp   = document.getElementById('wsp-url');
+  const frame = document.getElementById('wsp-iframe');
+  if (setup) setup.style.display = '';
+  if (wrap)  wrap.style.display  = 'none';
+  if (inp)   inp.value = '';
+  if (frame) frame.src = '';
+}
+
+/* ══════════════════════════════════
+   WIDGET: TASK CASUALE  (id='taskrandom')
+══════════════════════════════════ */
+let _wtrIdx = 0;
+
+function _taskRandomHTML() {
+  return `<div class="card-title" style="justify-content:space-between">
+    🎲 Task Casuale
+    <button class="wtr-shuffle-btn" onclick="shuffleRandomTask()" title="Pesca un'altra task">🔀</button>
+  </div>
+  <div class="wtr-body" id="wtr-body"></div>`;
+}
+function _initTaskRandom() { _refreshTaskRandom(); }
+function _refreshTaskRandom() {
+  const body = document.getElementById('wtr-body');
+  if (!body) return;
+  try {
+    const tasks   = JSON.parse(localStorage.getItem('sf_tasks') || '[]');
+    const pending = tasks.filter(t => !t.done);
+    if (!pending.length) {
+      body.innerHTML = '<div class="wtr-empty">🎉 Nessuna task pendente!<br><span style="font-size:0.68rem">Aggiungile dalla sezione Task.</span></div>';
+      return;
+    }
+    _wtrIdx = _wtrIdx % pending.length;
+    const task = pending[_wtrIdx];
+    const priCl = { alta:'wtr-pri-high', media:'wtr-pri-med', normale:'wtr-pri-norm', bassa:'wtr-pri-low' };
+    const cl = priCl[task.priority] || 'wtr-pri-norm';
+    body.innerHTML = `<div class="wtr-card">
+      <div class="wtr-name">${_wEsc(task.name || '—')}</div>
+      ${task.subject ? `<div class="wtr-subject">📚 ${_wEsc(task.subject)}</div>` : ''}
+      <div class="wtr-meta">
+        <span class="wtr-pri ${cl}">${task.priority || 'normale'}</span>
+        ${task.dueDate ? `<span class="wtr-due">📅 ${task.dueDate}</span>` : ''}
+      </div>
+      <button class="wtr-done-btn" onclick="completeRandomTask('${task.id}')">✓ Fatto</button>
+    </div>`;
+  } catch {
+    body.innerHTML = '<div class="wtr-empty">Errore nel caricamento task.</div>';
+  }
+}
+function shuffleRandomTask() {
+  try {
+    const tasks   = JSON.parse(localStorage.getItem('sf_tasks') || '[]');
+    const pending = tasks.filter(t => !t.done);
+    if (pending.length <= 1) { _refreshTaskRandom(); return; }
+    _wtrIdx = (_wtrIdx + 1) % pending.length;
+  } catch { _wtrIdx = 0; }
+  const body = document.getElementById('wtr-body');
+  if (body) { body.style.opacity = '0'; setTimeout(() => { body.style.opacity = '1'; _refreshTaskRandom(); }, 140); }
+  else _refreshTaskRandom();
+}
+function completeRandomTask(id) {
+  try {
+    const tasks = JSON.parse(localStorage.getItem('sf_tasks') || '[]');
+    const t = tasks.find(t => String(t.id) === String(id));
+    if (t) t.done = true;
+    localStorage.setItem('sf_tasks', JSON.stringify(tasks));
+    if (typeof addCoins === 'function') addCoins(5);
+    _wtrIdx = 0;
+  } catch {}
+  _refreshTaskRandom();
+  if (typeof renderMiniTasks === 'function') renderMiniTasks();
+}
+function _wEsc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ══════════════════════════════════
+   WIDGET: CALCOLATRICE  (id='calc')
+══════════════════════════════════ */
+function _calcHTML() {
+  return `<div class="card-title">🔢 Calcolatrice</div>
+  <div class="calc-wrap">
+    <div class="calc-display" id="calc-disp">0</div>
+    <div class="calc-grid">
+      <button class="calc-btn calc-fn"  onclick="calcInput('AC')">AC</button>
+      <button class="calc-btn calc-fn"  onclick="calcInput('±')">±</button>
+      <button class="calc-btn calc-fn"  onclick="calcInput('%')">%</button>
+      <button class="calc-btn calc-op"  onclick="calcInput('÷')">÷</button>
+      <button class="calc-btn"          onclick="calcInput('7')">7</button>
+      <button class="calc-btn"          onclick="calcInput('8')">8</button>
+      <button class="calc-btn"          onclick="calcInput('9')">9</button>
+      <button class="calc-btn calc-op"  onclick="calcInput('×')">×</button>
+      <button class="calc-btn"          onclick="calcInput('4')">4</button>
+      <button class="calc-btn"          onclick="calcInput('5')">5</button>
+      <button class="calc-btn"          onclick="calcInput('6')">6</button>
+      <button class="calc-btn calc-op"  onclick="calcInput('−')">−</button>
+      <button class="calc-btn"          onclick="calcInput('1')">1</button>
+      <button class="calc-btn"          onclick="calcInput('2')">2</button>
+      <button class="calc-btn"          onclick="calcInput('3')">3</button>
+      <button class="calc-btn calc-op"  onclick="calcInput('+')">+</button>
+      <button class="calc-btn calc-zero" onclick="calcInput('0')">0</button>
+      <button class="calc-btn"          onclick="calcInput('.')">.</button>
+      <button class="calc-btn calc-op"  onclick="calcInput('=')">=</button>
+    </div>
+  </div>`;
+}
+let _cSt = { disp: '0', first: null, op: null, wait: false };
+function _initCalc() { _cRender(); }
+function _cRender() {
+  const el = document.getElementById('calc-disp');
+  if (!el) return;
+  const v = _cSt.disp;
+  el.textContent = (v.length > 11) ? (+v).toPrecision(7) : v;
+}
+function calcInput(k) {
+  const s = _cSt;
+  if (k === 'AC') {
+    s.disp = '0'; s.first = null; s.op = null; s.wait = false;
+  } else if (k === '±') {
+    s.disp = String(-parseFloat(s.disp || 0));
+  } else if (k === '%') {
+    s.disp = String(parseFloat(s.disp || 0) / 100);
+  } else if ('÷×−+'.includes(k)) {
+    s.first = parseFloat(s.disp); s.op = k; s.wait = true;
+  } else if (k === '=') {
+    if (s.op !== null && s.first !== null) {
+      const b = parseFloat(s.disp);
+      let r;
+      if (s.op==='+') r = s.first + b;
+      if (s.op==='−') r = s.first - b;
+      if (s.op==='×') r = s.first * b;
+      if (s.op==='÷') r = b !== 0 ? s.first / b : 'Err';
+      s.disp  = typeof r === 'number' ? String(parseFloat(r.toFixed(10))) : r;
+      s.op = null; s.first = null; s.wait = false;
+    }
+  } else if (k === '.') {
+    if (s.wait) { s.disp = '0.'; s.wait = false; }
+    else if (!s.disp.includes('.')) s.disp += '.';
+  } else {
+    if (s.wait) { s.disp = k; s.wait = false; }
+    else { s.disp = (s.disp === '0' || s.disp === 'Err') ? k : s.disp + k; }
+    if (s.disp.length > 14) return;
+  }
+  _cRender();
+}
+
+/* ══════════════════════════════════
+   DRAG & DROP — riordinamento widget
+══════════════════════════════════ */
+let _wDragSrc = null;
+
+function _enableDragDrop() {
+  const col = document.getElementById('widget-column');
+  if (!col) return;
+
+  col.querySelectorAll('[data-widget-id]').forEach(card => {
+    if (card.querySelector('.w-drag-handle')) return; // già inizializzato
+    card.draggable = true;
+
+    const handle = document.createElement('div');
+    handle.className = 'w-drag-handle';
+    handle.innerHTML = '⠿ ⠿ ⠿';
+    handle.title = 'Trascina per riordinare';
+    card.insertBefore(handle, card.firstChild);
+
+    card.addEventListener('dragstart', e => {
+      _wDragSrc = card;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => card.classList.add('w-dragging'), 0);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('w-dragging');
+      col.querySelectorAll('[data-widget-id]').forEach(c => c.classList.remove('w-dragover'));
+      _wDragSrc = null;
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (card !== _wDragSrc) {
+        col.querySelectorAll('[data-widget-id]').forEach(c => c.classList.remove('w-dragover'));
+        card.classList.add('w-dragover');
+      }
+    });
+    card.addEventListener('dragleave', () => card.classList.remove('w-dragover'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      if (!_wDragSrc || _wDragSrc === card) return;
+      const srcId = _wDragSrc.dataset.widgetId;
+      const dstId = card.dataset.widgetId;
+      const order = [..._wState.order];
+      let si = order.indexOf(srcId), di = order.indexOf(dstId);
+      /* Se uno dei due non è nell'order, aggiungilo */
+      if (si < 0) { order.push(srcId); si = order.length - 1; }
+      if (di < 0) { order.push(dstId); di = order.length - 1; }
+      order.splice(si, 1);
+      order.splice(di, 0, srcId);
+      _wState.order = order;
+      _saveWidgetState();
+      _reapplyWidgetOrder();
+      card.classList.remove('w-dragover');
+    });
+  });
+}
+
+function _reapplyWidgetOrder() {
+  const col = document.getElementById('widget-column');
+  if (!col) return;
+  col.querySelectorAll('[data-widget-id]').forEach(el => {
+    const idx = _wState.order.indexOf(el.dataset.widgetId);
+    el.style.order = idx >= 0 ? String(idx * 10) : '990';
+  });
 }

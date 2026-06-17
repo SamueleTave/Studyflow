@@ -973,6 +973,45 @@ def export_csv():
     return resp
 
 # ──────────────────────────────────────────
+# API: BONUS INVITO
+# ──────────────────────────────────────────
+
+@app.route("/api/friends/invite-bonus", methods=["POST"])
+def friends_invite_bonus():
+    """Chiamato una sola volta quando un nuovo utente si registra via link ?ref=USERNAME.
+    Dà 30 monete all'invitante e 30 monete al nuovo utente."""
+    me   = get_auth_user(required=True)
+    data = request.get_json(silent=True) or {}
+    ref_username = (data.get("ref") or "").strip()
+    if not ref_username:
+        return jsonify({"error": "ref richiesto"}), 400
+    with get_db() as c:
+        # Verifica che il bonus non sia già stato assegnato (controlla user_data)
+        already = c.execute(
+            "SELECT value FROM user_data WHERE user_id=? AND key='sf_invite_used'", (me["id"],)
+        ).fetchone()
+        if already:
+            return jsonify({"error": "bonus già usato"}), 400
+        inviter = c.execute(
+            "SELECT id FROM users WHERE username=? COLLATE NOCASE AND id!=?",
+            (ref_username, me["id"])
+        ).fetchone()
+        if not inviter:
+            return jsonify({"error": "invitante non trovato"}), 404
+        # +30 monete al nuovo utente
+        _add_coins_userdata(c, me["id"], 30)
+        # +30 monete all'invitante
+        _add_coins_userdata(c, inviter["id"], 30)
+        # Segna bonus usato (anti-exploit)
+        c.execute("""
+            INSERT INTO user_data (user_id, key, value, updated_at)
+            VALUES (?,?,?,datetime('now','localtime'))
+            ON CONFLICT(user_id, key) DO UPDATE SET value=excluded.value
+        """, (me["id"], "sf_invite_used", "1"))
+        c.commit()
+    return jsonify({"ok": True, "coins": 30})
+
+# ──────────────────────────────────────────
 # API: PRESENZA SOCIALE
 # ──────────────────────────────────────────
 
