@@ -18,7 +18,7 @@ const WIDGET_CATALOG = [
   { id: 'postit',     label: 'Bacheca Post-it',        icon: '📌', free: true  },
   { id: 'countdown',  label: 'Countdown Scadenza',    icon: '⏳', free: false, price: 70 },
   { id: 'flash',      label: 'Sfida Flash',           icon: '⚡', free: true  },
-  { id: 'spotify',    label: 'Spotify',               icon: '🎵', free: false, price: 100 },
+  // { id: 'spotify', label: 'Spotify', icon: '🎵', free: false, price: 100 }, // temporaneamente disabilitato
   { id: 'taskrandom', label: 'Task Casuale',          icon: '🎲', free: true  },
   { id: 'calc',       label: 'Calcolatrice',          icon: '🔢', free: true  },
 ];

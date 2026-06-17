@@ -1348,36 +1348,61 @@ def _user_weekly_minutes(c, uid, week_start):
             pass
     return minutes
 
+def _user_role(sessions):
+    s = int(sessions or 0)
+    if s >= 200: return {"label": "Maestro",     "emoji": "🏆", "level": 6}
+    if s >= 100: return {"label": "Esperto",     "emoji": "💎", "level": 5}
+    if s >= 50:  return {"label": "Studioso",    "emoji": "⭐", "level": 4}
+    if s >= 25:  return {"label": "Determinato", "emoji": "🔥", "level": 3}
+    if s >= 10:  return {"label": "Applicato",   "emoji": "🎯", "level": 2}
+    if s >= 1:   return {"label": "Studente",    "emoji": "📖", "level": 1}
+    return {"label": "Novizio", "emoji": "🌱", "level": 0}
+
+def _get_friend_ids(c, uid):
+    fs_rows = c.execute(
+        """SELECT CASE WHEN f.requester_id=? THEN f.receiver_id ELSE f.requester_id END as fid
+           FROM friendships f
+           WHERE (f.requester_id=? OR f.receiver_id=?) AND f.status='accepted'""",
+        (uid, uid, uid)
+    ).fetchall()
+    fids = {r["fid"] for r in fs_rows}
+    for uname in _sf_friends_list(c, uid):
+        u2 = c.execute("SELECT id FROM users WHERE username=?", (uname,)).fetchone()
+        if u2: fids.add(u2["id"])
+    return fids
+
 @app.route("/api/leaderboard", methods=["GET"])
 def leaderboard():
     me = get_auth_user(required=True)
     today = date.today()
     week_start = (today - timedelta(days=today.weekday())).isoformat()
     with get_db() as c:
-        fs_rows = c.execute(
-            """SELECT CASE WHEN f.requester_id=? THEN f.receiver_id ELSE f.requester_id END as fid
-               FROM friendships f
-               WHERE (f.requester_id=? OR f.receiver_id=?) AND f.status='accepted'""",
-            (me["id"], me["id"], me["id"])
-        ).fetchall()
-        friend_ids = {r["fid"] for r in fs_rows}
-        for uname in _sf_friends_list(c, me["id"]):
-            u2 = c.execute("SELECT id FROM users WHERE username=?", (uname,)).fetchone()
-            if u2:
-                friend_ids.add(u2["id"])
+        friend_ids = _get_friend_ids(c, me["id"])
         all_ids = list(friend_ids | {me["id"]})
         result = []
         for uid in all_ids:
             u2 = c.execute("SELECT username FROM users WHERE id=?", (uid,)).fetchone()
-            if not u2:
-                continue
+            if not u2: continue
             mins = _user_weekly_minutes(c, uid, week_start)
+            coins_row = c.execute("SELECT value FROM user_data WHERE user_id=? AND key='sf_coins'", (uid,)).fetchone()
+            stats_row = c.execute("SELECT value FROM user_data WHERE user_id=? AND key='sf_stats'", (uid,)).fetchone()
+            coins_data, stats_data = {}, {}
+            try: coins_data = json_lib.loads(coins_row["value"]) if coins_row and coins_row["value"] else {}
+            except: pass
+            try: stats_data = json_lib.loads(stats_row["value"]) if stats_row and stats_row["value"] else {}
+            except: pass
+            sessions = int(coins_data.get("totalSessions") or stats_data.get("sessions") or 0)
+            role = _user_role(sessions)
             result.append({
                 "user_id":  uid,
                 "username": u2["username"],
                 "minutes":  mins,
                 "hours":    round(mins / 60, 1),
                 "is_me":    uid == me["id"],
+                "sessions": sessions,
+                "streak":   int(stats_data.get("streak") or 0),
+                "coins":    int(coins_data.get("balance") or 0),
+                "role":     role,
             })
     result.sort(key=lambda x: -x["minutes"])
     return jsonify(result)
@@ -1390,33 +1415,37 @@ def leaderboard():
 def list_challenges():
     me = get_auth_user(required=True)
     with get_db() as c:
-        fs_rows = c.execute(
-            """SELECT CASE WHEN f.requester_id=? THEN f.receiver_id ELSE f.requester_id END as fid
-               FROM friendships f
-               WHERE (f.requester_id=? OR f.receiver_id=?) AND f.status='accepted'""",
-            (me["id"], me["id"], me["id"])
-        ).fetchall()
-        friend_ids = {r["fid"] for r in fs_rows}
-        for uname in _sf_friends_list(c, me["id"]):
-            u2 = c.execute("SELECT id FROM users WHERE username=?", (uname,)).fetchone()
-            if u2:
-                friend_ids.add(u2["id"])
+        friend_ids = _get_friend_ids(c, me["id"])
         visible_ids = list(friend_ids | {me["id"]})
-        if not visible_ids:
-            return jsonify([])
         ph = ','.join(['?' for _ in visible_ids])
+        # Mostra sfide create da amici O dove l'utente è membro
         rows = c.execute(
-            f"""SELECT ch.*, u.username as creator_name,
+            f"""SELECT DISTINCT ch.*, u.username as creator_name,
                   (SELECT COUNT(*) FROM challenge_members cm WHERE cm.challenge_id=ch.id) as member_count,
                   (SELECT minutes_done FROM challenge_members cm2 WHERE cm2.challenge_id=ch.id AND cm2.user_id=?) as my_minutes,
-                  (SELECT completed FROM challenge_members cm3 WHERE cm3.challenge_id=ch.id AND cm3.user_id=?) as my_completed
+                  (SELECT completed FROM challenge_members cm3 WHERE cm3.challenge_id=ch.id AND cm3.user_id=?) as my_completed,
+                  (SELECT 1 FROM challenge_members cm4 WHERE cm4.challenge_id=ch.id AND cm4.user_id=?) as am_member
                 FROM challenges ch
                 JOIN users u ON u.id=ch.creator_id
-                WHERE ch.creator_id IN ({ph})
-                ORDER BY ch.created_at DESC LIMIT 20""",
-            (me["id"], me["id"], *visible_ids)
+                WHERE ch.creator_id IN ({ph}) OR ch.id IN (
+                    SELECT challenge_id FROM challenge_members WHERE user_id=?
+                )
+                ORDER BY ch.created_at DESC LIMIT 30""",
+            (me["id"], me["id"], me["id"], *visible_ids, me["id"])
         ).fetchall()
-    return jsonify([dict(r) for r in rows])
+        # Per ogni sfida, carica i progressi di tutti i membri
+        result = []
+        for row in rows:
+            d = dict(row)
+            members = c.execute(
+                """SELECT u.username, cm.minutes_done, cm.completed
+                   FROM challenge_members cm JOIN users u ON u.id=cm.user_id
+                   WHERE cm.challenge_id=?""",
+                (d["id"],)
+            ).fetchall()
+            d["members"] = [dict(m) for m in members]
+            result.append(d)
+    return jsonify(result)
 
 @app.route("/api/challenges", methods=["POST"])
 def create_challenge():
@@ -1509,6 +1538,27 @@ def set_app_config():
     except Exception as e:
         import traceback
         return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
+
+@app.route("/api/admin/users/<int:uid>/notify", methods=["POST"])
+def admin_notify_user(uid):
+    me = get_auth_user(required=True)
+    if not me["is_admin"]:
+        return jsonify({"error": "non autorizzato"}), 403
+    data = request.get_json(force=True) or {}
+    message = (data.get("message") or "").strip()
+    emoji   = (data.get("emoji")   or "📩").strip() or "📩"
+    if not message:
+        return jsonify({"error": "messaggio richiesto"}), 400
+    with get_db() as c:
+        user = c.execute("SELECT id FROM users WHERE id=?", (uid,)).fetchone()
+        if not user:
+            return jsonify({"error": "utente non trovato"}), 404
+        c.execute(
+            "INSERT INTO notifications (user_id, type, message, emoji) VALUES (?, 'admin_msg', ?, ?)",
+            (uid, message, emoji)
+        )
+        c.commit()
+    return jsonify({"ok": True})
 
 # ──────────────────────────────────────────
 # RUN
