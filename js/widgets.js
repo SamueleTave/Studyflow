@@ -248,6 +248,7 @@ function unlockWidget(id, price) {
   if (!_wState.order.includes(id)) _wState.order.push(id);
   _wState.hidden = _wState.hidden.filter(x => x !== id);
   _saveWidgetState();
+  if (typeof syncToServer === 'function') syncToServer();
   _renderOrderedDynamicWidgets();
   _applyStaticWidgetState();
   _enableDragDrop();
@@ -1126,6 +1127,7 @@ function _enableDragDrop() {
       order.splice(di, 0, srcId);
       _wState.order = order;
       _saveWidgetState();
+      if (typeof syncToServer === 'function') syncToServer();
       _reapplyWidgetOrder();
       card.classList.remove('w-dragover');
     });
