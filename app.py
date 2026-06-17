@@ -1138,20 +1138,31 @@ def presence_online():
     me = get_auth_user(required=True)
     five_min_ago = (datetime.now() - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
     with get_db() as c:
-        rows = c.execute("""
-            SELECT u.username, p.page, p.studying, p.updated_at
-            FROM presence p
-            JOIN users u ON u.id = p.user_id
-            WHERE p.updated_at >= ?
-              AND u.username != ?
-              AND EXISTS (
-                SELECT 1 FROM friendships f
-                WHERE f.status = 'accepted'
-                  AND ((f.requester_id = ? AND f.receiver_id = u.id)
-                    OR (f.receiver_id = ? AND f.requester_id = u.id))
-              )
-            ORDER BY p.studying DESC, p.updated_at DESC
-        """, (five_min_ago, 'kiwi07', me['id'], me['id'])).fetchall()
+        # Raccoglie ID amici da entrambe le fonti (friendships + sf_friends legacy)
+        fs_rows = c.execute(
+            """SELECT CASE WHEN f.requester_id=? THEN f.receiver_id ELSE f.requester_id END as fid
+               FROM friendships f
+               WHERE (f.requester_id=? OR f.receiver_id=?) AND f.status='accepted'""",
+            (me["id"], me["id"], me["id"])
+        ).fetchall()
+        friend_ids = {r["fid"] for r in fs_rows}
+        for uname in _sf_friends_list(c, me["id"]):
+            u = c.execute("SELECT id FROM users WHERE username=?", (uname,)).fetchone()
+            if u:
+                friend_ids.add(u["id"])
+        if not friend_ids:
+            return jsonify([])
+        placeholders = ','.join(['?' for _ in friend_ids])
+        rows = c.execute(
+            f"""SELECT u.username, p.page, p.studying, p.updated_at
+                FROM presence p
+                JOIN users u ON u.id = p.user_id
+                WHERE p.updated_at >= ?
+                  AND u.id != ?
+                  AND u.id IN ({placeholders})
+                ORDER BY p.studying DESC, p.updated_at DESC""",
+            (five_min_ago, me["id"], *friend_ids)
+        ).fetchall()
     return jsonify([dict(r) for r in rows])
 
 # ──────────────────────────────────────────
