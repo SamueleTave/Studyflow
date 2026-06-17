@@ -1372,7 +1372,11 @@ def set_app_config():
     if not key:
         return jsonify({"error": "key richiesta"}), 400
     with get_db() as c:
-        c.execute("INSERT OR REPLACE INTO app_config (key, value) VALUES (?, ?)", (key, value))
+        c.execute(
+            "INSERT INTO app_config (key, value) VALUES (?, ?)"
+            " ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            (key, value)
+        )
         c.commit()
     return jsonify({"ok": True})
 
