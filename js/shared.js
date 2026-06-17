@@ -297,6 +297,7 @@ function initShared() {
   checkAnimalMood();
   _initPresence();
   _initHelpButton();
+  _initNotifications();
 }
 
 /* ══════════════════════════════════════
@@ -812,6 +813,155 @@ function _initPresence() {
   _pingPresence();
   _fetchOnline();
   setInterval(function() { _pingPresence(); _fetchOnline(); }, 60000);
+}
+
+/* ══════════════════════════════════════
+   FEATURE — NOTIFICHE
+═══════════════════════════════════════ */
+var _notifsData = [];
+
+function _initNotifications() {
+  var sidebarBottom = document.querySelector('.sidebar-bottom');
+  if (sidebarBottom && !document.getElementById('notif-btn')) {
+    var btn = document.createElement('button');
+    btn.id = 'notif-btn';
+    btn.className = 'nav-link';
+    btn.setAttribute('onclick', 'openNotifications()');
+    btn.innerHTML =
+      '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">' +
+        '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>' +
+        '<path d="M13.73 21a2 2 0 0 1-3.46 0"/>' +
+      '</svg>' +
+      '<span class="nav-label">Notifiche</span>' +
+      '<span class="notif-badge" id="notif-badge" style="display:none"></span>';
+    sidebarBottom.insertBefore(btn, sidebarBottom.firstChild);
+  }
+
+  if (!document.getElementById('notif-modal-overlay')) {
+    var overlay = document.createElement('div');
+    overlay.id = 'notif-modal-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.32);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px';
+    overlay.innerHTML =
+      '<div style="background:var(--card);border:1px solid var(--card-border);border-radius:22px;box-shadow:0 24px 60px rgba(0,0,0,0.18);max-width:420px;width:100%;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:22px 24px 16px;border-bottom:1px solid var(--card-border)">' +
+          '<div style="font-size:1.05rem;font-weight:700;color:var(--text)">🔔 Notifiche</div>' +
+          '<div style="display:flex;gap:8px;align-items:center">' +
+            '<button onclick="markAllNotifsRead()" style="font-size:0.78rem;color:var(--accent);background:none;border:none;cursor:pointer;font-family:Poppins,sans-serif;padding:4px 8px;border-radius:8px;font-weight:500">Segna tutte lette</button>' +
+            '<button onclick="closeNotifications()" style="width:32px;height:32px;border-radius:10px;border:1px solid var(--card-border);background:rgba(255,255,255,0.5);cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center">×</button>' +
+          '</div>' +
+        '</div>' +
+        '<div id="notif-list" style="overflow-y:auto;flex:1;padding:14px 18px;display:flex;flex-direction:column;gap:8px">' +
+          '<div style="text-align:center;color:var(--text-soft);font-size:0.85rem;padding:24px 0">Caricamento...</div>' +
+        '</div>' +
+      '</div>';
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeNotifications(); });
+    document.body.appendChild(overlay);
+  }
+
+  _fetchNotifications();
+  setInterval(_fetchNotifications, 60000);
+}
+
+function _fetchNotifications() {
+  var auth = _getAuth();
+  if (!auth || !auth.token) return;
+  var api = (typeof window.SF_API_BASE !== 'undefined') ? window.SF_API_BASE : '/api';
+  fetch(api + '/notifications', { headers: { 'Authorization': 'Bearer ' + auth.token } })
+    .then(function(r) { return r.ok ? r.json() : []; })
+    .then(function(data) {
+      _notifsData = data;
+      var unread = data.filter(function(n) { return !n.is_read; }).length;
+      var badge = document.getElementById('notif-badge');
+      if (badge) {
+        badge.textContent = unread > 9 ? '9+' : String(unread);
+        badge.style.display = unread ? 'inline-flex' : 'none';
+      }
+    })
+    .catch(function() {});
+}
+
+function openNotifications() {
+  var overlay = document.getElementById('notif-modal-overlay');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  _renderNotifList();
+}
+
+function closeNotifications() {
+  var overlay = document.getElementById('notif-modal-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function _renderNotifList() {
+  var el = document.getElementById('notif-list');
+  if (!el) return;
+  if (!_notifsData.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-soft);font-size:0.85rem;padding:30px 0">Nessuna notifica 🎉</div>';
+    return;
+  }
+  el.innerHTML = _notifsData.map(function(n) {
+    var unread = !n.is_read;
+    var bg   = unread ? 'background:rgba(99,102,241,0.06);border-left:3px solid var(--accent);' : '';
+    return '<div data-nid="' + n.id + '" style="padding:12px 14px;border-radius:12px;border:1px solid var(--card-border);' + bg + 'cursor:pointer;transition:background 0.15s" onclick="markNotifRead(' + n.id + ', this)">' +
+      '<div style="display:flex;align-items:flex-start;gap:10px">' +
+        '<span style="font-size:1.25rem;line-height:1.2">' + esc(n.emoji || '🔔') + '</span>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:0.87rem;color:var(--text);line-height:1.45">' + esc(n.message) + '</div>' +
+          '<div style="font-size:0.71rem;color:var(--text-soft);margin-top:3px">' + _fmtNotifDate(n.created_at) + '</div>' +
+        '</div>' +
+        (unread ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px"></span>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function markNotifRead(id, el) {
+  var n = null;
+  for (var i = 0; i < _notifsData.length; i++) { if (_notifsData[i].id === id) { n = _notifsData[i]; break; } }
+  if (!n || n.is_read) return;
+  n.is_read = true;
+  if (el) {
+    el.style.background = '';
+    el.style.borderLeft = '';
+    var dot = el.querySelector('[style*="border-radius:50%"]');
+    if (dot) dot.remove();
+  }
+  var unread = _notifsData.filter(function(x) { return !x.is_read; }).length;
+  var badge = document.getElementById('notif-badge');
+  if (badge) {
+    badge.textContent = unread > 9 ? '9+' : String(unread);
+    badge.style.display = unread ? 'inline-flex' : 'none';
+  }
+  var auth = _getAuth();
+  if (!auth) return;
+  var api = (typeof window.SF_API_BASE !== 'undefined') ? window.SF_API_BASE : '/api';
+  fetch(api + '/notifications/' + id + '/read', {
+    method: 'POST', headers: { 'Authorization': 'Bearer ' + auth.token }
+  }).catch(function() {});
+}
+
+function markAllNotifsRead() {
+  _notifsData.forEach(function(n) { n.is_read = true; });
+  var badge = document.getElementById('notif-badge');
+  if (badge) badge.style.display = 'none';
+  _renderNotifList();
+  var auth = _getAuth();
+  if (!auth) return;
+  var api = (typeof window.SF_API_BASE !== 'undefined') ? window.SF_API_BASE : '/api';
+  fetch(api + '/notifications/read-all', {
+    method: 'POST', headers: { 'Authorization': 'Bearer ' + auth.token }
+  }).catch(function() {});
+}
+
+function _fmtNotifDate(dt) {
+  if (!dt) return '';
+  var d = new Date(dt.replace(' ', 'T'));
+  var diff = Math.floor((new Date() - d) / 1000);
+  if (diff < 60)     return 'Adesso';
+  if (diff < 3600)   return Math.floor(diff / 60) + ' min fa';
+  if (diff < 86400)  return Math.floor(diff / 3600) + (Math.floor(diff / 3600) === 1 ? ' ora fa' : ' ore fa');
+  if (diff < 604800) return Math.floor(diff / 86400) + ' giorni fa';
+  return d.toLocaleDateString('it-IT');
 }
 
 /* ══════════════════════════════════════

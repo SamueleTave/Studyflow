@@ -766,7 +766,7 @@ function _calcHTML() {
     </div>
   </div>`;
 }
-let _cSt = { disp: '0', first: null, op: null, wait: false };
+let _cSt = { disp: '0', first: null, op: null, wait: false, afterEq: false };
 function _initCalc() { _cRender(); }
 function _cRender() {
   const el = document.getElementById('calc-disp');
@@ -777,13 +777,15 @@ function _cRender() {
 function calcInput(k) {
   const s = _cSt;
   if (k === 'AC') {
-    s.disp = '0'; s.first = null; s.op = null; s.wait = false;
+    s.disp = '0'; s.first = null; s.op = null; s.wait = false; s.afterEq = false;
   } else if (k === '±') {
-    s.disp = String(-parseFloat(s.disp || 0));
+    s.afterEq = false;
+    s.disp = String(-parseFloat(s.disp || 0) || 0);
   } else if (k === '%') {
+    s.afterEq = false;
     s.disp = String(parseFloat(s.disp || 0) / 100);
   } else if ('÷×−+'.includes(k)) {
-    s.first = parseFloat(s.disp); s.op = k; s.wait = true;
+    s.first = parseFloat(s.disp); s.op = k; s.wait = true; s.afterEq = false;
   } else if (k === '=') {
     if (s.op !== null && s.first !== null) {
       const b = parseFloat(s.disp);
@@ -793,13 +795,13 @@ function calcInput(k) {
       if (s.op==='×') r = s.first * b;
       if (s.op==='÷') r = b !== 0 ? s.first / b : 'Err';
       s.disp  = typeof r === 'number' ? String(parseFloat(r.toFixed(10))) : r;
-      s.op = null; s.first = null; s.wait = false;
+      s.op = null; s.first = null; s.wait = false; s.afterEq = true;
     }
   } else if (k === '.') {
-    if (s.wait) { s.disp = '0.'; s.wait = false; }
+    if (s.wait || s.afterEq) { s.disp = '0.'; s.wait = false; s.afterEq = false; }
     else if (!s.disp.includes('.')) s.disp += '.';
   } else {
-    if (s.wait) { s.disp = k; s.wait = false; }
+    if (s.wait || s.afterEq) { s.disp = k; s.wait = false; s.afterEq = false; }
     else { s.disp = (s.disp === '0' || s.disp === 'Err') ? k : s.disp + k; }
     if (s.disp.length > 14) return;
   }

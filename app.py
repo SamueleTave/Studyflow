@@ -1056,6 +1056,30 @@ def notifications_read_all():
     return jsonify({"ok": True})
 
 # ──────────────────────────────────────────
+# API: ANNUNCI ADMIN
+# ──────────────────────────────────────────
+
+@app.route("/api/admin/notifications/announce", methods=["POST"])
+def admin_announce():
+    me = get_auth_user(required=True)
+    if not me["is_admin"]:
+        return jsonify({"error": "non autorizzato"}), 403
+    data = request.get_json(force=True) or {}
+    message = (data.get("message") or "").strip()
+    emoji   = (data.get("emoji")   or "📢").strip() or "📢"
+    if not message:
+        return jsonify({"error": "messaggio richiesto"}), 400
+    with get_db() as c:
+        users = c.execute("SELECT id FROM users").fetchall()
+        for u in users:
+            c.execute(
+                "INSERT INTO notifications (user_id, type, message, emoji) VALUES (?, 'announce', ?, ?)",
+                (u["id"] if isinstance(u, dict) else u[0], message, emoji)
+            )
+        c.commit()
+    return jsonify({"ok": True, "sent": len(users)})
+
+# ──────────────────────────────────────────
 # API: PRESENZA SOCIALE
 # ──────────────────────────────────────────
 
@@ -1079,7 +1103,7 @@ def presence_ping():
 
 @app.route("/api/presence/online", methods=["GET"])
 def presence_online():
-    get_auth_user(required=True)
+    me = get_auth_user(required=True)
     five_min_ago = (datetime.now() - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
     with get_db() as c:
         rows = c.execute("""
@@ -1088,8 +1112,14 @@ def presence_online():
             JOIN users u ON u.id = p.user_id
             WHERE p.updated_at >= ?
               AND u.username != ?
+              AND EXISTS (
+                SELECT 1 FROM friendships f
+                WHERE f.status = 'accepted'
+                  AND ((f.requester_id = ? AND f.receiver_id = u.id)
+                    OR (f.receiver_id = ? AND f.requester_id = u.id))
+              )
             ORDER BY p.studying DESC, p.updated_at DESC
-        """, (five_min_ago, 'kiwi07')).fetchall()
+        """, (five_min_ago, 'kiwi07', me['id'], me['id'])).fetchall()
     return jsonify([dict(r) for r in rows])
 
 # ──────────────────────────────────────────
