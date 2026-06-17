@@ -483,13 +483,36 @@ def user_sync_data():
     _SERVER_MANAGED = {'sf_friends'}
     with get_db() as c:
         for key, value in data.items():
-            if isinstance(value, str) and key not in _SERVER_MANAGED:
-                c.execute("""
-                    INSERT INTO user_data (user_id, key, value, updated_at)
-                    VALUES (?,?,?,datetime('now','localtime'))
-                    ON CONFLICT(user_id, key)
-                    DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
-                """, (user["id"], key, value))
+            if not isinstance(value, str) or key in _SERVER_MANAGED:
+                continue
+            # Protezione sf_coins: se l'admin ha impostato un _adminTs che il client
+            # non conosce ancora, protegge balance e shop e propaga il timestamp.
+            if key == 'sf_coins':
+                try:
+                    client_c = json_lib.loads(value)
+                    srv_row = c.execute(
+                        "SELECT value FROM user_data WHERE user_id=? AND key='sf_coins'",
+                        (user["id"],)
+                    ).fetchone()
+                    if srv_row and srv_row["value"]:
+                        server_c = json_lib.loads(srv_row["value"])
+                        srv_ts = server_c.get('_adminTs', '')
+                        cli_ts = client_c.get('_adminTs', '')
+                        if srv_ts and srv_ts != cli_ts:
+                            # Admin ha aggiornato i dati: il client non sa ancora.
+                            # Protegge balance e shop; inietta il timestamp per allineare.
+                            client_c['balance'] = server_c['balance']
+                            client_c['shop']    = server_c.get('shop', client_c.get('shop', {}))
+                            client_c['_adminTs'] = srv_ts
+                            value = json_lib.dumps(client_c)
+                except Exception:
+                    pass
+            c.execute("""
+                INSERT INTO user_data (user_id, key, value, updated_at)
+                VALUES (?,?,?,datetime('now','localtime'))
+                ON CONFLICT(user_id, key)
+                DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+            """, (user["id"], key, value))
         c.execute(
             "UPDATE users SET last_seen=datetime('now','localtime') WHERE id=?",
             (user["id"],)
@@ -604,6 +627,15 @@ def admin_set_user_data(uid):
         return jsonify({"error": "key richiesta"}), 400
     if not isinstance(value, str):
         value = json_lib.dumps(value)
+    # Quando admin imposta sf_coins aggiunge _adminTs: il sync del client non
+    # sovrascriverà il balance finché il client non scarica la versione aggiornata.
+    if key == 'sf_coins':
+        try:
+            coins = json_lib.loads(value)
+            coins['_adminTs'] = _now()
+            value = json_lib.dumps(coins)
+        except Exception:
+            pass
     with get_db() as c:
         c.execute("""
             INSERT INTO user_data (user_id, key, value, updated_at)
