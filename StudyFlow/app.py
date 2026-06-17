@@ -1457,11 +1457,15 @@ def create_challenge():
     if not title or not ends_at:
         return jsonify({"error": "titolo e data richiesti"}), 400
     with get_db() as c:
-        cur = c.execute(
+        c.execute(
             "INSERT INTO challenges (creator_id, title, target_min, ends_at) VALUES (?,?,?,?)",
             (me["id"], title, target_min, ends_at)
         )
-        cid = cur.lastrowid
+        row = c.execute(
+            "SELECT id FROM challenges WHERE creator_id=? ORDER BY id DESC LIMIT 1",
+            (me["id"],)
+        ).fetchone()
+        cid = row["id"]
         c.execute(
             "INSERT INTO challenge_members (challenge_id, user_id) VALUES (?,?)",
             (cid, me["id"])

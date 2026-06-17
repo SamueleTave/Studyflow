@@ -924,8 +924,11 @@
         document.getElementById('ch-title-inp').value = '';
         toggleNewChallenge();
         loadChallenges();
+        _showFriendsToast('Sfida creata! ⚔️');
+      } else {
+        _showFriendsToast((d.error || 'Errore creazione sfida'), true);
       }
-    } catch(e) {}
+    } catch(e) { _showFriendsToast('Errore di rete', true); }
   }
 
   async function joinChallenge(cid) {
