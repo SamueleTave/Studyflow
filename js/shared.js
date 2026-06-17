@@ -1100,17 +1100,26 @@ function submitHelpReport() {
 /* ══════════════════════════════════════
    FEATURE: STREAK BADGE SIDEBAR
 ══════════════════════════════════════ */
+function _streakLevel(s) {
+  if (!s || s <= 0) return 0;
+  if (s <= 2)  return 1;
+  if (s <= 6)  return 2;
+  if (s <= 13) return 3;
+  return 4;
+}
+
 function _initStreakBadge() {
   var sidebarBottom = document.querySelector('.sidebar-bottom');
-  if (!sidebarBottom) return;
+  if (!sidebarBottom || document.getElementById('streak-badge')) return;
   var badge = document.createElement('div');
   badge.id = 'streak-badge';
   badge.className = 'streak-badge';
+  badge.setAttribute('data-lvl', '0');
   badge.innerHTML =
-    '<span class="streak-fire">🔥</span>' +
+    '<span class="streak-fire" id="streak-fire">🔥</span>' +
     '<div class="streak-info">' +
       '<span class="streak-count" id="streak-count">0</span>' +
-      '<span class="streak-label">giorni di streak</span>' +
+      '<span class="streak-label" id="streak-label">inizia oggi!</span>' +
     '</div>';
   sidebarBottom.insertBefore(badge, sidebarBottom.firstChild);
   _updateStreakBadge();
@@ -1119,10 +1128,28 @@ function _initStreakBadge() {
 function _updateStreakBadge() {
   var el = document.getElementById('streak-count');
   if (!el) return;
-  var s = stats.streak || 0;
+  var s   = stats.streak || 0;
+  var lvl = _streakLevel(s);
   el.textContent = s;
+
   var badge = document.getElementById('streak-badge');
-  if (badge) badge.classList.toggle('streak-active', s > 0);
+  if (badge) {
+    badge.setAttribute('data-lvl', lvl);
+    badge.style.display = 'flex';  /* sempre visibile */
+  }
+
+  /* Label motivazionale per livello */
+  var lbl = document.getElementById('streak-label');
+  if (lbl) {
+    var labels = [
+      'inizia oggi!',
+      'giorni di fila 🌱',
+      'giorni consecutivi ⚡',
+      'giorni — fantastico! 🌟',
+      'giorni — sei una leggenda! 👑'
+    ];
+    lbl.textContent = labels[lvl] || 'giorni di fila';
+  }
 }
 
 /* ══════════════════════════════════════

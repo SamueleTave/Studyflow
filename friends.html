@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="css/sidebar.css">
   <link rel="stylesheet" href="css/calendar.css">
   <link rel="stylesheet" href="css/shop.css">
+  <link rel="stylesheet" href="css/timer.css">
 <style>
 /* ── Friends page ── */
 .friends-page {
@@ -272,6 +273,167 @@
   transition: all 0.15s; flex-shrink: 0;
 }
 .notif-read-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Sfide section redesign ── */
+.ch-wrap {
+  background: var(--card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  overflow: hidden;
+}
+.ch-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px 18px;
+  border-bottom: 1px solid var(--card-border);
+  gap: 12px;
+}
+.ch-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+.ch-sub {
+  font-size: 0.73rem;
+  color: var(--text-soft);
+  margin-top: 3px;
+}
+.ch-add-btn {
+  padding: 7px 16px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s;
+  flex-shrink: 0;
+}
+.ch-add-btn:hover { transform: scale(1.05); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
+.ch-add-btn:active { transform: scale(0.96); }
+.ch-form {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeInUp 0.2s ease;
+}
+.ch-input {
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 11px;
+  border: 1.5px solid var(--card-border);
+  background: rgba(255,255,255,0.4);
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.84rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.ch-input:focus { border-color: var(--accent); }
+.ch-form-row { display: flex; gap: 10px; }
+.ch-field { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.ch-label { font-size: 0.68rem; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; }
+.ch-form-btns { display: flex; gap: 8px; }
+.ch-btn-primary {
+  flex: 1;
+  padding: 9px 18px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), opacity 0.15s;
+}
+.ch-btn-primary:hover { transform: scale(1.03); opacity: 0.92; }
+.ch-btn-primary:active { transform: scale(0.97); }
+.ch-btn-ghost {
+  padding: 9px 16px;
+  border-radius: 11px;
+  border: 1.5px solid var(--card-border);
+  background: transparent;
+  color: var(--text-soft);
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.ch-btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.ch-list { padding: 14px 22px 18px; display: flex; flex-direction: column; gap: 10px; }
+.ch-empty {
+  text-align: center;
+  padding: 24px 0;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+.ch-card {
+  background: rgba(255,255,255,0.32);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.ch-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+.ch-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.ch-card-name { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+.ch-card-meta { font-size: 0.68rem; color: var(--text-soft); margin-top: 3px; }
+.ch-badge {
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.ch-badge-active   { background: rgba(var(--accent-rgb,99,102,241),0.12); color: var(--accent); }
+.ch-badge-done     { background: rgba(34,197,94,0.12); color: #16a34a; }
+.ch-badge-expired  { background: rgba(0,0,0,0.06); color: var(--text-soft); }
+.ch-progress-wrap  { margin-bottom: 10px; }
+.ch-bar { height: 7px; border-radius: 4px; background: rgba(0,0,0,0.08); overflow: hidden; }
+.ch-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+.ch-bar-fill.done { background: linear-gradient(90deg,#22c55e,#16a34a); }
+.ch-progress-lbl { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-soft); margin-top: 5px; }
+.ch-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.ch-action {
+  padding: 5px 13px;
+  border-radius: 8px;
+  border: 1.5px solid var(--card-border);
+  background: rgba(255,255,255,0.5);
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.18s cubic-bezier(0.34,1.56,0.64,1);
+}
+.ch-action:hover { background: rgba(255,255,255,0.85); transform: scale(1.04); }
+.ch-action:active { transform: scale(0.97); }
+.ch-action.join { color: var(--accent); border-color: rgba(var(--accent-rgb,99,102,241),0.4); background: rgba(var(--accent-rgb,99,102,241),0.07); }
+.ch-action.join:hover { background: rgba(var(--accent-rgb,99,102,241),0.15); }
 </style>
 </head>
 <body>
@@ -390,26 +552,37 @@
     </div>
 
     <!-- SFIDE -->
-    <div class="challenges-section">
-      <div class="challenges-head">
-        <div class="challenges-title">⚡ Sfide con gli amici</div>
-        <button class="challenge-create-btn" onclick="toggleChallengeForm()">+ Nuova sfida</button>
+    <div class="ch-wrap">
+      <div class="ch-head">
+        <div>
+          <div class="ch-title">⚡ Sfide con gli amici</div>
+          <div class="ch-sub">Studia con i tuoi amici e sfidate a raggiungere gli obiettivi</div>
+        </div>
+        <button class="ch-add-btn" onclick="toggleChallengeForm()" id="ch-add-btn">+ Nuova</button>
       </div>
-      <div class="challenges-body">
-        <!-- Form nuova sfida (nascosto) -->
-        <div id="challenge-form" class="challenge-form" style="display:none">
-          <input type="text" id="ch-title" placeholder="Es. Studia 60 min oggi! 🔥" maxlength="80">
-          <div style="display:flex;gap:8px">
-            <input type="number" id="ch-target" value="60" min="15" max="480" style="width:100px" placeholder="Minuti obiettivo">
-            <input type="date" id="ch-ends" style="flex:1">
+
+      <!-- Form nuova sfida -->
+      <div id="challenge-form" class="ch-form" style="display:none">
+        <input type="text" id="ch-title" class="ch-input" placeholder="Es. Studia 60 min oggi! 🔥" maxlength="80">
+        <div class="ch-form-row">
+          <div class="ch-field">
+            <label class="ch-label">Minuti obiettivo</label>
+            <input type="number" id="ch-target" class="ch-input" value="60" min="15" max="480">
           </div>
-          <div class="challenge-form-btns">
-            <button class="challenge-create-btn" onclick="createChallenge()" style="flex:1">🚀 Crea sfida</button>
-            <button onclick="toggleChallengeForm()" style="padding:7px 16px;border-radius:10px;border:1px solid var(--card-border);background:rgba(255,255,255,0.5);font-family:Poppins,sans-serif;font-size:0.8rem;cursor:pointer">Annulla</button>
+          <div class="ch-field">
+            <label class="ch-label">Scade il</label>
+            <input type="date" id="ch-ends" class="ch-input">
           </div>
         </div>
-        <!-- Lista sfide -->
-        <div id="challenges-list"><div style="color:var(--text-soft);font-size:0.82rem;padding:4px 0">Caricamento sfide...</div></div>
+        <div class="ch-form-btns">
+          <button class="ch-btn-primary" onclick="createChallenge()">🚀 Crea sfida</button>
+          <button class="ch-btn-ghost" onclick="toggleChallengeForm()">Annulla</button>
+        </div>
+      </div>
+
+      <!-- Lista sfide -->
+      <div id="challenges-list" class="ch-list">
+        <div class="ch-empty">Caricamento sfide...</div>
       </div>
     </div>
 
@@ -658,33 +831,40 @@
     var el = document.getElementById('challenges-list');
     if (!el) return;
     var r = await apiFetch('/api/challenges');
-    if (!r || !r.ok) { el.innerHTML = '<div style="color:var(--text-soft);font-size:0.82rem">Connetti il backend per vedere le sfide</div>'; return; }
+    if (!r || !r.ok) {
+      el.innerHTML = '<div class="ch-empty">⚡ Connetti il backend per vedere le sfide</div>';
+      return;
+    }
     var data = await r.json();
-    if (!data.length) { el.innerHTML = '<div style="color:var(--text-soft);font-size:0.82rem;padding:4px 0">Nessuna sfida attiva — creane una! ⚡</div>'; return; }
+    if (!data.length) {
+      el.innerHTML = '<div class="ch-empty">Nessuna sfida attiva ancora.<br><strong>Creane una</strong> e sfida i tuoi amici! 🔥</div>';
+      return;
+    }
     var today = new Date().toISOString().slice(0,10);
     el.innerHTML = data.map(function(ch) {
-      var isExpired = ch.ends_at < today;
-      var myMin   = ch.my_minutes || 0;
-      var isDone  = ch.my_completed;
-      var joined  = ch.my_minutes !== null;
-      var pct = Math.min(100, Math.round((myMin / ch.target_min) * 100));
-      var statusLabel = isDone ? 'Completata! 🎉' : isExpired ? 'Scaduta' : 'In corso';
-      var badgeCls   = isDone ? 'challenge-badge-done' : isExpired ? 'challenge-badge-expired' : 'challenge-badge-active';
-      return '<div class="challenge-card">' +
-        '<div class="challenge-card-top">' +
+      var isExpired   = ch.ends_at < today;
+      var myMin       = ch.my_minutes || 0;
+      var isDone      = ch.my_completed;
+      var joined      = ch.my_minutes !== null;
+      var pct         = Math.min(100, Math.round((myMin / ch.target_min) * 100));
+      var statusLabel = isDone ? '🎉 Completata' : isExpired ? 'Scaduta' : '🔥 In corso';
+      var badgeCls    = isDone ? 'ch-badge-done' : isExpired ? 'ch-badge-expired' : 'ch-badge-active';
+      var partLabel   = ch.member_count === 1 ? '1 partecipante' : ch.member_count + ' partecipanti';
+      return '<div class="ch-card">' +
+        '<div class="ch-card-top">' +
           '<div>' +
-            '<div class="challenge-name">' + ch.title + '</div>' +
-            '<div class="challenge-meta">di ' + ch.creator_name + ' · ' + ch.target_min + ' min · scade ' + ch.ends_at + ' · ' + ch.member_count + ' partecipant' + (ch.member_count===1?'e':'i') + '</div>' +
+            '<div class="ch-card-name">' + _esc(ch.title) + '</div>' +
+            '<div class="ch-card-meta">di ' + _esc(ch.creator_name) + ' · 🎯 ' + ch.target_min + ' min · 📅 ' + ch.ends_at + ' · 👥 ' + partLabel + '</div>' +
           '</div>' +
-          '<span class="challenge-badge ' + badgeCls + '">' + statusLabel + '</span>' +
+          '<span class="ch-badge ' + badgeCls + '">' + statusLabel + '</span>' +
         '</div>' +
-        (joined ? '<div class="challenge-progress-wrap">' +
-          '<div class="challenge-progress-bar"><div class="challenge-progress-fill' + (isDone?' done':'') + '" style="width:' + pct + '%"></div></div>' +
-          '<div class="challenge-progress-label"><span>' + myMin + ' / ' + ch.target_min + ' min</span><span>' + pct + '%</span></div>' +
+        (joined ? '<div class="ch-progress-wrap">' +
+          '<div class="ch-bar"><div class="ch-bar-fill' + (isDone ? ' done' : '') + '" style="width:' + pct + '%"></div></div>' +
+          '<div class="ch-progress-lbl"><span>' + myMin + ' / ' + ch.target_min + ' min</span><span>' + pct + '%</span></div>' +
         '</div>' : '') +
-        '<div class="challenge-actions">' +
-          (!joined ? '<button class="challenge-action-btn join" onclick="joinChallenge(' + ch.id + ')">⚡ Partecipa</button>' : '') +
-          (joined && !isDone && !isExpired ? '<button class="challenge-action-btn" onclick="(function(){var m=parseInt(prompt(\'Quanti minuti hai studiato totali?\', \'' + myMin + '\'));if(m>=0)updateProgress(' + ch.id + ',m);})()">📝 Aggiorna</button>' : '') +
+        '<div class="ch-actions">' +
+          (!joined ? '<button class="ch-action join" onclick="joinChallenge(' + ch.id + ')">⚡ Partecipa</button>' : '') +
+          (joined && !isDone && !isExpired ? '<button class="ch-action" onclick="(function(){var m=parseInt(prompt(\'Quanti minuti totali hai studiato?\',\'' + myMin + '\'));if(!isNaN(m)&&m>=0)updateProgress(' + ch.id + ',m);})()">📝 Aggiorna</button>' : '') +
         '</div>' +
       '</div>';
     }).join('');

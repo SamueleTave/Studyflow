@@ -892,6 +892,15 @@ function resetSpotify() {
 ══════════════════════════════════ */
 let _wtrIdx = 0;
 
+function _wtrGetTasks() {
+  try {
+    const raw = localStorage.getItem('sf_tasks');
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch { return []; }
+}
+
 function _taskRandomHTML() {
   return `<div class="card-title" style="justify-content:space-between">
     🎲 Task Casuale
@@ -899,57 +908,83 @@ function _taskRandomHTML() {
   </div>
   <div class="wtr-body" id="wtr-body"></div>`;
 }
+
 function _initTaskRandom() { _refreshTaskRandom(); }
+
 function _refreshTaskRandom() {
   const body = document.getElementById('wtr-body');
   if (!body) return;
-  try {
-    const tasks   = JSON.parse(localStorage.getItem('sf_tasks') || '[]');
-    const pending = tasks.filter(t => !t.done);
-    if (!pending.length) {
-      body.innerHTML = '<div class="wtr-empty">🎉 Nessuna task pendente!<br><span style="font-size:0.68rem">Aggiungile dalla sezione Task.</span></div>';
-      return;
-    }
-    _wtrIdx = _wtrIdx % pending.length;
-    const task = pending[_wtrIdx];
-    const priCl = { alta:'wtr-pri-high', media:'wtr-pri-med', normale:'wtr-pri-norm', bassa:'wtr-pri-low' };
-    const cl = priCl[task.priority] || 'wtr-pri-norm';
-    body.innerHTML = `<div class="wtr-card">
-      <div class="wtr-name">${_wEsc(task.name || '—')}</div>
-      ${task.subject ? `<div class="wtr-subject">📚 ${_wEsc(task.subject)}</div>` : ''}
-      <div class="wtr-meta">
-        <span class="wtr-pri ${cl}">${task.priority || 'normale'}</span>
-        ${task.dueDate ? `<span class="wtr-due">📅 ${task.dueDate}</span>` : ''}
-      </div>
-      <button class="wtr-done-btn" onclick="completeRandomTask('${task.id}')">✓ Fatto</button>
+
+  const all     = _wtrGetTasks();
+  const pending = all.filter(t => !t.done && !t.completed);
+
+  if (!all.length) {
+    body.innerHTML = `<div class="wtr-empty">
+      📝 Nessuna task aggiunta.<br>
+      <a href="add-task.html" style="color:var(--accent);font-size:0.7rem;font-weight:600">Aggiungi task →</a>
     </div>`;
-  } catch {
-    body.innerHTML = '<div class="wtr-empty">Errore nel caricamento task.</div>';
+    return;
+  }
+  if (!pending.length) {
+    body.innerHTML = `<div class="wtr-empty">🎉 Tutte le task completate!<br><span style="font-size:0.68rem">Ottimo lavoro oggi.</span></div>`;
+    return;
+  }
+
+  _wtrIdx = Math.max(0, _wtrIdx) % pending.length;
+  const task  = pending[_wtrIdx];
+  const name  = task.text || task.name || task.title || '—';
+  const priCl = { alta:'wtr-pri-high', media:'wtr-pri-med', normale:'wtr-pri-norm', bassa:'wtr-pri-low' };
+  const cl    = priCl[task.priority] || 'wtr-pri-norm';
+
+  body.innerHTML = `<div class="wtr-card">
+    <div class="wtr-name">${_wEsc(name)}</div>
+    ${task.subject ? `<div class="wtr-subject">📚 ${_wEsc(task.subject)}</div>` : ''}
+    <div class="wtr-meta">
+      <span class="wtr-pri ${cl}">${task.priority || 'normale'}</span>
+      ${task.dueDate ? `<span class="wtr-due">📅 ${task.dueDate}</span>` : ''}
+      <span class="wtr-count">${pending.length} pendenti</span>
+    </div>
+    <button class="wtr-done-btn" onclick="completeRandomTask(this,'${task.id}')">✓ Fatto</button>
+  </div>`;
+}
+
+function shuffleRandomTask() {
+  const pending = _wtrGetTasks().filter(t => !t.done && !t.completed);
+  if (pending.length > 1) _wtrIdx = (_wtrIdx + 1) % pending.length;
+  const body = document.getElementById('wtr-body');
+  if (body) {
+    body.style.opacity = '0';
+    setTimeout(() => { body.style.opacity = '1'; _refreshTaskRandom(); }, 150);
+  } else {
+    _refreshTaskRandom();
   }
 }
-function shuffleRandomTask() {
+
+function completeRandomTask(btn, id) {
+  /* Feedback visivo immediato */
+  if (btn) {
+    btn.textContent = '✓ Completata! +5🪙';
+    btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
+    btn.style.transform  = 'scale(0.97)';
+    btn.disabled = true;
+  }
   try {
-    const tasks   = JSON.parse(localStorage.getItem('sf_tasks') || '[]');
-    const pending = tasks.filter(t => !t.done);
-    if (pending.length <= 1) { _refreshTaskRandom(); return; }
-    _wtrIdx = (_wtrIdx + 1) % pending.length;
-  } catch { _wtrIdx = 0; }
-  const body = document.getElementById('wtr-body');
-  if (body) { body.style.opacity = '0'; setTimeout(() => { body.style.opacity = '1'; _refreshTaskRandom(); }, 140); }
-  else _refreshTaskRandom();
-}
-function completeRandomTask(id) {
-  try {
-    const tasks = JSON.parse(localStorage.getItem('sf_tasks') || '[]');
-    const t = tasks.find(t => String(t.id) === String(id));
-    if (t) t.done = true;
-    localStorage.setItem('sf_tasks', JSON.stringify(tasks));
-    if (typeof addCoins === 'function') addCoins(5);
+    const all  = _wtrGetTasks();
+    const task = all.find(t => String(t.id) === String(id));
+    if (task) {
+      task.done = true;
+      localStorage.setItem('sf_tasks', JSON.stringify(all));
+      if (typeof addCoins === 'function') addCoins(5);
+      if (typeof celebrate === 'function') celebrate(8);
+    }
     _wtrIdx = 0;
   } catch {}
-  _refreshTaskRandom();
-  if (typeof renderMiniTasks === 'function') renderMiniTasks();
+  setTimeout(() => {
+    _refreshTaskRandom();
+    if (typeof renderMiniTasks === 'function') renderMiniTasks();
+  }, 500);
 }
+
 function _wEsc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }

@@ -129,7 +129,23 @@ function _initSettingsUser() {
   if (auth?.username) label.textContent = '@' + auth.username;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   _initSidebarUser();
   _initSettingsUser();
+
+  /* Ripristina dati dal server (widget sbloccati, monete, tasks, ecc.)
+     Chiamato qui così ogni pagina parte con i dati aggiornati dopo login/logout */
+  if (isLoggedIn()) {
+    const loaded = await loadFromServer();
+    if (loaded) {
+      /* Aggiorna variabili in-memory e widget */
+      if (typeof loadData  === 'function') loadData();
+      if (typeof initCoins === 'function') initCoins();
+      if (typeof _updateStreakBadge === 'function') _updateStreakBadge();
+      /* Widget: ricarica stato (gestisce Spotify e altri acquistati) */
+      if (typeof _loadWidgetState            === 'function') _loadWidgetState();
+      if (typeof _renderOrderedDynamicWidgets === 'function') _renderOrderedDynamicWidgets();
+      if (typeof renderMiniTasks             === 'function') renderMiniTasks();
+    }
+  }
 });
