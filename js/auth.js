@@ -37,6 +37,7 @@ function requireAdmin() {
 function logout() {
   _SF_SYNC_KEYS.forEach(k => localStorage.removeItem(k));
   sessionStorage.removeItem(SF_AUTH_KEY);
+  sessionStorage.removeItem('sf_session_loaded');
   window.location.replace('login.html');
 }
 
@@ -62,9 +63,9 @@ async function syncToServer() {
 }
 
 /* ── Carica dati dal server → localStorage ──
-   Ripristina SOLO le chiavi assenti in locale (es. dopo logout).
-   Non sovrascrive mai dati locali esistenti: l'utente potrebbe
-   avere dati più recenti di quelli sul server. */
+   Prima pagina della sessione (subito dopo login): carica TUTTO dal server.
+   Pagine successive (stessa sessione): ripristina solo le chiavi assenti.
+   Questo garantisce che dopo un restore admin i dati arrivino al prossimo login. */
 async function loadFromServer() {
   const auth = getAuth();
   if (!auth?.token) return false;
@@ -74,12 +75,15 @@ async function loadFromServer() {
     });
     if (!r.ok) { if (r.status === 401) logout(); return false; }
     const data = await r.json();
+    const isFirstLoad = !sessionStorage.getItem('sf_session_loaded');
     _SF_SYNC_KEYS.forEach(k => {
-      /* Ripristina solo se la chiave non è già in localStorage */
-      if (data[k] != null && localStorage.getItem(k) == null) {
+      /* Prima pagina della sessione: sovrascrive sempre (server è fonte di verità).
+         Pagine successive: ripristina solo le chiavi assenti in localStorage. */
+      if (data[k] != null && (isFirstLoad || localStorage.getItem(k) == null)) {
         _sfOrigSetItem(k, data[k]);
       }
     });
+    if (isFirstLoad) sessionStorage.setItem('sf_session_loaded', '1');
     return true;
   } catch { return false; }
 }
