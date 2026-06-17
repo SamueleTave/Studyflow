@@ -373,6 +373,8 @@ def index():
 
 @app.route("/<path:path>")
 def static_files(path):
+    if path.startswith("api/") or path == "api":
+        abort(404)
     return send_from_directory(".", path)
 
 # ──────────────────────────────────────────
@@ -1130,23 +1132,19 @@ def friends_invite_bonus():
 def notifications_list():
     me = get_auth_user(required=True)
     with get_db() as c:
-        # Inietta annunci globali che l'utente non ha ancora ricevuto
+        # Inietta annunci globali non ancora ricevuti (match sul messaggio)
         missing = c.execute("""
             SELECT id, message, emoji FROM announcements
-            WHERE id NOT IN (
-                SELECT COALESCE(ann_ref, -1) FROM notifications WHERE user_id = ?
+            WHERE message NOT IN (
+                SELECT message FROM notifications
+                WHERE user_id = ? AND type = 'announce'
             )
         """, (me["id"],)).fetchall()
-        # Fallback: match per messaggio se ann_ref non esiste ancora
-        existing_msgs = {r[0] for r in c.execute(
-            "SELECT message FROM notifications WHERE user_id=? AND type='announce'", (me["id"],)
-        ).fetchall()}
         for ann in missing:
-            if ann[1] not in existing_msgs:
-                c.execute(
-                    "INSERT INTO notifications (user_id, type, message, emoji) VALUES (?, 'announce', ?, ?)",
-                    (me["id"], ann[1], ann[2])
-                )
+            c.execute(
+                "INSERT INTO notifications (user_id, type, message, emoji) VALUES (?, 'announce', ?, ?)",
+                (me["id"], ann[1], ann[2])
+            )
         if missing:
             c.commit()
         rows = c.execute(
