@@ -1,0 +1,12 @@
+# Database locale — NON deve andare su git (causa reset dati su Render)
+*.db
+StudyFlow/studyflow.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Env / segreti
+.env
+restore_elly.py
