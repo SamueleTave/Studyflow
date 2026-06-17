@@ -270,13 +270,45 @@ const _QUOTES = [
   { t: 'Ogni sessione conta. Ogni pagina, ogni esercizio — costruisce qualcosa.', a: '—' },
 ];
 
+function _getQuoteFavs() {
+  try { return JSON.parse(localStorage.getItem('sf_fav_quotes') || '[]'); } catch { return []; }
+}
+
+function toggleFavQuote(idx) {
+  const favs = _getQuoteFavs();
+  const pos  = favs.indexOf(idx);
+  if (pos >= 0) favs.splice(pos, 1); else favs.push(idx);
+  localStorage.setItem('sf_fav_quotes', JSON.stringify(favs));
+  const btn = document.getElementById('fav-quote-btn');
+  if (btn) {
+    btn.style.transform = 'scale(1.5)';
+    setTimeout(() => { btn.style.transform = ''; }, 220);
+  }
+  _refreshQuote();
+}
+
+function toggleFavList() {
+  const list = document.getElementById('wq-fav-list');
+  if (list) list.style.display = list.style.display === 'none' ? '' : 'none';
+}
+
 function _quoteHTML() {
-  const ds  = new Date().toDateString();
-  const idx = [...ds].reduce((a, c) => a + c.charCodeAt(0), 0) % _QUOTES.length;
-  const q   = _QUOTES[idx];
-  return `<div class="card-title">💬 Citazione del Giorno</div>
-    <div class="wq-text">"${q.t}"</div>
-    <div class="wq-author">— ${q.a}</div>`;
+  const ds   = new Date().toDateString();
+  const idx  = [...ds].reduce((a, c) => a + c.charCodeAt(0), 0) % _QUOTES.length;
+  const q    = _QUOTES[idx];
+  const favs = _getQuoteFavs();
+  const isFav = favs.includes(idx);
+  const favItems = favs.map(i => _QUOTES[i]
+    ? `<div class="wq-fav-item">"${_QUOTES[i].t}"<span>— ${_QUOTES[i].a}</span></div>`
+    : '').join('');
+  return `<div class="card-title" style="justify-content:space-between">
+    💬 Citazione del Giorno
+    <button id="fav-quote-btn" class="fav-quote-btn" onclick="toggleFavQuote(${idx})" title="${isFav ? 'Rimuovi dai preferiti' : 'Salva citazione'}">${isFav ? '❤️' : '🤍'}</button>
+  </div>
+  <div class="wq-text">"${q.t}"</div>
+  <div class="wq-author">— ${q.a}</div>
+  ${favs.length ? `<div class="wq-favs-bar"><button class="wq-favs-btn" onclick="toggleFavList()">🔖 ${favs.length} preferit${favs.length===1?'a':'e'}</button></div>` : ''}
+  <div class="wq-fav-list" id="wq-fav-list" style="display:none">${favItems}</div>`;
 }
 function _refreshQuote() {
   const el = document.querySelector('[data-widget-id="quote"]');

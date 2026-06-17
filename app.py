@@ -210,6 +210,25 @@ def init_db():
                 key   TEXT PRIMARY KEY,
                 value TEXT
             );
+            CREATE TABLE IF NOT EXISTS challenges (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                creator_id  INTEGER NOT NULL,
+                title       TEXT NOT NULL,
+                target_min  INTEGER NOT NULL DEFAULT 60,
+                ends_at     TEXT NOT NULL,
+                created_at  TEXT DEFAULT (datetime('now','localtime')),
+                FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS challenge_members (
+                challenge_id INTEGER NOT NULL,
+                user_id      INTEGER NOT NULL,
+                minutes_done INTEGER DEFAULT 0,
+                completed    INTEGER DEFAULT 0,
+                joined_at    TEXT DEFAULT (datetime('now','localtime')),
+                PRIMARY KEY (challenge_id, user_id),
+                FOREIGN KEY (challenge_id) REFERENCES challenges(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
         """)
 
 def _sf_friends_list(c, user_id):
@@ -1164,6 +1183,173 @@ def presence_online():
             (five_min_ago, me["id"], *friend_ids)
         ).fetchall()
     return jsonify([dict(r) for r in rows])
+
+# ──────────────────────────────────────────
+# API: HEATMAP & LEADERBOARD
+# ──────────────────────────────────────────
+
+@app.route("/api/stats/heatmap", methods=["GET"])
+def stats_heatmap():
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        row = c.execute(
+            "SELECT value FROM user_data WHERE user_id=? AND key='sf_sessions'",
+            (me["id"],)
+        ).fetchone()
+    result = {}
+    if row and row["value"]:
+        try:
+            for s in json_lib.loads(row["value"]):
+                d = (s.get("date") or s.get("endedAt") or "")[:10]
+                if d:
+                    result[d] = result.get(d, 0) + int(s.get("duration") or 25)
+        except Exception:
+            pass
+    return jsonify(result)
+
+def _user_weekly_minutes(c, uid, week_start):
+    row = c.execute(
+        "SELECT value FROM user_data WHERE user_id=? AND key='sf_sessions'", (uid,)
+    ).fetchone()
+    minutes = 0
+    if row and row["value"]:
+        try:
+            for s in json_lib.loads(row["value"]):
+                d = (s.get("date") or s.get("endedAt") or "")[:10]
+                if d >= week_start:
+                    minutes += int(s.get("duration") or 25)
+        except Exception:
+            pass
+    return minutes
+
+@app.route("/api/leaderboard", methods=["GET"])
+def leaderboard():
+    me = get_auth_user(required=True)
+    today = date.today()
+    week_start = (today - timedelta(days=today.weekday())).isoformat()
+    with get_db() as c:
+        fs_rows = c.execute(
+            """SELECT CASE WHEN f.requester_id=? THEN f.receiver_id ELSE f.requester_id END as fid
+               FROM friendships f
+               WHERE (f.requester_id=? OR f.receiver_id=?) AND f.status='accepted'""",
+            (me["id"], me["id"], me["id"])
+        ).fetchall()
+        friend_ids = {r["fid"] for r in fs_rows}
+        for uname in _sf_friends_list(c, me["id"]):
+            u2 = c.execute("SELECT id FROM users WHERE username=?", (uname,)).fetchone()
+            if u2:
+                friend_ids.add(u2["id"])
+        all_ids = list(friend_ids | {me["id"]})
+        result = []
+        for uid in all_ids:
+            u2 = c.execute("SELECT username FROM users WHERE id=?", (uid,)).fetchone()
+            if not u2:
+                continue
+            mins = _user_weekly_minutes(c, uid, week_start)
+            result.append({
+                "user_id":  uid,
+                "username": u2["username"],
+                "minutes":  mins,
+                "hours":    round(mins / 60, 1),
+                "is_me":    uid == me["id"],
+            })
+    result.sort(key=lambda x: -x["minutes"])
+    return jsonify(result)
+
+# ──────────────────────────────────────────
+# API: SFIDE CON AMICI
+# ──────────────────────────────────────────
+
+@app.route("/api/challenges", methods=["GET"])
+def list_challenges():
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        fs_rows = c.execute(
+            """SELECT CASE WHEN f.requester_id=? THEN f.receiver_id ELSE f.requester_id END as fid
+               FROM friendships f
+               WHERE (f.requester_id=? OR f.receiver_id=?) AND f.status='accepted'""",
+            (me["id"], me["id"], me["id"])
+        ).fetchall()
+        friend_ids = {r["fid"] for r in fs_rows}
+        for uname in _sf_friends_list(c, me["id"]):
+            u2 = c.execute("SELECT id FROM users WHERE username=?", (uname,)).fetchone()
+            if u2:
+                friend_ids.add(u2["id"])
+        visible_ids = list(friend_ids | {me["id"]})
+        if not visible_ids:
+            return jsonify([])
+        ph = ','.join(['?' for _ in visible_ids])
+        rows = c.execute(
+            f"""SELECT ch.*, u.username as creator_name,
+                  (SELECT COUNT(*) FROM challenge_members cm WHERE cm.challenge_id=ch.id) as member_count,
+                  (SELECT minutes_done FROM challenge_members cm2 WHERE cm2.challenge_id=ch.id AND cm2.user_id=?) as my_minutes,
+                  (SELECT completed FROM challenge_members cm3 WHERE cm3.challenge_id=ch.id AND cm3.user_id=?) as my_completed
+                FROM challenges ch
+                JOIN users u ON u.id=ch.creator_id
+                WHERE ch.creator_id IN ({ph})
+                ORDER BY ch.created_at DESC LIMIT 20""",
+            (me["id"], me["id"], *visible_ids)
+        ).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route("/api/challenges", methods=["POST"])
+def create_challenge():
+    me = get_auth_user(required=True)
+    data = request.get_json(force=True) or {}
+    title      = (data.get("title") or "").strip()[:80]
+    target_min = int(data.get("target_min") or 60)
+    ends_at    = (data.get("ends_at") or "").strip()
+    if not title or not ends_at:
+        return jsonify({"error": "titolo e data richiesti"}), 400
+    with get_db() as c:
+        cur = c.execute(
+            "INSERT INTO challenges (creator_id, title, target_min, ends_at) VALUES (?,?,?,?)",
+            (me["id"], title, target_min, ends_at)
+        )
+        cid = cur.lastrowid
+        c.execute(
+            "INSERT INTO challenge_members (challenge_id, user_id) VALUES (?,?)",
+            (cid, me["id"])
+        )
+        c.commit()
+    return jsonify({"ok": True, "id": cid})
+
+@app.route("/api/challenges/<int:cid>/join", methods=["POST"])
+def join_challenge(cid):
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        ch = c.execute("SELECT id FROM challenges WHERE id=?", (cid,)).fetchone()
+        if not ch:
+            return jsonify({"error": "sfida non trovata"}), 404
+        exists = c.execute(
+            "SELECT 1 FROM challenge_members WHERE challenge_id=? AND user_id=?", (cid, me["id"])
+        ).fetchone()
+        if not exists:
+            c.execute(
+                "INSERT INTO challenge_members (challenge_id, user_id) VALUES (?,?)",
+                (cid, me["id"])
+            )
+            c.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/challenges/<int:cid>/progress", methods=["POST"])
+def update_challenge_progress(cid):
+    me = get_auth_user(required=True)
+    data = request.get_json(force=True) or {}
+    minutes = int(data.get("minutes") or 0)
+    with get_db() as c:
+        ch = c.execute("SELECT target_min FROM challenges WHERE id=?", (cid,)).fetchone()
+        if not ch:
+            return jsonify({"error": "sfida non trovata"}), 404
+        completed = 1 if minutes >= ch["target_min"] else 0
+        c.execute("""
+            INSERT INTO challenge_members (challenge_id, user_id, minutes_done, completed)
+            VALUES (?,?,?,?)
+            ON CONFLICT(challenge_id, user_id)
+            DO UPDATE SET minutes_done=excluded.minutes_done, completed=excluded.completed
+        """, (cid, me["id"], minutes, completed))
+        c.commit()
+    return jsonify({"ok": True, "completed": bool(completed)})
 
 # ──────────────────────────────────────────
 # API: CONFIG APPLICAZIONE

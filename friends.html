@@ -389,6 +389,30 @@
       <div id="friends-list"><div class="friends-empty">Caricamento...</div></div>
     </div>
 
+    <!-- SFIDE -->
+    <div class="challenges-section">
+      <div class="challenges-head">
+        <div class="challenges-title">⚡ Sfide con gli amici</div>
+        <button class="challenge-create-btn" onclick="toggleChallengeForm()">+ Nuova sfida</button>
+      </div>
+      <div class="challenges-body">
+        <!-- Form nuova sfida (nascosto) -->
+        <div id="challenge-form" class="challenge-form" style="display:none">
+          <input type="text" id="ch-title" placeholder="Es. Studia 60 min oggi! 🔥" maxlength="80">
+          <div style="display:flex;gap:8px">
+            <input type="number" id="ch-target" value="60" min="15" max="480" style="width:100px" placeholder="Minuti obiettivo">
+            <input type="date" id="ch-ends" style="flex:1">
+          </div>
+          <div class="challenge-form-btns">
+            <button class="challenge-create-btn" onclick="createChallenge()" style="flex:1">🚀 Crea sfida</button>
+            <button onclick="toggleChallengeForm()" style="padding:7px 16px;border-radius:10px;border:1px solid var(--card-border);background:rgba(255,255,255,0.5);font-family:Poppins,sans-serif;font-size:0.8rem;cursor:pointer">Annulla</button>
+          </div>
+        </div>
+        <!-- Lista sfide -->
+        <div id="challenges-list"><div style="color:var(--text-soft);font-size:0.82rem;padding:4px 0">Caricamento sfide...</div></div>
+      </div>
+    </div>
+
     <!-- INVITA UN AMICO -->
     <div class="friends-section">
       <div class="friends-section-title">🔗 Invita un amico</div>
@@ -590,6 +614,84 @@
 
   /* Carica notifiche subito */
   loadNotifications();
+
+  /* ── SFIDE CON AMICI ── */
+  function toggleChallengeForm() {
+    var f = document.getElementById('challenge-form');
+    if (!f) return;
+    var show = f.style.display === 'none';
+    f.style.display = show ? '' : 'none';
+    if (show) {
+      var today = new Date();
+      today.setDate(today.getDate() + 1);
+      var def = today.toISOString().slice(0,10);
+      var endsEl = document.getElementById('ch-ends');
+      if (endsEl) endsEl.value = def;
+      document.getElementById('ch-title')?.focus();
+    }
+  }
+
+  async function createChallenge() {
+    var title  = (document.getElementById('ch-title')?.value || '').trim();
+    var target = parseInt(document.getElementById('ch-target')?.value) || 60;
+    var ends   = document.getElementById('ch-ends')?.value;
+    if (!title || !ends) { alert('Inserisci titolo e data!'); return; }
+    var r = await apiFetch('/api/challenges', { method:'POST', body: JSON.stringify({ title, target_min: target, ends_at: ends }) });
+    if (r && r.ok) {
+      toggleChallengeForm();
+      document.getElementById('ch-title').value = '';
+      loadChallenges();
+    }
+  }
+
+  async function joinChallenge(cid) {
+    var r = await apiFetch('/api/challenges/' + cid + '/join', { method:'POST' });
+    if (r && r.ok) loadChallenges();
+  }
+
+  async function updateProgress(cid, mins) {
+    var r = await apiFetch('/api/challenges/' + cid + '/progress', { method:'POST', body: JSON.stringify({ minutes: mins }) });
+    if (r && r.ok) loadChallenges();
+  }
+
+  async function loadChallenges() {
+    var el = document.getElementById('challenges-list');
+    if (!el) return;
+    var r = await apiFetch('/api/challenges');
+    if (!r || !r.ok) { el.innerHTML = '<div style="color:var(--text-soft);font-size:0.82rem">Connetti il backend per vedere le sfide</div>'; return; }
+    var data = await r.json();
+    if (!data.length) { el.innerHTML = '<div style="color:var(--text-soft);font-size:0.82rem;padding:4px 0">Nessuna sfida attiva — creane una! ⚡</div>'; return; }
+    var today = new Date().toISOString().slice(0,10);
+    el.innerHTML = data.map(function(ch) {
+      var isExpired = ch.ends_at < today;
+      var myMin   = ch.my_minutes || 0;
+      var isDone  = ch.my_completed;
+      var joined  = ch.my_minutes !== null;
+      var pct = Math.min(100, Math.round((myMin / ch.target_min) * 100));
+      var statusLabel = isDone ? 'Completata! 🎉' : isExpired ? 'Scaduta' : 'In corso';
+      var badgeCls   = isDone ? 'challenge-badge-done' : isExpired ? 'challenge-badge-expired' : 'challenge-badge-active';
+      return '<div class="challenge-card">' +
+        '<div class="challenge-card-top">' +
+          '<div>' +
+            '<div class="challenge-name">' + ch.title + '</div>' +
+            '<div class="challenge-meta">di ' + ch.creator_name + ' · ' + ch.target_min + ' min · scade ' + ch.ends_at + ' · ' + ch.member_count + ' partecipant' + (ch.member_count===1?'e':'i') + '</div>' +
+          '</div>' +
+          '<span class="challenge-badge ' + badgeCls + '">' + statusLabel + '</span>' +
+        '</div>' +
+        (joined ? '<div class="challenge-progress-wrap">' +
+          '<div class="challenge-progress-bar"><div class="challenge-progress-fill' + (isDone?' done':'') + '" style="width:' + pct + '%"></div></div>' +
+          '<div class="challenge-progress-label"><span>' + myMin + ' / ' + ch.target_min + ' min</span><span>' + pct + '%</span></div>' +
+        '</div>' : '') +
+        '<div class="challenge-actions">' +
+          (!joined ? '<button class="challenge-action-btn join" onclick="joinChallenge(' + ch.id + ')">⚡ Partecipa</button>' : '') +
+          (joined && !isDone && !isExpired ? '<button class="challenge-action-btn" onclick="(function(){var m=parseInt(prompt(\'Quanti minuti hai studiato totali?\', \'' + myMin + '\'));if(m>=0)updateProgress(' + ch.id + ',m);})()">📝 Aggiorna</button>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  /* Carica sfide all'avvio */
+  checkBackend().then(function() { loadChallenges(); });
 </script>
 </body>
 </html>

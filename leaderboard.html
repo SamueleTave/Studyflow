@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="ocean">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classifica — StudyFlow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/calendar.css">
+  <link rel="stylesheet" href="css/timer.css">
+</head>
+<body>
+
+<div class="orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <span class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </span>
+      <span class="logo-text">StudyFlow</span>
+    </a>
+    <span class="nav-section-label">Pagine</span>
+    <a href="index.html"    class="nav-link" data-page="home"><i data-feather="clock" class="nav-icon"></i><span class="nav-label">Timer</span></a>
+    <a href="tasks.html"    class="nav-link" data-page="tasks"><i data-feather="check-square" class="nav-icon"></i><span class="nav-label">Task</span></a>
+    <a href="add-task.html" class="nav-link" data-page="add-task"><i data-feather="plus-circle" class="nav-icon"></i><span class="nav-label">Nuova Task</span></a>
+    <a href="calendar.html" class="nav-link" data-page="calendar"><i data-feather="calendar" class="nav-icon"></i><span class="nav-label">Calendario</span></a>
+    <a href="stats.html"    class="nav-link" data-page="stats"><i data-feather="bar-chart-2" class="nav-icon"></i><span class="nav-label">Statistiche</span></a>
+    <a href="shop.html"     class="nav-link" data-page="shop"><i data-feather="shopping-bag" class="nav-icon"></i><span class="nav-label">Shop</span></a>
+    <a href="friends.html"  class="nav-link" data-page="friends"><i data-feather="users" class="nav-icon"></i><span class="nav-label">Amici</span></a>
+    <a href="leaderboard.html" class="nav-link active" data-page="leaderboard"><i data-feather="award" class="nav-icon"></i><span class="nav-label">Classifica</span></a>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-coin">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="#F59E0B"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>
+        <span class="js-coin-count">0</span> monete
+      </div>
+      <button class="nav-link" onclick="openSettings()"><i data-feather="settings" class="nav-icon"></i><span class="nav-label">Impostazioni</span></button>
+      <div class="theme-row">
+        <span class="theme-label">Tema</span>
+        <div class="theme-dots" id="theme-dots-sidebar">
+          <div class="tdot active" data-t="ocean"></div>
+          <div class="tdot" data-t="lavender"></div>
+          <div class="tdot" data-t="peach"></div>
+          <div class="tdot" data-t="forest"></div>
+          <div class="tdot" data-t="sakura"></div>
+        </div>
+      </div>
+      <div id="backend-status-bar" style="padding:4px 10px;display:none;align-items:center;gap:8px">
+        <div id="backend-dot" style="width:8px;height:8px;border-radius:50%;background:#BDBDBD;flex-shrink:0"></div>
+        <span style="font-size:0.65rem;color:var(--text-soft)">Backend</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="lb-page">
+    <div class="clock-bar">
+      <div>
+        <div class="clock-time" id="clockTime">00:00:00</div>
+        <div class="clock-date" id="clockDate">...</div>
+      </div>
+      <div class="clock-quote" id="clockQuote">...</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="coin-chip">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="#F59E0B"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>
+          <span class="js-coin-count">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="lb-title">🏆 Classifica Settimanale</div>
+      <div class="lb-subtitle">Chi studia di più tra te e i tuoi amici questa settimana</div>
+      <div class="lb-week-label" id="lb-week-label">Settimana in corso</div>
+    </div>
+
+    <!-- Podio top 3 -->
+    <div id="lb-podium" class="lb-podium" style="display:none"></div>
+
+    <!-- Lista completa -->
+    <div id="lb-list-wrap" class="lb-list" style="display:none"></div>
+
+    <!-- Empty state -->
+    <div id="lb-empty" class="lb-list" style="display:none">
+      <div class="lb-empty">
+        🤝 Aggiungi degli amici per vedere la classifica!<br>
+        <a href="friends.html" style="color:var(--accent);font-weight:600;text-decoration:none">Vai agli amici →</a>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="lb-loading" style="text-align:center;padding:48px;color:var(--text-soft);font-size:0.88rem">
+      Caricamento classifica...
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal (shared) -->
+<div class="overlay" id="settingsModal" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-hdr">⚙️ Impostazioni<button class="modal-close" onclick="closeSettings()">✕</button></div>
+    <div class="s-section-label">👤 Account</div>
+    <div class="s-row">
+      <div><div class="s-label" id="settings-user-label">—</div><div class="s-sub">utente collegato</div></div>
+      <button onclick="logout()" style="padding:8px 18px;border-radius:10px;border:1.5px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);color:#dc2626;font-family:Poppins,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer">Esci</button>
+    </div>
+    <div class="s-section-label" style="margin-top:8px">🎨 Colore Accent</div>
+    <div class="s-row" style="border-bottom:none;padding:10px 0">
+      <div class="s-sub">Personalizza il colore principale</div>
+      <div id="accent-swatches" style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/api.js"></script>
+<script src="js/coins.js"></script>
+<script>
+  initShared();
+  setActivePage('leaderboard');
+  if (typeof feather !== 'undefined') feather.replace({ width: 17, height: 17, 'stroke-width': 1.8 });
+
+  const _AVATAR_COLORS = [
+    '#6366f1','#8b5cf6','#ec4899','#f97316','#10b981','#06b6d4','#f59e0b','#ef4444',
+    '#3b82f6','#84cc16','#14b8a6','#a855f7',
+  ];
+  function _avatarColor(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff;
+    return _AVATAR_COLORS[Math.abs(h) % _AVATAR_COLORS.length];
+  }
+  function _avatar(name, size, extra) {
+    const col = _avatarColor(name);
+    return `<div class="${extra||''}" style="width:${size}px;height:${size}px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.38)}px;font-weight:800;color:#fff;flex-shrink:0">${name[0].toUpperCase()}</div>`;
+  }
+  function _fmtTime(min) {
+    if (min < 60) return min + ' min';
+    const h = Math.floor(min / 60), m = min % 60;
+    return h + 'h' + (m ? ' ' + m + 'm' : '');
+  }
+
+  /* Set week label */
+  (function() {
+    const today = new Date();
+    const mon = new Date(today);
+    mon.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    const fmt = d => d.getDate() + ' ' + ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'][d.getMonth()];
+    document.getElementById('lb-week-label').textContent = fmt(mon) + ' – ' + fmt(sun) + ' ' + sun.getFullYear();
+  })();
+
+  async function loadLeaderboard() {
+    const r = await apiFetch('/api/leaderboard');
+    document.getElementById('lb-loading').style.display = 'none';
+    if (!r || !r.ok) { document.getElementById('lb-empty').style.display = ''; return; }
+    const data = await r.json();
+    if (!data || !data.length) { document.getElementById('lb-empty').style.display = ''; return; }
+
+    /* Podio */
+    const podium = document.getElementById('lb-podium');
+    const medals = ['🥇','🥈','🥉'];
+    const podiumOrder = data.length >= 3 ? [data[1], data[0], data[2]] : data.length === 2 ? [data[0], data[1]] : [data[0]];
+    const blockClasses = data.length >= 3 ? ['lb-podium-block-2','lb-podium-block-1','lb-podium-block-3'] : ['lb-podium-block-1','lb-podium-block-2'];
+    const rankMap = data.length >= 3 ? [1,0,2] : [0,1];
+
+    podium.style.display = 'flex';
+    podium.innerHTML = podiumOrder.map((u, vi) => {
+      const rank = rankMap[vi];
+      const medal = medals[rank] || '';
+      const avSize = rank === 0 ? 56 : 48;
+      return `<div class="lb-podium-item">
+        <div style="position:relative">
+          <div class="lb-avatar${u.is_me?' lb-avatar-me':''}" style="width:${avSize}px;height:${avSize}px;background:${_avatarColor(u.username)};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(avSize*0.38)}px;font-weight:800;color:#fff${u.is_me?';border:3px solid white':''};box-shadow:0 4px 20px rgba(0,0,0,0.15);transition:transform 0.3s">${u.username[0].toUpperCase()}</div>
+          ${medal ? `<span class="lb-medal">${medal}</span>` : ''}
+        </div>
+        <div class="lb-podium-name">${u.username}${u.is_me?' (tu)':''}</div>
+        <div class="lb-podium-mins">${_fmtTime(u.minutes)}</div>
+        <div class="lb-podium-block ${blockClasses[vi]}"></div>
+      </div>`;
+    }).join('');
+
+    /* Lista */
+    const listWrap = document.getElementById('lb-list-wrap');
+    listWrap.style.display = '';
+    listWrap.innerHTML = data.map((u, i) => {
+      const medal = i < 3 ? ['🥇','🥈','🥉'][i] : '';
+      return `<div class="lb-row${u.is_me?' lb-me':''}">
+        <div class="lb-rank">${medal || (i+1)}</div>
+        ${_avatar(u.username, 36, 'lb-row-avatar')}
+        <div style="flex:1">
+          <div class="lb-row-name">${u.username}${u.is_me ? ' <span class="lb-row-me-tag">(tu)</span>' : ''}</div>
+        </div>
+        <div class="lb-row-time">
+          <div class="lb-row-time-val">${_fmtTime(u.minutes)}</div>
+          <div class="lb-row-time-label">${u.minutes > 0 ? u.minutes + ' min totali' : 'nessuna sessione'}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  checkBackend().then(loadLeaderboard);
+</script>
+</body>
+</html>

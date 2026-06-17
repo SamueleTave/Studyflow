@@ -259,6 +259,14 @@ function openSettings() {
     if (tog) tog.classList.toggle('on', cfg[k] !== false);
   });
   _renderSettingsWidgetList();
+  initAccentSwatches('accent-swatches');
+  const ul = document.getElementById('settings-user-label');
+  if (ul) {
+    try {
+      const a = JSON.parse(sessionStorage.getItem('sf_auth') || 'null');
+      if (a?.username) ul.textContent = a.username;
+    } catch {}
+  }
   el.classList.add('open');
 }
 
@@ -330,6 +338,9 @@ function initShared() {
   _initPresence();
   _initHelpButton();
   _initNotifications();
+  _initStreakBadge();
+  _initCustomTheme();
+  _injectLeaderboardLink();
 }
 
 /* ══════════════════════════════════════
@@ -1084,4 +1095,108 @@ function submitHelpReport() {
     var info = document.getElementById('help-modal-msg');
     if (info) { info.textContent = 'Errore di connessione'; info.style.color = '#dc2626'; info.style.display = 'block'; }
   });
+}
+
+/* ══════════════════════════════════════
+   FEATURE: STREAK BADGE SIDEBAR
+══════════════════════════════════════ */
+function _initStreakBadge() {
+  var sidebarBottom = document.querySelector('.sidebar-bottom');
+  if (!sidebarBottom) return;
+  var badge = document.createElement('div');
+  badge.id = 'streak-badge';
+  badge.className = 'streak-badge';
+  badge.innerHTML =
+    '<span class="streak-fire">🔥</span>' +
+    '<div class="streak-info">' +
+      '<span class="streak-count" id="streak-count">0</span>' +
+      '<span class="streak-label">giorni di streak</span>' +
+    '</div>';
+  sidebarBottom.insertBefore(badge, sidebarBottom.firstChild);
+  _updateStreakBadge();
+}
+
+function _updateStreakBadge() {
+  var el = document.getElementById('streak-count');
+  if (!el) return;
+  var s = stats.streak || 0;
+  el.textContent = s;
+  var badge = document.getElementById('streak-badge');
+  if (badge) badge.classList.toggle('streak-active', s > 0);
+}
+
+/* ══════════════════════════════════════
+   FEATURE: ACCENT COLOR CUSTOM
+══════════════════════════════════════ */
+var _SF_ACCENT_PRESETS = [
+  { hex: '#6366f1', rgb: '99,102,241' },  // indigo
+  { hex: '#8b5cf6', rgb: '139,92,246' },  // violet
+  { hex: '#ec4899', rgb: '236,72,153' },  // pink
+  { hex: '#f97316', rgb: '249,115,22' },  // orange
+  { hex: '#10b981', rgb: '16,185,129' },  // emerald
+  { hex: '#06b6d4', rgb: '6,182,212'  },  // cyan
+  { hex: '#f59e0b', rgb: '245,158,11' },  // amber
+  { hex: '#ef4444', rgb: '239,68,68'  },  // red
+];
+
+function _initCustomTheme() {
+  var saved = localStorage.getItem('sf_accent_color');
+  if (saved) _applyAccentColor(saved, false);
+}
+
+function _applyAccentColor(hex, save) {
+  var preset = _SF_ACCENT_PRESETS.find(function(p) { return p.hex === hex; });
+  var rgb = preset ? preset.rgb : _hexToRgb(hex);
+  document.documentElement.style.setProperty('--accent', hex);
+  document.documentElement.style.setProperty('--accent-2', hex);
+  document.documentElement.style.setProperty('--accent-rgb', rgb);
+  if (save !== false) {
+    localStorage.setItem('sf_accent_color', hex);
+    if (typeof syncData === 'function') syncData({ sf_accent_color: hex });
+  }
+  _syncAccentSwatches(hex);
+}
+
+function _hexToRgb(hex) {
+  var r = parseInt(hex.slice(1,3),16);
+  var g = parseInt(hex.slice(3,5),16);
+  var b = parseInt(hex.slice(5,7),16);
+  return r + ',' + g + ',' + b;
+}
+
+function initAccentSwatches(containerId) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  var saved = localStorage.getItem('sf_accent_color') || '#6366f1';
+  el.innerHTML = _SF_ACCENT_PRESETS.map(function(p) {
+    return '<button class="accent-swatch' + (p.hex === saved ? ' active' : '') + '" ' +
+      'style="background:' + p.hex + '" ' +
+      'onclick="_applyAccentColor(\'' + p.hex + '\')" ' +
+      'title="' + p.hex + '"></button>';
+  }).join('');
+}
+
+function _syncAccentSwatches(hex) {
+  document.querySelectorAll('.accent-swatch').forEach(function(sw) {
+    sw.classList.toggle('active', sw.style.background === hex || sw.getAttribute('style') === 'background:' + hex);
+  });
+}
+
+/* ══════════════════════════════════════
+   FEATURE: LEADERBOARD NAV LINK
+══════════════════════════════════════ */
+function _injectLeaderboardLink() {
+  var nav = document.querySelector('.sidebar nav, aside.sidebar');
+  if (!nav) return;
+  if (document.querySelector('[data-page="leaderboard"]')) return;
+  var friendsLink = document.querySelector('[data-page="friends"]');
+  if (!friendsLink) return;
+  var lb = document.createElement('a');
+  lb.href = 'leaderboard.html';
+  lb.className = 'nav-link';
+  lb.setAttribute('data-page', 'leaderboard');
+  lb.innerHTML = '<i data-feather="award" class="nav-icon"></i><span class="nav-label">Classifica</span>';
+  friendsLink.parentNode.insertBefore(lb, friendsLink.nextSibling);
+  if (typeof feather !== 'undefined') feather.replace();
+  if (window.location.pathname.includes('leaderboard')) lb.classList.add('active');
 }
