@@ -6,7 +6,7 @@
   <title>StudyFlow — Accedi</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/themes.css">
-  <script src="js/config.js"></script>
+  <script src="js/config.js?v=10"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -568,12 +568,21 @@
     btn.disabled = true; btn.textContent = '...';
 
     try {
-      const r = await fetch((window.SF_API_BASE || '/api') + '/auth/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: uname }),
-      });
-      const data = await r.json();
+      let r, data;
+      try {
+        r = await fetch((window.SF_API_BASE || '/api') + '/auth/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: uname }),
+        });
+      } catch {
+        throw new Error('Impossibile raggiungere il server. Controlla la connessione e riprova.');
+      }
+      try {
+        data = await r.json();
+      } catch {
+        throw new Error('Server non disponibile. Se è la prima volta oggi, aspetta 30 secondi e riprova (il server si sta svegliando).');
+      }
       if (!r.ok) throw new Error(data.error || 'Errore server');
 
       _pinUser = uname;
@@ -586,7 +595,7 @@
         showPinScreen('Scegli un PIN a 4 cifre');
       }
     } catch (err) {
-      errEl.textContent = err.message || 'Errore di connessione. Il server è avviato?';
+      errEl.textContent = err.message || 'Errore di connessione.';
       errEl.classList.add('show');
       btn.disabled = false; btn.textContent = 'Continua →';
     }
@@ -727,14 +736,23 @@
     setKeypadDisabled(true);
 
     try {
-      const r = await fetch((window.SF_API_BASE || '/api') + '/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: _pinUser, pin: _pinEntry }),
-      });
-      const data = await r.json();
+      let r, data;
+      try {
+        r = await fetch((window.SF_API_BASE || '/api') + '/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: _pinUser, pin: _pinEntry }),
+        });
+      } catch {
+        throw new Error('Nessuna connessione al server.');
+      }
+      try {
+        data = await r.json();
+      } catch {
+        throw new Error('Server non disponibile, riprova tra 30 secondi.');
+      }
 
-      if (!r.ok || !data.ok) throw new Error(data.error || 'Errore');
+      if (!r.ok || !data.ok) throw new Error(data.error || 'PIN errato');
 
       /* ✓ Successo */
       _setDotsState('success');
