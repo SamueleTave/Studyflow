@@ -144,7 +144,7 @@ function _buildWidgetHTML(id) {
   if (id === 'postit')     return _postitHTML();
   if (id === 'countdown')  return _countdownHTML();
   if (id === 'flash')      return _flashHTML();
-  if (id === 'spotify')    return _spotifyHTML();
+  if (id === 'spotify')    return '';  /* disabilitato */
   if (id === 'taskrandom') return _taskRandomHTML();
   if (id === 'calc')       return _calcHTML();
   return '';
@@ -694,7 +694,7 @@ function _spotifyHTML() {
       </button>
     </div>
     <div id="wsp-link-mode" style="display:none">
-      <input class="wsp-url-input" id="wsp-url" type="url" placeholder="https://open.spotify.com/playlist/...">
+      <input class="wsp-url-input" id="wsp-url" type="text" placeholder="https://open.spotify.com/playlist/..." autocomplete="off" autocapitalize="none">
       <div class="wsp-hint">Playlist, album o canzone</div>
       <div style="display:flex;gap:8px">
         <button class="wsp-save-btn" onclick="saveSpotify()" style="flex:1">▶ Carica</button>
