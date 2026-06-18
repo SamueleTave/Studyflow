@@ -20,6 +20,7 @@
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.13); border-radius: 3px; }
+
     .orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
     .orb  { position: absolute; border-radius: 50%; filter: blur(72px);
             animation: float-orb var(--d, 24s) ease-in-out infinite; }
@@ -32,11 +33,20 @@
       66%     { transform: translate(-28px,32px) scale(0.93); }
     }
 
+    /* ── LIQUID CRYSTAL mixin ── */
+    .lc {
+      background: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.07));
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1.5px solid rgba(255,255,255,0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+
     .admin-layout {
       position: relative; z-index: 1;
-      max-width: 1100px;
+      max-width: 1140px;
       margin: 0 auto;
-      padding: 32px 24px 60px;
+      padding: 28px 20px 60px;
     }
 
     /* ── Header ── */
@@ -44,496 +54,402 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
       flex-wrap: wrap;
       gap: 12px;
     }
-    .admin-header-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
+    .admin-header-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .admin-back {
-      width: 40px; height: 40px;
-      border-radius: 12px;
-      border: 1.5px solid var(--card-border);
-      background: rgba(255,255,255,0.5);
+      width: 38px; height: 38px;
+      border-radius: 11px;
+      border: 1.5px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.4);
+      backdrop-filter: blur(12px);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; text-decoration: none; color: var(--text);
-      transition: all 0.2s;
-      font-size: 1.1rem;
+      transition: all 0.2s; font-size: 1.1rem;
     }
-    .admin-back:hover { background: rgba(255,255,255,0.85); transform: scale(1.07); }
-    .admin-title {
-      font-size: 1.55rem;
-      font-weight: 800;
-      color: var(--text);
-      letter-spacing: -0.02em;
-    }
+    .admin-back:hover { background: rgba(255,255,255,0.75); transform: scale(1.07); }
+    .admin-title { font-size: 1.45rem; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
     .admin-badge {
-      font-size: 0.7rem;
-      font-weight: 700;
+      font-size: 0.68rem; font-weight: 700;
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: white;
-      border-radius: 6px;
-      padding: 3px 8px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      color: white; border-radius: 6px; padding: 3px 8px;
+      letter-spacing: 0.06em; text-transform: uppercase;
     }
-    .admin-header-right {
-      display: flex; gap: 10px; align-items: center;
-    }
+    .admin-header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .admin-btn {
-      padding: 10px 20px;
-      border-radius: 12px;
-      border: none;
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.84rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
+      padding: 9px 18px; border-radius: 11px; border: none;
+      font-family: 'Poppins', sans-serif; font-size: 0.82rem;
+      font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;
     }
     .admin-btn-accent {
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: white;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+      color: white; box-shadow: 0 4px 14px rgba(0,0,0,0.10);
     }
     .admin-btn-accent:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.14); }
     .admin-btn-ghost {
-      background: rgba(255,255,255,0.5);
-      color: var(--text);
-      border: 1.5px solid var(--card-border);
+      background: rgba(255,255,255,0.45); color: var(--text);
+      border: 1.5px solid rgba(255,255,255,0.55);
+      backdrop-filter: blur(10px);
     }
-    .admin-btn-ghost:hover { background: rgba(255,255,255,0.85); }
+    .admin-btn-ghost:hover { background: rgba(255,255,255,0.75); }
 
-    /* ── Stats bar ── */
+    /* ── Stats bar liquid crystal ── */
     .admin-stats-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
     }
     .admin-stat-card {
-      background: var(--card);
+      border-radius: 18px;
+      padding: 18px 20px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.26), rgba(255,255,255,0.09));
       backdrop-filter: blur(22px);
       -webkit-backdrop-filter: blur(22px);
-      border: 1px solid var(--card-border);
-      border-radius: 18px;
-      padding: 20px 22px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      border: 1.5px solid rgba(255,255,255,0.5);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.7);
+      position: relative; overflow: hidden;
+    }
+    .admin-stat-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
     }
     .asc-label {
-      font-size: 0.65rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text-soft);
-      margin-bottom: 8px;
+      font-size: 0.63rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-soft); margin-bottom: 8px;
     }
-    .asc-value {
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1;
-    }
-    .asc-sub {
-      font-size: 0.72rem;
-      color: var(--text-soft);
-      margin-top: 4px;
-    }
+    .asc-value { font-size: 1.85rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .asc-sub { font-size: 0.7rem; color: var(--text-soft); margin-top: 4px; }
 
-    /* ── Tabella utenti ── */
-    .admin-table-card {
-      background: var(--card);
+    /* ── Card generica ── */
+    .admin-card {
+      background: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.07));
       backdrop-filter: blur(22px);
       -webkit-backdrop-filter: blur(22px);
-      border: 1px solid var(--card-border);
-      border-radius: 22px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.07);
+      border: 1.5px solid rgba(255,255,255,0.42);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.55);
       overflow: hidden;
+      margin-bottom: 24px;
     }
-    .admin-table-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 24px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.5);
+    .admin-card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.4);
     }
-    .admin-table-title {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text-soft);
+    .admin-card-title {
+      font-size: 0.73rem; font-weight: 700; letter-spacing: 0.11em;
+      text-transform: uppercase; color: var(--text-soft);
+      display: flex; align-items: center; gap: 8px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    /* ── Table responsive ── */
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; min-width: 560px; }
     thead th {
-      padding: 10px 20px;
+      padding: 9px 16px;
       text-align: left;
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-soft);
-      background: rgba(255,255,255,0.3);
-      border-bottom: 1px solid rgba(255,255,255,0.5);
+      font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text-soft);
+      background: rgba(255,255,255,0.28);
+      border-bottom: 1px solid rgba(255,255,255,0.45);
+      white-space: nowrap;
     }
-    tbody tr {
-      border-bottom: 1px solid rgba(255,255,255,0.3);
-      transition: background 0.15s;
-    }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,0.28); transition: background 0.15s; }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: rgba(255,255,255,0.4); }
-    td {
-      padding: 14px 20px;
-      font-size: 0.86rem;
-      color: var(--text);
-      vertical-align: middle;
-    }
+    tbody tr:hover { background: rgba(255,255,255,0.38); }
+    td { padding: 12px 16px; font-size: 0.84rem; color: var(--text); vertical-align: middle; }
 
-    .user-name-cell {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .user-name-cell { display: flex; align-items: center; gap: 9px; min-width: 120px; }
     .user-avatar {
-      width: 34px; height: 34px;
-      border-radius: 10px;
+      width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
       display: flex; align-items: center; justify-content: center;
-      font-weight: 700;
-      font-size: 0.85rem;
-      color: white;
-      flex-shrink: 0;
-      text-transform: uppercase;
+      font-weight: 700; font-size: 0.82rem; color: white; text-transform: uppercase;
     }
-    .user-name-text { font-weight: 600; }
+    .user-name-text { font-weight: 600; white-space: nowrap; }
     .user-admin-tag {
-      font-size: 0.6rem;
-      font-weight: 700;
+      font-size: 0.58rem; font-weight: 700;
       background: linear-gradient(135deg, #F59E0B, #EF4444);
-      color: white;
-      border-radius: 5px;
-      padding: 2px 6px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      color: white; border-radius: 5px; padding: 2px 5px;
+      letter-spacing: 0.05em; text-transform: uppercase;
     }
 
-    .coin-cell {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    /* Monete COLORATE oro */
     .coin-value {
-      font-weight: 700;
-      font-size: 0.94rem;
-    }
-    .coin-edit-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .coin-edit-input {
-      width: 80px;
-      padding: 6px 10px;
-      border-radius: 8px;
-      border: 1.5px solid var(--accent);
-      background: rgba(255,255,255,0.7);
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text);
-      outline: none;
-    }
-    .coin-save-btn {
-      padding: 5px 10px;
-      border-radius: 7px;
-      border: none;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: white;
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s;
-    }
-    .coin-save-btn:hover { opacity: 0.85; }
-    .coin-cancel-btn {
-      padding: 5px 8px;
-      border-radius: 7px;
-      border: none;
-      background: rgba(0,0,0,0.08);
-      color: var(--text-soft);
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.78rem;
-      cursor: pointer;
+      font-weight: 700; font-size: 0.92rem;
+      background: linear-gradient(135deg, #f59e0b, #ef8c00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 1px 2px rgba(245,158,11,0.25));
     }
 
-    .date-soft { font-size: 0.78rem; color: var(--text-soft); }
+    /* Badge ruolo */
+    .role-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px; border-radius: 20px;
+      font-size: 0.68rem; font-weight: 700; white-space: nowrap;
+      backdrop-filter: blur(8px);
+      border: 1.5px solid;
+    }
 
-    .action-cell { display: flex; gap: 6px; }
+    .date-soft { font-size: 0.75rem; color: var(--text-soft); white-space: nowrap; }
+    .action-cell { display: flex; gap: 5px; flex-wrap: nowrap; }
     .act-btn {
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: none;
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
+      padding: 5px 10px; border-radius: 8px; border: none;
+      font-family: 'Poppins', sans-serif; font-size: 0.72rem;
+      font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap;
     }
-    .act-edit  { background: rgba(255,255,255,0.6); color: var(--text); border: 1px solid var(--card-border); }
-    .act-edit:hover { background: rgba(255,255,255,0.9); }
-    .act-reset { background: rgba(255,193,7,0.15); color: #b45309; border: 1px solid rgba(255,193,7,0.3); }
-    .act-reset:hover { background: rgba(255,193,7,0.28); }
-    .act-delete { background: rgba(239,68,68,0.10); color: #dc2626; border: 1px solid rgba(239,68,68,0.25); }
-    .act-delete:hover { background: rgba(239,68,68,0.20); }
+    .act-edit  { background: rgba(255,255,255,0.55); color: var(--text); border: 1px solid rgba(255,255,255,0.6); }
+    .act-edit:hover { background: rgba(255,255,255,0.85); }
+    .act-msg   { background: rgba(99,102,241,0.1); color: #6366f1; border: 1px solid rgba(99,102,241,0.25); }
+    .act-msg:hover { background: rgba(99,102,241,0.2); }
+    .act-pin   { background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.25); }
+    .act-pin:hover { background: rgba(16,185,129,0.2); }
+    .act-reset { background: rgba(255,193,7,0.12); color: #b45309; border: 1px solid rgba(255,193,7,0.3); }
+    .act-reset:hover { background: rgba(255,193,7,0.25); }
+    .act-delete { background: rgba(239,68,68,0.09); color: #dc2626; border: 1px solid rgba(239,68,68,0.22); }
+    .act-delete:hover { background: rgba(239,68,68,0.18); }
 
     /* ── Template annunci ── */
     .ann-tpl {
-      padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--card-border);
-      background: rgba(255,255,255,0.5); color: var(--text); font-family: Poppins,sans-serif;
-      font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 0.15s;
-      white-space: nowrap;
+      padding: 5px 11px; border-radius: 20px;
+      border: 1.5px solid rgba(255,255,255,0.45);
+      background: rgba(255,255,255,0.38); color: var(--text);
+      font-family: Poppins,sans-serif; font-size: 0.73rem;
+      font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap;
     }
     .ann-tpl:hover { background: var(--accent); color: #fff; border-color: var(--accent); transform: translateY(-1px); }
 
-    /* ── Modale dettaglio utente ── */
+    /* ── Modali ── */
     .modal-overlay {
       position: fixed; inset: 0; z-index: 200;
-      background: rgba(0,0,0,0.3);
-      backdrop-filter: blur(4px);
-      display: none;
-      align-items: center;
-      justify-content: center;
+      background: rgba(0,0,0,0.28);
+      backdrop-filter: blur(5px);
+      display: none; align-items: center; justify-content: center;
       padding: 20px;
     }
     .modal-overlay.show { display: flex; }
     .modal-box {
-      background: var(--card);
-      backdrop-filter: blur(22px);
-      -webkit-backdrop-filter: blur(22px);
-      border: 1px solid var(--card-border);
+      background: linear-gradient(135deg, rgba(255,255,255,0.28), rgba(255,255,255,0.1));
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1.5px solid rgba(255,255,255,0.5);
       border-radius: 22px;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.18);
-      padding: 30px 34px;
-      max-width: 520px;
-      width: 100%;
-      max-height: 80vh;
-      overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.7);
+      padding: 28px 30px;
+      max-width: 480px; width: 100%;
+      max-height: 82vh; overflow-y: auto;
     }
     .modal-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      font-size: 1rem; font-weight: 700; color: var(--text);
+      margin-bottom: 18px;
+      display: flex; align-items: center; justify-content: space-between;
     }
     .modal-close {
-      background: none; border: none;
-      font-size: 1.1rem; cursor: pointer;
-      color: var(--text-soft);
-      width: 32px; height: 32px;
+      background: none; border: none; font-size: 1.1rem; cursor: pointer;
+      color: var(--text-soft); width: 30px; height: 30px;
       display: flex; align-items: center; justify-content: center;
-      border-radius: 8px;
+      border-radius: 8px; transition: background 0.15s;
     }
     .modal-close:hover { background: rgba(0,0,0,0.07); }
 
     .data-key {
-      font-size: 0.68rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-soft);
-      margin-bottom: 4px;
-      margin-top: 12px;
+      font-size: 0.66rem; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-soft);
+      margin-bottom: 4px; margin-top: 12px;
     }
     .data-val {
-      font-size: 0.78rem;
-      background: rgba(0,0,0,0.05);
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-family: monospace;
-      word-break: break-all;
-      white-space: pre-wrap;
-      max-height: 120px;
-      overflow-y: auto;
-      color: var(--text);
+      font-size: 0.76rem;
+      background: rgba(0,0,0,0.04);
+      border-radius: 8px; padding: 7px 10px;
+      font-family: monospace; word-break: break-all; white-space: pre-wrap;
+      max-height: 110px; overflow-y: auto; color: var(--text);
     }
 
     /* ── Toast ── */
     .toast {
-      position: fixed;
-      bottom: 28px; left: 50%; transform: translateX(-50%);
-      background: var(--text);
-      color: white;
-      padding: 10px 22px;
-      border-radius: 12px;
-      font-size: 0.84rem;
-      font-weight: 500;
-      z-index: 999;
-      opacity: 0;
-      transition: opacity 0.25s;
-      pointer-events: none;
-      white-space: nowrap;
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+      background: var(--text); color: white; padding: 10px 22px;
+      border-radius: 12px; font-size: 0.83rem; font-weight: 500;
+      z-index: 999; opacity: 0; transition: opacity 0.25s;
+      pointer-events: none; white-space: nowrap;
     }
     .toast.show { opacity: 1; }
 
     /* ── Empty state ── */
-    .empty-state {
-      padding: 48px 24px;
-      text-align: center;
-      color: var(--text-soft);
-    }
-    .empty-state-icon { font-size: 2.5rem; margin-bottom: 12px; }
-    .empty-state-text { font-size: 0.9rem; }
+    .empty-state { padding: 44px 24px; text-align: center; color: var(--text-soft); }
+    .empty-state-icon { font-size: 2.4rem; margin-bottom: 12px; }
+    .empty-state-text { font-size: 0.88rem; }
 
     /* ── Ticket ── */
     .ticket-row {
-      padding: 16px 24px;
-      border-bottom: 1px solid rgba(255,255,255,0.3);
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-      transition: background 0.15s;
+      padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.28);
+      display: flex; gap: 12px; align-items: flex-start; transition: background 0.15s;
     }
     .ticket-row:last-child { border-bottom: none; }
-    .ticket-row:hover { background: rgba(255,255,255,0.3); }
-    .ticket-row.unread { background: rgba(245,158,11,0.07); }
+    .ticket-row:hover { background: rgba(255,255,255,0.28); }
+    .ticket-row.unread { background: rgba(245,158,11,0.06); }
     .ticket-avatar {
-      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
       display: flex; align-items: center; justify-content: center;
-      font-weight: 700; color: #fff; font-size: 0.9rem;
+      font-weight: 700; color: #fff; font-size: 0.88rem;
     }
     .ticket-body { flex: 1; min-width: 0; }
-    .ticket-meta { display: flex; gap: 10px; align-items: center; margin-bottom: 5px; flex-wrap: wrap; }
-    .ticket-user { font-size: 0.85rem; font-weight: 600; color: var(--text); }
-    .ticket-date { font-size: 0.72rem; color: var(--text-soft); }
-    .ticket-new  { font-size: 0.62rem; font-weight: 700; background: #ef4444; color: #fff; border-radius: 5px; padding: 1px 6px; text-transform: uppercase; letter-spacing: 0.06em; }
-    .ticket-msg  { font-size: 0.83rem; color: var(--text); line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
-    .ticket-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+    .ticket-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; flex-wrap: wrap; }
+    .ticket-user { font-size: 0.83rem; font-weight: 600; }
+    .ticket-date { font-size: 0.7rem; color: var(--text-soft); }
+    .ticket-new  { font-size: 0.6rem; font-weight: 700; background: #ef4444; color: #fff; border-radius: 5px; padding: 1px 5px; text-transform: uppercase; }
+    .ticket-msg  { font-size: 0.81rem; color: var(--text); line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+    .ticket-actions { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
 
     /* ── Edit modal ── */
     .edit-modal-box {
-      background: var(--card);
-      backdrop-filter: blur(22px);
-      -webkit-backdrop-filter: blur(22px);
-      border: 1px solid var(--card-border);
+      background: linear-gradient(135deg, rgba(255,255,255,0.28), rgba(255,255,255,0.1));
+      backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+      border: 1.5px solid rgba(255,255,255,0.5);
       border-radius: 22px;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.18);
-      max-width: 640px;
-      width: 100%;
-      max-height: 92vh;
-      display: flex;
-      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.7);
+      max-width: 660px; width: 100%; max-height: 92vh;
+      display: flex; flex-direction: column;
     }
     .edit-modal-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 22px 28px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.4);
-      flex-shrink: 0;
+      padding: 20px 26px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.38); flex-shrink: 0;
     }
-    .edit-modal-header h2 { font-size: 1.05rem; font-weight: 700; color: var(--text); }
-    .edit-modal-body {
-      overflow-y: auto;
-      padding: 20px 28px;
-      flex: 1;
-    }
+    .edit-modal-header h2 { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .edit-modal-body { overflow-y: auto; padding: 18px 26px; flex: 1; }
     .edit-modal-footer {
-      padding: 16px 28px;
-      border-top: 1px solid rgba(255,255,255,0.4);
-      display: flex; gap: 10px;
-      flex-shrink: 0;
+      padding: 14px 26px; border-top: 1px solid rgba(255,255,255,0.38);
+      display: flex; gap: 9px; flex-shrink: 0; flex-wrap: wrap;
     }
-    .edit-section {
-      margin-bottom: 22px;
-    }
+    .edit-section { margin-bottom: 20px; }
     .edit-section-title {
-      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+      font-size: 0.63rem; font-weight: 700; letter-spacing: 0.1em;
       text-transform: uppercase; color: var(--text-soft);
-      margin-bottom: 10px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid rgba(255,255,255,0.4);
+      margin-bottom: 9px; padding-bottom: 5px;
+      border-bottom: 1px solid rgba(255,255,255,0.38);
     }
     .edit-row {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 5px 0; gap: 12px;
+      padding: 4px 0; gap: 10px;
     }
-    .edit-row label {
-      font-size: 0.83rem; color: var(--text); font-weight: 500; flex: 1;
-    }
+    .edit-row label { font-size: 0.81rem; color: var(--text); font-weight: 500; flex: 1; }
     .edit-input {
-      width: 110px; padding: 7px 10px;
-      border-radius: 9px; border: 1.5px solid rgba(255,255,255,0.6);
-      background: rgba(255,255,255,0.55);
-      font-family: 'Poppins',sans-serif; font-size: 0.85rem; font-weight: 600;
+      width: 105px; padding: 6px 9px;
+      border-radius: 9px; border: 1.5px solid rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.5);
+      font-family: 'Poppins',sans-serif; font-size: 0.83rem; font-weight: 600;
       color: var(--text); outline: none; text-align: right;
       transition: border-color 0.15s;
     }
     .edit-input:focus { border-color: var(--accent); }
-    .shop-group-title {
-      font-size: 0.68rem; font-weight: 600; color: var(--text-soft);
-      margin: 10px 0 5px; letter-spacing: 0.06em; text-transform: uppercase;
-    }
-    .shop-chips {
-      display: flex; flex-wrap: wrap; gap: 6px;
-    }
-    .shop-chip {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 5px 11px;
-      border-radius: 20px;
+    .edit-select {
+      padding: 6px 9px; border-radius: 9px;
       border: 1.5px solid rgba(255,255,255,0.55);
-      background: rgba(255,255,255,0.35);
-      font-size: 0.76rem; font-weight: 500; color: var(--text);
+      background: rgba(255,255,255,0.5);
+      font-family: 'Poppins',sans-serif; font-size: 0.83rem; font-weight: 600;
+      color: var(--text); outline: none; cursor: pointer; min-width: 150px;
+    }
+    .edit-select:focus { border-color: var(--accent); }
+    .role-info {
+      font-size: 0.75rem; color: var(--text-soft);
+      background: rgba(0,0,0,0.04); border-radius: 8px;
+      padding: 7px 10px; margin-top: 6px; line-height: 1.5;
+    }
+    .shop-group-title {
+      font-size: 0.66rem; font-weight: 600; color: var(--text-soft);
+      margin: 9px 0 4px; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .shop-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+    .shop-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 20px;
+      border: 1.5px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.3);
+      font-size: 0.74rem; font-weight: 500; color: var(--text);
       cursor: pointer; transition: all 0.15s; user-select: none;
     }
-    .shop-chip:hover { background: rgba(255,255,255,0.6); }
+    .shop-chip:hover { background: rgba(255,255,255,0.55); }
     .shop-chip.owned {
-      background: linear-gradient(135deg, rgba(var(--accent-rgb,99,102,241),0.18), rgba(255,255,255,0.3));
-      border-color: var(--accent);
-      color: var(--accent);
-      font-weight: 600;
+      background: linear-gradient(135deg, rgba(99,102,241,0.14), rgba(255,255,255,0.25));
+      border-color: var(--accent); color: var(--accent); font-weight: 600;
     }
     .shop-chip input[type=checkbox] { display: none; }
     .friends-tag {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.6);
-      border-radius: 20px; padding: 4px 10px;
-      font-size: 0.8rem; font-weight: 600; color: var(--text);
-      margin: 2px;
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.42); border: 1px solid rgba(255,255,255,0.55);
+      border-radius: 20px; padding: 3px 9px;
+      font-size: 0.78rem; font-weight: 600; color: var(--text); margin: 2px;
     }
     .friend-remove-btn {
       background: none; border: none; cursor: pointer;
-      color: #dc2626; font-size: 0.75rem; font-weight: 700;
-      padding: 0 2px; line-height: 1;
-      transition: transform 0.15s;
+      color: #dc2626; font-size: 0.73rem; font-weight: 700;
+      padding: 0 2px; line-height: 1; transition: transform 0.15s;
     }
     .friend-remove-btn:hover { transform: scale(1.2); }
-    .add-friend-row {
-      display: flex; gap: 8px; margin-top: 10px;
-    }
+    .add-friend-row { display: flex; gap: 7px; margin-top: 9px; }
     .add-friend-input {
-      flex: 1; padding: 7px 12px;
-      border-radius: 9px; border: 1.5px solid rgba(255,255,255,0.6);
-      background: rgba(255,255,255,0.55);
-      font-family: 'Poppins',sans-serif; font-size: 0.82rem;
-      color: var(--text); outline: none;
+      flex: 1; padding: 6px 11px; border-radius: 9px;
+      border: 1.5px solid rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.5);
+      font-family: 'Poppins',sans-serif; font-size: 0.8rem; color: var(--text); outline: none;
     }
     .add-friend-input:focus { border-color: var(--accent); }
     .add-friend-btn {
-      padding: 7px 14px; border-radius: 9px; border: none;
+      padding: 6px 13px; border-radius: 9px; border: none;
       background: var(--accent); color: #fff;
-      font-family: 'Poppins',sans-serif; font-size: 0.8rem; font-weight: 600;
+      font-family: 'Poppins',sans-serif; font-size: 0.78rem; font-weight: 600;
       cursor: pointer; transition: opacity 0.15s;
     }
     .add-friend-btn:hover { opacity: 0.85; }
+
+    /* ── Input annuncio / bonus ── */
+    .lc-input {
+      flex: 1; padding: 10px 14px; border-radius: 12px;
+      border: 1.5px solid rgba(255,255,255,0.45);
+      background: rgba(255,255,255,0.4);
+      backdrop-filter: blur(10px);
+      font-family: Poppins,sans-serif; font-size: 0.86rem;
+      color: var(--text); outline: none; transition: border-color 0.2s;
+    }
+    .lc-input:focus { border-color: var(--accent); background: rgba(255,255,255,0.6); }
+    .lc-btn {
+      padding: 10px 22px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff; font-family: Poppins,sans-serif;
+      font-weight: 600; font-size: 0.86rem; cursor: pointer;
+      transition: all 0.2s; white-space: nowrap;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+    }
+    .lc-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.14); }
+    .lc-btn:disabled { opacity: 0.5; pointer-events: none; }
+
+    /* Progress bar bonus */
+    .progress-bar-wrap {
+      background: rgba(255,255,255,0.28); border-radius: 8px;
+      height: 6px; overflow: hidden; margin-top: 8px; display: none;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border-radius: 8px; transition: width 0.3s;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 680px) {
+      .admin-layout { padding: 16px 12px 40px; }
+      .admin-title { font-size: 1.2rem; }
+      td.hide-mobile, th.hide-mobile { display: none; }
+      .action-cell { flex-wrap: wrap; }
+      .edit-modal-box { max-height: 88vh; }
+      .modal-box { padding: 20px 16px; }
+    }
   </style>
 </head>
 <body>
@@ -544,25 +460,27 @@
   <div class="orb orb-3"></div>
 </div>
 
-<!-- Modale editor completo utente -->
 <!-- Modal messaggio privato -->
 <div class="modal-overlay" id="msgModal" onclick="if(event.target===this)closeMsgModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center">
-  <div style="background:var(--card);border-radius:20px;padding:28px;width:min(460px,92vw);display:flex;flex-direction:column;gap:16px;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <h2 style="font-size:1.05rem;font-weight:700;color:var(--text)" id="msgModalTitle">📩 Messaggio a @...</h2>
-      <button onclick="closeMsgModal()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text-soft)">✕</button>
+  <div class="modal-box">
+    <div class="modal-title">
+      <span id="msgModalTitle">📩 Messaggio a @...</span>
+      <button class="modal-close" onclick="closeMsgModal()">✕</button>
     </div>
-    <div style="display:flex;gap:8px">
-      <input id="msg-emoji" type="text" value="📩" maxlength="2" style="width:48px;padding:10px;border-radius:10px;border:1.5px solid var(--card-border);background:var(--bg);color:var(--text);font-size:1.1rem;text-align:center;font-family:Poppins,sans-serif">
-      <input id="msg-text" type="text" placeholder="Scrivi il tuo messaggio..." maxlength="200" style="flex:1;padding:10px 14px;border-radius:10px;border:1.5px solid var(--card-border);background:var(--bg);color:var(--text);font-family:Poppins,sans-serif;font-size:0.9rem">
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input id="msg-emoji" type="text" value="📩" maxlength="2"
+        class="lc-input" style="width:52px;flex:none;text-align:center;font-size:1.1rem;padding:10px 6px">
+      <input id="msg-text" type="text" placeholder="Scrivi il tuo messaggio..." maxlength="200"
+        class="lc-input" onkeydown="if(event.key==='Enter')sendMsgToUser()">
     </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end">
-      <button onclick="closeMsgModal()" style="padding:9px 20px;border-radius:10px;border:1.5px solid var(--card-border);background:none;color:var(--text-soft);font-family:Poppins,sans-serif;font-size:0.85rem;cursor:pointer">Annulla</button>
-      <button onclick="sendMsgToUser()" style="padding:9px 20px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:Poppins,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer">Invia 📨</button>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="admin-btn admin-btn-ghost" onclick="closeMsgModal()">Annulla</button>
+      <button class="lc-btn" onclick="sendMsgToUser()">Invia 📨</button>
     </div>
   </div>
 </div>
 
+<!-- Modal edit utente -->
 <div class="modal-overlay" id="editModal" onclick="if(event.target===this)closeEditModal()">
   <div class="edit-modal-box">
     <div class="edit-modal-header">
@@ -573,7 +491,7 @@
       <div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">Caricamento...</div></div>
     </div>
     <div class="edit-modal-footer">
-      <button class="admin-btn admin-btn-accent" onclick="saveUserEdit()" id="editSaveBtn">💾 Salva tutto</button>
+      <button class="lc-btn" onclick="saveUserEdit()" id="editSaveBtn">💾 Salva tutto</button>
       <button class="admin-btn admin-btn-ghost" onclick="closeEditModal()">Annulla</button>
     </div>
   </div>
@@ -597,17 +515,17 @@
     </div>
   </div>
 
-  <!-- Banner SQLite warning (nascosto di default, mostrato se db=sqlite) -->
-  <div id="sqlite-warning" style="display:none;margin:16px 24px 0;border-radius:16px;overflow:hidden;
+  <!-- Banner SQLite — liquid crystal rosso -->
+  <div id="sqlite-warning" style="display:none;margin-bottom:20px;border-radius:16px;overflow:hidden;
     background:linear-gradient(135deg,rgba(255,255,255,0.22),rgba(255,255,255,0.08));
     backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
     border:1.5px solid rgba(239,68,68,0.5);
-    box-shadow:0 4px 24px rgba(239,68,68,0.18),inset 0 1px 0 rgba(255,255,255,0.25)">
-    <div style="padding:14px 20px;display:flex;align-items:center;gap:12px">
-      <span style="font-size:1.4rem;flex-shrink:0">⚠️</span>
+    box-shadow:0 4px 24px rgba(239,68,68,0.18),inset 0 1px 0 rgba(255,255,255,0.35)">
+    <div style="padding:12px 18px;display:flex;align-items:center;gap:11px">
+      <span style="font-size:1.3rem;flex-shrink:0">⚠️</span>
       <div>
-        <div style="font-size:0.82rem;font-weight:700;color:#ef4444;letter-spacing:0.02em;margin-bottom:2px">Render sta usando SQLite</div>
-        <div style="font-size:0.76rem;color:var(--text-soft);font-weight:500">Tutti i dati vengono cancellati ad ogni deploy. Vai su Render → Environment → aggiungi <code style="background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:4px;font-size:0.72rem">DATABASE_URL</code> con la connessione PostgreSQL.</div>
+        <div style="font-size:0.8rem;font-weight:700;color:#ef4444;margin-bottom:2px">Render sta usando SQLite — i dati si resettano ad ogni deploy</div>
+        <div style="font-size:0.74rem;color:var(--text-soft)">Vai su Render → Environment → aggiungi <code style="background:rgba(0,0,0,0.06);padding:1px 4px;border-radius:4px">DATABASE_URL</code> con la stringa PostgreSQL.</div>
       </div>
     </div>
   </div>
@@ -623,53 +541,75 @@
       <div class="asc-value" id="statSessions">—</div>
     </div>
     <div class="admin-stat-card">
-      <div class="asc-label">Monete in circolazione</div>
-      <div class="asc-value" id="statCoins">—</div>
+      <div class="asc-label">Monete circolanti</div>
+      <div class="asc-value" id="statCoins" style="font-size:1.4rem">—</div>
     </div>
     <div class="admin-stat-card">
       <div class="asc-label">Ultimo accesso</div>
-      <div class="asc-value" id="statLast" style="font-size:1rem">—</div>
+      <div class="asc-value" id="statLast" style="font-size:0.95rem">—</div>
       <div class="asc-sub" id="statLastName"></div>
     </div>
   </div>
 
-  <!-- Tabella -->
-  <div class="admin-table-card">
-    <div class="admin-table-head">
-      <span class="admin-table-title">Utenti registrati</span>
+  <!-- Tabella utenti -->
+  <div class="admin-card">
+    <div class="admin-card-head">
+      <span class="admin-card-title">👤 Utenti registrati</span>
     </div>
-    <div id="tableWrap">
+    <div class="table-scroll" id="tableWrap">
       <div class="empty-state">
         <div class="empty-state-icon">⏳</div>
         <div class="empty-state-text">Caricamento...</div>
       </div>
+    </div>
+  </div>
+
+  <!-- Bonus monete a tutti — liquid crystal verde -->
+  <div style="margin-bottom:24px;border-radius:20px;overflow:hidden;
+    background:linear-gradient(135deg,rgba(255,255,255,0.22),rgba(255,255,255,0.07));
+    backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+    border:1.5px solid rgba(16,185,129,0.4);
+    box-shadow:0 6px 28px rgba(16,185,129,0.12),inset 0 1px 0 rgba(255,255,255,0.5)">
+    <div class="admin-card-head" style="border-bottom-color:rgba(16,185,129,0.25)">
+      <span class="admin-card-title">🎁 Bonus monete a tutti gli utenti</span>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:12px">
+      <p style="font-size:0.8rem;color:var(--text-soft);margin:0">Aggiungi lo stesso numero di monete a <strong>tutti</strong> gli utenti in una volta sola. Utile per eventi speciali o compensazioni.</p>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <input type="number" id="bonusAmount" placeholder="Es. 50" min="1" max="9999"
+          class="lc-input" style="max-width:130px"
+          onkeydown="if(event.key==='Enter')sendBonusToAll()">
+        <input type="text" id="bonusReason" placeholder="Motivo (es. Evento Natale...)" maxlength="100"
+          class="lc-input">
+        <button class="lc-btn" onclick="sendBonusToAll()" id="bonusBtn"
+          style="background:linear-gradient(135deg,#10b981,#059669)">🎁 Invia bonus</button>
+      </div>
+      <div class="progress-bar-wrap" id="bonusProgress">
+        <div class="progress-bar-fill" id="bonusFill" style="width:0%"></div>
+      </div>
+      <div id="bonusStatus" style="font-size:0.78rem;color:var(--text-soft)"></div>
     </div>
   </div>
 
   <!-- Segnalazioni -->
-  <div class="admin-table-card" style="margin-top:28px">
-    <div class="admin-table-head">
-      <span class="admin-table-title">🛠️ Segnalazioni utenti <span id="ticketBadge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:2px 8px;font-size:0.68rem;margin-left:8px;font-weight:700"></span></span>
+  <div class="admin-card">
+    <div class="admin-card-head">
+      <span class="admin-card-title">🛠️ Segnalazioni <span id="ticketBadge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:2px 7px;font-size:0.65rem;margin-left:6px;font-weight:700"></span></span>
     </div>
     <div id="ticketsWrap">
-      <div class="empty-state">
-        <div class="empty-state-icon">⏳</div>
-        <div class="empty-state-text">Caricamento...</div>
-      </div>
+      <div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">Caricamento...</div></div>
     </div>
   </div>
 
   <!-- Annunci -->
-  <div class="admin-table-card" style="margin-top:28px">
-    <div class="admin-table-head">
-      <span class="admin-table-title">📢 Invia Annuncio a tutti</span>
+  <div class="admin-card">
+    <div class="admin-card-head">
+      <span class="admin-card-title">📢 Invia Annuncio a tutti</span>
     </div>
-    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px">
-      <p style="font-size:0.82rem;color:var(--text-soft);margin:0">Gli utenti vedranno l'annuncio come notifica con badge rosso in sidebar.</p>
-
-      <!-- Template predefiniti -->
-      <div style="display:flex;flex-wrap:wrap;gap:7px">
-        <div style="font-size:0.72rem;font-weight:600;color:var(--text-soft);width:100%;margin-bottom:2px">Template rapidi</div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:12px">
+      <p style="font-size:0.8rem;color:var(--text-soft);margin:0">Gli utenti vedranno l'annuncio come notifica in sidebar.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <div style="font-size:0.7rem;font-weight:600;color:var(--text-soft);width:100%;margin-bottom:2px">Template rapidi</div>
         <button class="ann-tpl" onclick="useTemplate('🚀','Nuova funzionalità disponibile! Scopri le ultime novità di StudyFlow.')">🚀 Aggiornamento</button>
         <button class="ann-tpl" onclick="useTemplate('🛠️','Manutenzione programmata in corso. Il servizio potrebbe essere temporaneamente lento.')">🛠️ Manutenzione</button>
         <button class="ann-tpl" onclick="useTemplate('⚠️','Avviso importante: controlla le tue impostazioni o i tuoi dati.')">⚠️ Avviso</button>
@@ -679,138 +619,95 @@
         <button class="ann-tpl" onclick="useTemplate('📅','Aggiornamento programmato questa notte. L\'app sarà offline brevemente.')">📅 Downtime</button>
         <button class="ann-tpl" onclick="useTemplate('💡','Tip del giorno: ')">💡 Tip</button>
       </div>
-
-      <!-- Input annuncio -->
-      <div style="display:flex;gap:10px;align-items:center">
+      <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">
         <input type="text" id="announceEmoji" value="📢" maxlength="4"
-          style="width:56px;font-size:1.35rem;text-align:center;border-radius:10px;border:1.5px solid var(--card-border);background:var(--bg);color:var(--text);padding:8px 6px;font-family:Poppins,sans-serif;outline:none;cursor:text">
+          class="lc-input" style="width:52px;flex:none;text-align:center;font-size:1.3rem;padding:8px 4px">
         <input type="text" id="announceMsg" placeholder="Scrivi un annuncio o scegli un template..."
-          style="flex:1;padding:11px 16px;border-radius:12px;border:1.5px solid var(--card-border);background:var(--bg);color:var(--text);font-family:Poppins,sans-serif;font-size:0.88rem;outline:none;transition:border-color 0.2s"
-          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--card-border)'"
-          onkeydown="if(event.key==='Enter')sendAnnouncement()">
+          class="lc-input" onkeydown="if(event.key==='Enter')sendAnnouncement()">
       </div>
-      <button onclick="sendAnnouncement()" id="announceBtn"
-        style="align-self:flex-start;padding:10px 24px;border-radius:12px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:Poppins,sans-serif;font-weight:600;font-size:0.88rem;transition:opacity 0.15s">
+      <button onclick="sendAnnouncement()" id="announceBtn" class="lc-btn" style="align-self:flex-start">
         📢 Invia a tutti
       </button>
-    </div>
-  </div>
-
-  <!-- Configurazione Spotify -->
-  <div class="admin-table-card" style="margin-top:28px">
-    <div class="admin-table-head">
-      <span class="admin-table-title">🎵 Configurazione Spotify</span>
-    </div>
-    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px">
-      <p style="font-size:0.82rem;color:var(--text-soft);margin:0">
-        Imposta il Client ID una sola volta — tutti gli utenti potranno collegare il loro account Spotify senza configurazioni tecniche.<br>
-        URI di reindirizzamento da aggiungere nella tua app Spotify:<br>
-        <code id="admin-spotify-uri" style="font-size:0.72rem;color:var(--accent);word-break:break-all;display:block;margin-top:4px"></code>
-      </p>
-      <div style="display:flex;gap:10px;align-items:center">
-        <input type="text" id="spotifyClientId" placeholder="Client ID Spotify (32 caratteri)..."
-          style="flex:1;padding:11px 16px;border-radius:12px;border:1.5px solid var(--card-border);background:var(--bg);color:var(--text);font-family:Poppins,sans-serif;font-size:0.88rem;outline:none;transition:border-color 0.2s"
-          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--card-border)'">
-        <button onclick="saveSpotifyConfig()"
-          style="padding:11px 20px;border-radius:12px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:Poppins,sans-serif;font-weight:600;font-size:0.88rem;white-space:nowrap;transition:opacity 0.15s">
-          💾 Salva
-        </button>
-      </div>
-      <div id="spotify-cfg-status" style="font-size:0.8rem;color:var(--text-soft)"></div>
     </div>
   </div>
 
 </div>
 
 <script src="js/config.js"></script>
-  <script>window.SF_API_BASE = 'https://studyflow-backend-5zy6.onrender.com/api';</script>
+<script>window.SF_API_BASE = 'https://studyflow-backend-5zy6.onrender.com/api';</script>
 <script>
-  /* ── Auth check (sincrono, prima del render) ── */
+  /* ── Auth check ── */
   const _adminAuth = (function() {
     try {
       const a = JSON.parse(sessionStorage.getItem('sf_auth') || 'null');
-      if (!a?.token)    { location.replace('login.html'); return null; }
-      if (!a.is_admin)  { location.replace('index.html'); return null; }
+      if (!a?.token)   { location.replace('login.html'); return null; }
+      if (!a.is_admin) { location.replace('index.html'); return null; }
       return a;
     } catch { location.replace('login.html'); return null; }
   })();
-
   if (!_adminAuth) throw new Error('not admin');
 
-  /* ── Tema ── */
   (function() {
-    try {
-      const t = localStorage.getItem('sf_theme');
-      if (t) document.documentElement.setAttribute('data-theme', t);
-    } catch {}
+    try { const t = localStorage.getItem('sf_theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch {}
   })();
 
   const AUTH = _adminAuth;
 
-  function logout() {
-    sessionStorage.removeItem('sf_auth');
-    location.replace('login.html');
-  }
+  function logout() { sessionStorage.removeItem('sf_auth'); location.replace('login.html'); }
 
-  function toast(msg, duration = 2200) {
+  function toast(msg, duration = 2400) {
     const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
+    el.textContent = msg; el.classList.add('show');
     setTimeout(() => el.classList.remove('show'), duration);
   }
 
   async function apiFetch(path, opts = {}) {
     const base = window.SF_API_BASE || '/api';
     const url = path.startsWith('/api') ? base + path.slice(4) : path;
-    const r = await fetch(url, {
+    return fetch(url, {
       ...opts,
-      headers: {
-        'Authorization': 'Bearer ' + AUTH.token,
-        'Content-Type': 'application/json',
-        ...(opts.headers || {}),
-      },
+      headers: { 'Authorization': 'Bearer ' + AUTH.token, 'Content-Type': 'application/json', ...(opts.headers || {}) },
     });
-    return r;
+  }
+
+  /* ── Ruoli ── */
+  function getRole(sessions) {
+    if (sessions >= 100) return { name:'Leggenda', emoji:'👑', color:'#F59E0B', bg:'rgba(245,158,11,0.12)', border:'rgba(245,158,11,0.35)' };
+    if (sessions >= 50)  return { name:'Maestro',  emoji:'🏆', color:'#8B5CF6', bg:'rgba(139,92,246,0.12)', border:'rgba(139,92,246,0.35)' };
+    if (sessions >= 30)  return { name:'Esperto',  emoji:'⭐', color:'#3B82F6', bg:'rgba(59,130,246,0.12)', border:'rgba(59,130,246,0.35)' };
+    if (sessions >= 15)  return { name:'Diligente',emoji:'📚', color:'#10B981', bg:'rgba(16,185,129,0.12)', border:'rgba(16,185,129,0.35)' };
+    if (sessions >= 5)   return { name:'Studente', emoji:'✏️', color:'#6B7280', bg:'rgba(107,114,128,0.12)', border:'rgba(107,114,128,0.35)' };
+    return { name:'Novizio', emoji:'🌱', color:'#9CA3AF', bg:'rgba(156,163,175,0.10)', border:'rgba(156,163,175,0.3)' };
   }
 
   /* ── Carica utenti ── */
   let _users = [];
 
   async function loadUsers() {
-    /* Mostra subito la cache (se esiste) per evitare lista vuota durante il caricamento */
     try {
       const cached = sessionStorage.getItem('_sf_admin_users');
-      if (cached) {
-        _users = JSON.parse(cached);
-        renderStats(_users);
-        renderTable(_users);
-      }
+      if (cached) { _users = JSON.parse(cached); renderStats(_users); renderTable(_users); }
     } catch {}
-
     try {
       const r = await apiFetch('/api/admin/users');
       if (!r.ok) throw new Error('HTTP ' + r.status);
       _users = await r.json();
       sessionStorage.setItem('_sf_admin_users', JSON.stringify(_users));
-      renderStats(_users);
-      renderTable(_users);
+      renderStats(_users); renderTable(_users);
     } catch (e) {
       if (!_users.length)
         document.getElementById('tableWrap').innerHTML =
-          '<div class="empty-state"><div class="empty-state-icon">⚠️</div>' +
-          '<div class="empty-state-text">Errore caricamento: ' + e.message + '</div></div>';
+          '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Errore: ' + e.message + '</div></div>';
     }
   }
 
   function renderStats(users) {
-    document.getElementById('statTotal').textContent = users.length;
-    const totalSess  = users.reduce((s, u) => s + (u.session_count || 0), 0);
-    const totalCoins = users.reduce((s, u) => s + (u.coins || 0), 0);
-    document.getElementById('statSessions').textContent = totalSess;
-    document.getElementById('statCoins').textContent    = totalCoins + ' 🪙';
+    document.getElementById('statTotal').textContent    = users.length;
+    document.getElementById('statSessions').textContent = users.reduce((s,u) => s + (u.session_count||0), 0);
+    document.getElementById('statCoins').textContent    = users.reduce((s,u) => s + (u.coins||0), 0) + ' 🪙';
     const last = users.find(u => u.last_seen);
     if (last) {
-      document.getElementById('statLast').textContent     = fmtDate(last.last_seen);
+      document.getElementById('statLast').textContent    = fmtDate(last.last_seen);
       document.getElementById('statLastName').textContent = '@' + last.username;
     }
   }
@@ -819,27 +716,31 @@
     if (!dt) return '—';
     try {
       const d = new Date(dt);
-      return d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'2-digit' }) +
-             ' ' + d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+      return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit'}) +
+             ' ' + d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
     } catch { return dt; }
   }
 
   function renderTable(users) {
     if (!users.length) {
       document.getElementById('tableWrap').innerHTML =
-        '<div class="empty-state"><div class="empty-state-icon">👤</div>' +
-        '<div class="empty-state-text">Nessun utente registrato</div></div>';
+        '<div class="empty-state"><div class="empty-state-icon">👤</div><div class="empty-state-text">Nessun utente</div></div>';
       return;
     }
-
-    let html = '<table><thead><tr>' +
-      '<th>Utente</th><th>Monete</th><th>Sessioni</th>' +
-      '<th>Registrato</th><th>Ultimo accesso</th><th>Azioni</th>' +
-      '</tr></thead><tbody>';
+    let html = `<table><thead><tr>
+      <th>Utente</th>
+      <th>Monete</th>
+      <th>Ruolo</th>
+      <th>Sessioni</th>
+      <th class="hide-mobile">Registrato</th>
+      <th class="hide-mobile">Ultimo accesso</th>
+      <th>Azioni</th>
+    </tr></thead><tbody>`;
 
     users.forEach(u => {
-      const initial = (u.username[0] || '?').toUpperCase();
+      const initial  = (u.username[0]||'?').toUpperCase();
       const adminTag = u.is_admin ? '<span class="user-admin-tag">admin</span>' : '';
+      const role     = getRole(u.session_count || 0);
       html += `<tr id="row-${u.id}">
         <td>
           <div class="user-name-cell">
@@ -849,27 +750,32 @@
           </div>
         </td>
         <td><span class="coin-value" id="coin-val-${u.id}">${u.coins} 🪙</span></td>
+        <td>
+          <span class="role-badge" style="color:${role.color};background:${role.bg};border-color:${role.border}">
+            ${role.emoji} ${role.name}
+          </span>
+        </td>
         <td>${u.session_count}</td>
-        <td><span class="date-soft">${fmtDate(u.created_at)}</span></td>
-        <td><span class="date-soft">${fmtDate(u.last_seen)}</span></td>
+        <td class="hide-mobile"><span class="date-soft">${fmtDate(u.created_at)}</span></td>
+        <td class="hide-mobile"><span class="date-soft">${fmtDate(u.last_seen)}</span></td>
         <td>
           <div class="action-cell">
-            <button class="act-btn act-edit" onclick="openUserEdit(${u.id}, '${u.username}')">✏️ Gestisci</button>
+            <button class="act-btn act-edit" onclick="openUserEdit(${u.id},'${u.username}')">✏️ Gestisci</button>
+            <button class="act-btn act-msg"  onclick="openSendMessage(${u.id},'${u.username}')">📩</button>
             ${!u.is_admin ? `
-              <button class="act-btn" style="background:rgba(99,102,241,0.1);color:#6366f1;border-color:rgba(99,102,241,0.25)" onclick="openSendMessage(${u.id}, '${u.username}')">📩 Messaggio</button>
-              <button class="act-btn act-reset" onclick="resetUser(${u.id}, '${u.username}')">↺ Reset</button>
-              <button class="act-btn act-delete" onclick="deleteUser(${u.id}, '${u.username}')">🗑️ Elimina</button>
+              <button class="act-btn act-pin"   onclick="resetPin(${u.id},'${u.username}')">🔑</button>
+              <button class="act-btn act-reset" onclick="resetUser(${u.id},'${u.username}')">↺</button>
+              <button class="act-btn act-delete" onclick="deleteUser(${u.id},'${u.username}')">🗑️</button>
             ` : ''}
           </div>
         </td>
       </tr>`;
     });
-
     html += '</tbody></table>';
     document.getElementById('tableWrap').innerHTML = html;
   }
 
-  /* ── Editor completo utente ── */
+  /* ── Editor utente ── */
   const _ADMIN_SHOP = [
     { id:'cat',         name:'🐱 Gatto',           group:'Compagni' },
     { id:'dog',         name:'🐶 Cane',             group:'Compagni' },
@@ -926,32 +832,38 @@
     { id:'hole',        name:'⛳ Tana nel Prato',   group:'Giardino' },
   ];
 
-  let _editState = { uid: null, username: '', coins: {}, friends: [], streak: 0 };
+  const _ROLES = [
+    { id:'auto',      name:'🤖 Automatico (da sessioni)' },
+    { id:'novizio',   name:'🌱 Novizio'   },
+    { id:'studente',  name:'✏️ Studente'  },
+    { id:'diligente', name:'📚 Diligente' },
+    { id:'esperto',   name:'⭐ Esperto'   },
+    { id:'maestro',   name:'🏆 Maestro'   },
+    { id:'leggenda',  name:'👑 Leggenda'  },
+  ];
+
+  let _editState = { uid: null, username: '', coins: {}, friends: [], streak: 0, roleOverride: 'auto' };
 
   async function openUserEdit(uid, username) {
-    _editState = { uid, username, coins: {}, friends: [], streak: 0 };
+    _editState = { uid, username, coins: {}, friends: [], streak: 0, roleOverride: 'auto', stats: {}, raw: {} };
     document.getElementById('editModalTitle').textContent = 'Gestisci @' + username;
     document.getElementById('editModalBody').innerHTML =
       '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">Caricamento...</div></div>';
     document.getElementById('editModal').classList.add('show');
     document.body.style.overflow = 'hidden';
-
     try {
       const r = await apiFetch('/api/admin/users/' + uid + '/data');
       const raw = await r.json();
-
-      let coins = {};
-      try { coins = JSON.parse(raw.sf_coins || '{}'); } catch {}
-      let friends = [];
-      try { friends = JSON.parse(raw.sf_friends || '[]'); } catch {}
-      let stats = {};
-      try { stats = JSON.parse(raw.sf_stats || '{}'); } catch {}
-      _editState.coins   = coins;
+      let coins = {}; try { coins = JSON.parse(raw.sf_coins || '{}'); } catch {}
+      let friends = []; try { friends = JSON.parse(raw.sf_friends || '[]'); } catch {}
+      let stats = {}; try { stats = JSON.parse(raw.sf_stats || '{}'); } catch {}
+      const roleOverride = raw.sf_role_override || 'auto';
+      _editState.coins = coins;
       _editState.friends = Array.isArray(friends) ? [...friends] : [];
-      _editState.streak  = parseInt(stats.streak || 0);
-      _editState.stats   = stats;
-      _editState.raw     = raw;
-
+      _editState.streak = parseInt(stats.streak || 0);
+      _editState.stats  = stats;
+      _editState.raw    = raw;
+      _editState.roleOverride = roleOverride;
       _renderEditModal(coins, _editState.friends);
     } catch {
       document.getElementById('editModalBody').innerHTML =
@@ -970,10 +882,7 @@
     m.style.display = 'flex';
     setTimeout(() => document.getElementById('msg-text').focus(), 80);
   }
-  function closeMsgModal() {
-    document.getElementById('msgModal').style.display = 'none';
-    _msgUid = null;
-  }
+  function closeMsgModal() { document.getElementById('msgModal').style.display = 'none'; _msgUid = null; }
   async function sendMsgToUser() {
     if (!_msgUid) return;
     const message = (document.getElementById('msg-text').value || '').trim();
@@ -981,8 +890,7 @@
     if (!message) { toast('Scrivi un messaggio prima ✏️'); return; }
     try {
       const r = await apiFetch('/api/admin/users/' + _msgUid + '/notify', {
-        method: 'POST',
-        body: JSON.stringify({ message, emoji })
+        method: 'POST', body: JSON.stringify({ message, emoji })
       });
       const d = await r.json();
       if (d.ok) { toast('Messaggio inviato ✅'); closeMsgModal(); }
@@ -992,50 +900,64 @@
 
   function _renderEditModal(coins, friends) {
     const shop = coins.shop || {};
-
-    /* Raggruppa shop items per category */
     const groups = {};
     _ADMIN_SHOP.forEach(item => {
       if (!groups[item.group]) groups[item.group] = [];
       groups[item.group].push(item);
     });
-
     let shopHtml = '';
     Object.entries(groups).forEach(([grp, items]) => {
       shopHtml += `<div class="shop-group-title">${grp}</div><div class="shop-chips">`;
       items.forEach(item => {
-        const owned = shop[item.id] ? true : false;
-        shopHtml += `<label class="shop-chip ${owned ? 'owned' : ''}" id="chip-${item.id}">
-          <input type="checkbox" id="shop_${item.id}" ${owned ? 'checked' : ''} onchange="_toggleChip(this,'${item.id}')">
-          ${item.name}
-        </label>`;
+        const owned = !!shop[item.id];
+        shopHtml += `<label class="shop-chip ${owned?'owned':''}" id="chip-${item.id}">
+          <input type="checkbox" id="shop_${item.id}" ${owned?'checked':''} onchange="_toggleChip(this,'${item.id}')">
+          ${item.name}</label>`;
       });
       shopHtml += '</div>';
     });
 
-    /* Amici attuali */
     const friendsTagsHtml = () =>
       (_editState.friends.length
         ? _editState.friends.map(f =>
-            `<span class="friends-tag">@${escHtml(f)}<button class="friend-remove-btn" onclick="_removeFriendEdit('${escHtml(f)}')" title="Rimuovi">✕</button></span>`
+            `<span class="friends-tag">@${escHtml(f)}<button class="friend-remove-btn" onclick="_removeFriendEdit('${escHtml(f)}')">✕</button></span>`
           ).join('')
-        : '<span style="color:var(--text-soft);font-size:0.82rem">Nessun amico</span>');
+        : '<span style="color:var(--text-soft);font-size:0.8rem">Nessun amico</span>');
+
+    const roleOpts = _ROLES.map(r =>
+      `<option value="${r.id}" ${_editState.roleOverride===r.id?'selected':''}>${r.name}</option>`
+    ).join('');
+
+    const sessionsForRole = (_editState.coins.totalSessions || 0);
+    const currentRole = getRole(sessionsForRole);
 
     const body = `
       <div class="edit-section">
+        <div class="edit-section-title">Ruolo utente</div>
+        <div class="edit-row">
+          <label>Ruolo forzato</label>
+          <select class="edit-select" id="edit-role">${roleOpts}</select>
+        </div>
+        <div class="role-info">
+          Ruolo calcolato automaticamente dalle sessioni: <strong>${currentRole.emoji} ${currentRole.name}</strong> (${sessionsForRole} sessioni).<br>
+          Scegli "Automatico" per lasciarlo calcolare, oppure forza un ruolo specifico per questo utente.
+        </div>
+      </div>
+
+      <div class="edit-section">
         <div class="edit-section-title">Monete & Statistiche</div>
         <div class="edit-row"><label>Monete (balance) 🪙</label>
-          <input class="edit-input" type="number" id="edit-balance" min="0" max="999999" value="${coins.balance || 0}"></div>
+          <input class="edit-input" type="number" id="edit-balance" min="0" max="999999" value="${coins.balance||0}"></div>
         <div class="edit-row"><label>Monete guadagnate totali</label>
-          <input class="edit-input" type="number" id="edit-earned" min="0" value="${coins.totalEarned || 0}"></div>
+          <input class="edit-input" type="number" id="edit-earned" min="0" value="${coins.totalEarned||0}"></div>
         <div class="edit-row"><label>Sessioni completate</label>
-          <input class="edit-input" type="number" id="edit-sessions" min="0" value="${coins.totalSessions || 0}"></div>
+          <input class="edit-input" type="number" id="edit-sessions" min="0" value="${coins.totalSessions||0}"></div>
         <div class="edit-row"><label>Minuti di studio</label>
-          <input class="edit-input" type="number" id="edit-minutes" min="0" value="${coins.totalMinutes || 0}"></div>
+          <input class="edit-input" type="number" id="edit-minutes" min="0" value="${coins.totalMinutes||0}"></div>
         <div class="edit-row"><label>Task completate</label>
-          <input class="edit-input" type="number" id="edit-tasks" min="0" value="${coins.tasksCompleted || 0}"></div>
+          <input class="edit-input" type="number" id="edit-tasks" min="0" value="${coins.tasksCompleted||0}"></div>
         <div class="edit-row"><label>Streak giorni 🔥</label>
-          <input class="edit-input" type="number" id="edit-streak" min="0" max="9999" value="${_editState.streak || 0}"></div>
+          <input class="edit-input" type="number" id="edit-streak" min="0" max="9999" value="${_editState.streak||0}"></div>
       </div>
 
       <div class="edit-section">
@@ -1051,7 +973,6 @@
           <button class="add-friend-btn" onclick="_addFriendEdit()">+ Aggiungi</button>
         </div>
       </div>`;
-
     document.getElementById('editModalBody').innerHTML = body;
   }
 
@@ -1060,30 +981,25 @@
     if (checkbox.checked) chip.classList.add('owned');
     else chip.classList.remove('owned');
   }
-
   function _removeFriendEdit(username) {
     _editState.friends = _editState.friends.filter(f => f !== username);
     _refreshFriendTags();
   }
-
   function _addFriendEdit() {
     const inp = document.getElementById('add-friend-input');
-    const val = (inp.value || '').trim().toLowerCase();
-    if (!val) return;
-    if (_editState.friends.includes(val)) { inp.value = ''; return; }
-    _editState.friends.push(val);
-    inp.value = '';
+    const val = (inp.value||'').trim().toLowerCase();
+    if (!val || _editState.friends.includes(val)) { inp.value = ''; return; }
+    _editState.friends.push(val); inp.value = '';
     _refreshFriendTags();
   }
-
   function _refreshFriendTags() {
     const wrap = document.getElementById('friends-tags-wrap');
     if (!wrap) return;
     wrap.innerHTML = _editState.friends.length
       ? _editState.friends.map(f =>
-          `<span class="friends-tag">@${escHtml(f)}<button class="friend-remove-btn" onclick="_removeFriendEdit('${escHtml(f)}')" title="Rimuovi">✕</button></span>`
+          `<span class="friends-tag">@${escHtml(f)}<button class="friend-remove-btn" onclick="_removeFriendEdit('${escHtml(f)}')">✕</button></span>`
         ).join('')
-      : '<span style="color:var(--text-soft);font-size:0.82rem">Nessun amico</span>';
+      : '<span style="color:var(--text-soft);font-size:0.8rem">Nessun amico</span>';
   }
 
   async function saveUserEdit() {
@@ -1091,83 +1007,75 @@
     if (!uid) return;
     const btn = document.getElementById('editSaveBtn');
     if (btn) { btn.textContent = '⏳ Salvataggio...'; btn.disabled = true; }
-
     try {
-      /* Legge tutti i campi numerici */
       const balance  = Math.max(0, parseInt(document.getElementById('edit-balance').value)  || 0);
       const earned   = Math.max(0, parseInt(document.getElementById('edit-earned').value)   || 0);
       const sessions = Math.max(0, parseInt(document.getElementById('edit-sessions').value) || 0);
       const minutes  = Math.max(0, parseInt(document.getElementById('edit-minutes').value)  || 0);
       const tasks    = Math.max(0, parseInt(document.getElementById('edit-tasks').value)    || 0);
       const streak   = Math.max(0, parseInt(document.getElementById('edit-streak').value)   || 0);
+      const roleOverride = document.getElementById('edit-role')?.value || 'auto';
 
-      /* Legge tutti i checkbox shop */
       const newShop = {};
       _ADMIN_SHOP.forEach(item => {
         const cb = document.getElementById('shop_' + item.id);
         if (cb) newShop[item.id] = cb.checked;
       });
 
-      /* Costruisce il nuovo sf_coins preservando tutti gli altri campi */
-      const base = _editState.coins || {};
       const newCoins = {
-        ...base,
-        balance,
-        totalEarned:   earned,
-        totalSessions: sessions,
-        totalMinutes:  minutes,
-        tasksCompleted: tasks,
-        shop: newShop,
+        ...(_editState.coins || {}),
+        balance, totalEarned: earned, totalSessions: sessions,
+        totalMinutes: minutes, tasksCompleted: tasks, shop: newShop,
       };
 
       /* Salva sf_coins */
       const r1 = await apiFetch('/api/admin/users/' + uid + '/data', {
-        method: 'PUT',
-        body: JSON.stringify({ key: 'sf_coins', value: JSON.stringify(newCoins) })
+        method: 'PUT', body: JSON.stringify({ key:'sf_coins', value:JSON.stringify(newCoins) })
       });
       if (!r1.ok) throw new Error('sf_coins: HTTP ' + r1.status);
 
       /* Salva sf_stats (streak) */
-      const newStats = { ...(_editState.stats || {}), streak };
+      const newStats = { ...(_editState.stats||{}), streak };
       const r1b = await apiFetch('/api/admin/users/' + uid + '/data', {
-        method: 'PUT',
-        body: JSON.stringify({ key: 'sf_stats', value: JSON.stringify(newStats) })
+        method: 'PUT', body: JSON.stringify({ key:'sf_stats', value:JSON.stringify(newStats) })
       });
       if (!r1b.ok) throw new Error('sf_stats: HTTP ' + r1b.status);
 
-      /* Sincronizza sf_sessions con il nuovo conteggio — il sistema ruoli legge .length */
+      /* Sincronizza sf_sessions */
       let existingSessions = [];
-      try { existingSessions = JSON.parse(((_editState.raw || {})['sf_sessions']) || '[]'); } catch {}
+      try { existingSessions = JSON.parse(((_editState.raw||{})['sf_sessions'])||'[]'); } catch {}
       if (!Array.isArray(existingSessions)) existingSessions = [];
       const diff = sessions - existingSessions.length;
       if (diff > 0) {
-        for (let i = 0; i < diff; i++) {
-          existingSessions.push({ id: 'adm_' + Date.now() + '_' + i, mode: 'work', mins: 25, ts: new Date().toISOString() });
-        }
+        for (let i = 0; i < diff; i++)
+          existingSessions.push({ id:'adm_'+Date.now()+'_'+i, mode:'work', mins:25, ts:new Date().toISOString() });
       } else if (diff < 0) {
         existingSessions = existingSessions.slice(0, sessions);
       }
       if (diff !== 0) {
         const rSess = await apiFetch('/api/admin/users/' + uid + '/data', {
-          method: 'PUT',
-          body: JSON.stringify({ key: 'sf_sessions', value: JSON.stringify(existingSessions) })
+          method: 'PUT', body: JSON.stringify({ key:'sf_sessions', value:JSON.stringify(existingSessions) })
         });
         if (!rSess.ok) throw new Error('sf_sessions: HTTP ' + rSess.status);
       }
 
+      /* Salva ruolo override */
+      await apiFetch('/api/admin/users/' + uid + '/data', {
+        method: 'PUT', body: JSON.stringify({ key:'sf_role_override', value:roleOverride })
+      });
+
       /* Salva sf_friends */
       const r2 = await apiFetch('/api/admin/users/' + uid + '/data', {
-        method: 'PUT',
-        body: JSON.stringify({ key: 'sf_friends', value: JSON.stringify(_editState.friends) })
+        method: 'PUT', body: JSON.stringify({ key:'sf_friends', value:JSON.stringify(_editState.friends) })
       });
       if (!r2.ok) throw new Error('sf_friends: HTTP ' + r2.status);
 
-      /* Aggiorna display monete nella tabella */
+      /* Aggiorna UI tabella */
       const el = document.getElementById('coin-val-' + uid);
       if (el) el.textContent = balance + ' 🪙';
       const u = _users.find(x => x.id === uid);
       if (u) { u.coins = balance; u.session_count = sessions; }
-      renderStats(_users);
+      renderStats(_users); renderTable(_users);
       sessionStorage.setItem('_sf_admin_users', JSON.stringify(_users));
 
       toast('Dati di @' + _editState.username + ' salvati ✅');
@@ -1182,85 +1090,117 @@
   function closeEditModal() {
     document.getElementById('editModal').classList.remove('show');
     document.body.style.overflow = '';
-    _editState = { uid: null, username: '', coins: {}, friends: [] };
+    _editState = { uid:null, username:'', coins:{}, friends:[], streak:0, roleOverride:'auto' };
+  }
+
+  /* ── Reset PIN ── */
+  async function resetPin(uid, username) {
+    if (!confirm('Resetta il PIN di @' + username + '?\nDovrà impostarne uno nuovo al prossimo accesso.')) return;
+    try {
+      const r = await apiFetch('/api/admin/users/' + uid + '/reset-pin', { method: 'POST' });
+      const d = await r.json();
+      if (d.ok) toast('PIN di @' + username + ' resettato ✅');
+      else toast('Errore: ' + (d.error || 'sconosciuto'));
+    } catch { toast('Errore di rete'); }
   }
 
   /* ── Reset utente ── */
   async function resetUser(uid, username) {
-    if (!confirm('Reset di tutti i dati di @' + username + '?\nLe monete e le sessioni saranno azzerate.')) return;
+    if (!confirm('Reset di tutti i dati di @' + username + '?\nMonete e sessioni azzerati.')) return;
     try {
       const r = await apiFetch('/api/admin/users/' + uid + '/reset', { method: 'POST' });
       if (!r.ok) throw new Error();
       const u = _users.find(x => x.id === uid);
       if (u) { u.coins = 0; u.session_count = 0; }
-      renderStats(_users);
-      renderTable(_users);
+      renderStats(_users); renderTable(_users);
       toast('Dati di @' + username + ' azzerati ✅');
     } catch { toast('Errore durante il reset'); }
   }
 
   /* ── Elimina utente ── */
   async function deleteUser(uid, username) {
-    const typed = prompt(
-      '⚠️ OPERAZIONE IRREVERSIBILE\n\nScrivi il nome utente "' + username + '" per confermare l\'eliminazione:'
-    );
+    const typed = prompt('⚠️ OPERAZIONE IRREVERSIBILE\n\nScrivi "' + username + '" per confermare:');
     if (typed === null) return;
     if (typed.trim().toLowerCase() !== username.toLowerCase()) {
-      toast('Nome utente non corrispondente — eliminazione annullata ❌');
-      return;
+      toast('Nome utente non corrispondente ❌'); return;
     }
     try {
       const r = await apiFetch('/api/admin/users/' + uid, { method: 'DELETE' });
-      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Errore'); }
+      if (!r.ok) { const d = await r.json(); throw new Error(d.error||'Errore'); }
       _users = _users.filter(u => u.id !== uid);
       sessionStorage.setItem('_sf_admin_users', JSON.stringify(_users));
-      renderStats(_users);
-      renderTable(_users);
+      renderStats(_users); renderTable(_users);
       toast('@' + username + ' eliminato ✅');
-    } catch (e) { toast(e.message || 'Errore eliminazione'); }
+    } catch (e) { toast(e.message||'Errore eliminazione'); }
   }
 
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;');
+  /* ── Bonus monete a tutti ── */
+  async function sendBonusToAll() {
+    const amount = parseInt(document.getElementById('bonusAmount').value || '0');
+    const reason = (document.getElementById('bonusReason').value || '').trim();
+    if (!amount || amount < 1) { toast('Inserisci un numero di monete valido'); return; }
+    if (!confirm('Aggiungere ' + amount + ' monete a tutti i ' + _users.length + ' utenti?')) return;
+    const btn = document.getElementById('bonusBtn');
+    const progressWrap = document.getElementById('bonusProgress');
+    const fill = document.getElementById('bonusFill');
+    const status = document.getElementById('bonusStatus');
+    btn.disabled = true; btn.textContent = '⏳ Invio...';
+    progressWrap.style.display = 'block';
+    let done = 0, errors = 0;
+    for (const u of _users) {
+      try {
+        const newBalance = (u.coins || 0) + amount;
+        const r = await apiFetch('/api/admin/users/' + u.id + '/coins', {
+          method: 'PUT', body: JSON.stringify({ coins: newBalance })
+        });
+        if (r.ok) { u.coins = newBalance; done++; }
+        else errors++;
+      } catch { errors++; }
+      fill.style.width = Math.round(((done + errors) / _users.length) * 100) + '%';
+      status.textContent = done + '/' + _users.length + ' completati' + (errors ? ' (' + errors + ' errori)' : '');
+    }
+    renderStats(_users); renderTable(_users);
+    sessionStorage.setItem('_sf_admin_users', JSON.stringify(_users));
+    btn.disabled = false; btn.textContent = '🎁 Invia bonus';
+    toast('🎁 Bonus di ' + amount + ' 🪙 inviato a ' + done + ' utenti!');
+    if (reason) {
+      try {
+        await apiFetch('/api/admin/notifications/announce', {
+          method: 'POST', body: JSON.stringify({ message: '🎁 Hai ricevuto ' + amount + ' monete bonus! ' + reason, emoji: '🎁' })
+        });
+      } catch {}
+    }
   }
 
-  /* ── Tickets segnalazioni ── */
+  /* ── Tickets ── */
   async function loadTickets() {
     try {
       const r = await apiFetch('/api/admin/tickets');
       if (!r.ok) throw new Error();
-      const tickets = await r.json();
-      renderTickets(tickets);
+      renderTickets(await r.json());
     } catch {
       document.getElementById('ticketsWrap').innerHTML =
-        '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Errore caricamento segnalazioni</div></div>';
+        '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Errore segnalazioni</div></div>';
     }
   }
-
   function renderTickets(tickets) {
-    const wrap  = document.getElementById('ticketsWrap');
+    const wrap = document.getElementById('ticketsWrap');
     const badge = document.getElementById('ticketBadge');
-    const unreadCount = tickets.filter(t => !t.is_read).length;
-    if (badge) {
-      badge.textContent = unreadCount + ' nuov' + (unreadCount === 1 ? 'a' : 'e');
-      badge.style.display = unreadCount ? 'inline' : 'none';
-    }
+    const unread = tickets.filter(t => !t.is_read).length;
+    if (badge) { badge.textContent = unread + ' nuov' + (unread===1?'a':'e'); badge.style.display = unread ? 'inline' : 'none'; }
     if (!tickets.length) {
       wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Nessuna segnalazione</div></div>';
       return;
     }
     wrap.innerHTML = tickets.map(t => {
-      const initial = (t.username || '?')[0].toUpperCase();
-      const newTag  = !t.is_read ? '<span class="ticket-new">Nuova</span>' : '';
-      return `<div class="ticket-row ${t.is_read ? '' : 'unread'}" id="ticket-${t.id}">
+      const initial = (t.username||'?')[0].toUpperCase();
+      return `<div class="ticket-row ${t.is_read?'':'unread'}" id="ticket-${t.id}">
         <div class="ticket-avatar">${initial}</div>
         <div class="ticket-body">
           <div class="ticket-meta">
-            <span class="ticket-user">@${escHtml(t.username || '?')}</span>
+            <span class="ticket-user">@${escHtml(t.username||'?')}</span>
             <span class="ticket-date">${fmtDate(t.created_at)}</span>
-            ${newTag}
+            ${!t.is_read ? '<span class="ticket-new">Nuova</span>' : ''}
           </div>
           <div class="ticket-msg">${escHtml(t.message)}</div>
         </div>
@@ -1271,39 +1211,30 @@
       </div>`;
     }).join('');
   }
-
   async function markTicketRead(tid) {
     try {
-      await apiFetch('/api/admin/tickets/' + tid + '/read', { method: 'POST' });
+      await apiFetch('/api/admin/tickets/' + tid + '/read', { method:'POST' });
       const row = document.getElementById('ticket-' + tid);
       if (row) {
         row.classList.remove('unread');
-        const actions = row.querySelector('.ticket-actions');
-        if (actions) {
-          const readBtn = actions.querySelector('.act-edit');
-          if (readBtn) readBtn.remove();
-        }
-        const newTag = row.querySelector('.ticket-new');
-        if (newTag) newTag.remove();
+        row.querySelector('.act-edit')?.remove();
+        row.querySelector('.ticket-new')?.remove();
       }
       const badge = document.getElementById('ticketBadge');
       if (badge) {
-        const cur = parseInt(badge.textContent) || 0;
-        const newCount = Math.max(0, cur - 1);
-        badge.textContent = newCount + ' nuov' + (newCount === 1 ? 'a' : 'e');
-        badge.style.display = newCount ? 'inline' : 'none';
+        const n = Math.max(0, (parseInt(badge.textContent)||0) - 1);
+        badge.textContent = n + ' nuov' + (n===1?'a':'e');
+        badge.style.display = n ? 'inline' : 'none';
       }
-      toast('Segnalazione marcata come letta ✅');
+      toast('Letto ✅');
     } catch { toast('Errore'); }
   }
-
   async function deleteTicket(tid) {
     if (!confirm('Eliminare questa segnalazione?')) return;
     try {
-      await apiFetch('/api/admin/tickets/' + tid, { method: 'DELETE' });
-      const row = document.getElementById('ticket-' + tid);
-      if (row) row.remove();
-      toast('Segnalazione eliminata ✅');
+      await apiFetch('/api/admin/tickets/' + tid, { method:'DELETE' });
+      document.getElementById('ticket-' + tid)?.remove();
+      toast('Eliminata ✅');
     } catch { toast('Errore'); }
   }
 
@@ -1311,97 +1242,52 @@
   function useTemplate(emoji, msg) {
     document.getElementById('announceEmoji').value = emoji;
     const inp = document.getElementById('announceMsg');
-    inp.value = msg;
-    inp.focus();
+    inp.value = msg; inp.focus();
     inp.setSelectionRange(msg.length, msg.length);
   }
-
   async function sendAnnouncement() {
-    const msg   = (document.getElementById('announceMsg')?.value || '').trim();
-    const emoji = (document.getElementById('announceEmoji')?.value || '').trim() || '📢';
+    const msg   = (document.getElementById('announceMsg')?.value||'').trim();
+    const emoji = (document.getElementById('announceEmoji')?.value||'').trim() || '📢';
     if (!msg) { toast('Scrivi un messaggio prima ✏️'); return; }
     const btn = document.getElementById('announceBtn');
     if (btn) { btn.textContent = '⏳ Invio...'; btn.disabled = true; }
     try {
       const r = await apiFetch('/api/admin/notifications/announce', {
-        method: 'POST',
-        body: JSON.stringify({ message: msg, emoji })
+        method:'POST', body:JSON.stringify({ message:msg, emoji })
       });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const res = await r.json();
       toast('Annuncio inviato a ' + res.sent + ' utenti ✅');
       document.getElementById('announceMsg').value = '';
     } catch { toast('Errore invio ❌'); }
-    finally {
-      if (btn) { btn.textContent = '📢 Invia a tutti'; btn.disabled = false; }
-    }
+    finally { if (btn) { btn.textContent = '📢 Invia a tutti'; btn.disabled = false; } }
   }
 
-  /* ── Aggiorna tutto ── */
+  /* ── Refresh ── */
   async function refreshAll() {
     const btn = document.getElementById('refreshBtn');
     if (btn) { btn.textContent = '⏳ Aggiornamento...'; btn.disabled = true; }
     await Promise.all([loadUsers(), loadTickets()]);
     if (btn) { btn.textContent = '↺ Aggiorna'; btn.disabled = false; }
-    toast('Dati aggiornati ✅');
+    toast('Aggiornato ✅');
   }
 
-  /* ── Configurazione Spotify ── */
-  document.getElementById('admin-spotify-uri').textContent =
-    window.location.origin.replace(/\/admin\.html.*$/, '') + '/spotify-callback.html';
-
-  async function saveSpotifyConfig() {
-    const cid = (document.getElementById('spotifyClientId')?.value || '').trim();
-    if (!cid) { toast('Incolla il Client ID prima'); return; }
-    const el = document.getElementById('spotify-cfg-status');
-    try {
-      const r = await apiFetch('/api/admin/config', {
-        method: 'POST',
-        body: JSON.stringify({ key: 'spotify_client_id', value: cid })
-      });
-      if (r.ok) {
-        if (el) { el.textContent = '✅ Client ID salvato! Gli utenti possono ora collegare Spotify.'; el.style.color = 'var(--accent)'; }
-        toast('Spotify configurato ✅');
-      } else {
-        let errMsg = 'HTTP ' + r.status;
-        try { const b = await r.json(); errMsg += ': ' + (b.error || JSON.stringify(b)); } catch {}
-        if (el) { el.textContent = '❌ Errore ' + errMsg; el.style.color = '#ef4444'; }
-        console.error('saveSpotifyConfig error:', errMsg);
-      }
-    } catch(e) {
-      if (el) { el.textContent = '❌ Rete: ' + e.message; el.style.color = '#ef4444'; }
-      console.error('saveSpotifyConfig network error:', e);
-    }
-  }
-
-  (async function _loadSpotifyConfig() {
-    try {
-      const r = await apiFetch('/api/config');
-      if (!r.ok) return;
-      const d = await r.json();
-      if (d.spotify_client_id) {
-        document.getElementById('spotifyClientId').value = d.spotify_client_id;
-        const el = document.getElementById('spotify-cfg-status');
-        if (el) { el.textContent = '✅ Client ID configurato'; el.style.color = 'var(--accent)'; }
-      }
-    } catch {}
-  })();
-
-  /* ── Avvio ── */
-  loadUsers();
-  loadTickets();
-
-  /* ── Controllo DB: avvisa se Render usa SQLite invece di PostgreSQL ── */
+  /* ── Controllo DB ── */
   (async function _checkDb() {
     try {
       const r = await apiFetch('/api/status');
       if (!r.ok) return;
       const d = await r.json();
-      if (d.db === 'sqlite') {
-        document.getElementById('sqlite-warning').style.display = 'block';
-      }
+      if (d.db === 'sqlite') document.getElementById('sqlite-warning').style.display = 'block';
     } catch {}
   })();
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  loadUsers();
+  loadTickets();
 </script>
 </body>
 </html>

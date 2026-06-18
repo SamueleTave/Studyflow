@@ -491,25 +491,6 @@ def user_sync_data():
     _SERVER_MANAGED = {'sf_friends'}
     corrections = {}   # chiavi da rimandare al client con i valori corretti
     with get_db() as c:
-        # Se admin ha modificato dati, manda tutto al client e azzera il flag
-        flag_row = c.execute(
-            "SELECT value FROM user_data WHERE user_id=? AND key='sf_admin_flag'",
-            (user["id"],)
-        ).fetchone()
-        if flag_row and flag_row["value"] == 'dirty':
-            all_rows = c.execute(
-                "SELECT key, value FROM user_data WHERE user_id=?", (user["id"],)
-            ).fetchall()
-            for row in all_rows:
-                if row["key"] != 'sf_admin_flag' and row["value"] is not None:
-                    corrections[row["key"]] = row["value"]
-            c.execute("""
-                INSERT INTO user_data (user_id, key, value, updated_at)
-                VALUES (?,?,?,datetime('now','localtime'))
-                ON CONFLICT(user_id, key)
-                DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
-            """, (user["id"], 'sf_admin_flag', 'clean'))
-
         for key, value in data.items():
             if not isinstance(value, str) or key in _SERVER_MANAGED:
                 continue
@@ -542,100 +523,6 @@ def user_sync_data():
                 ON CONFLICT(user_id, key)
                 DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
             """, (user["id"], key, value))
-            # Bonus invito: 50 monete all'invitante dopo la prima sessione completata
-            if key == 'sf_sessions':
-                try:
-                    sessions = json_lib.loads(value)
-                    if isinstance(sessions, list) and len(sessions) >= 1:
-                        used = c.execute(
-                            "SELECT value FROM user_data WHERE user_id=? AND key='sf_invite_used'",
-                            (user["id"],)
-                        ).fetchone()
-                        ref_row = c.execute(
-                            "SELECT value FROM user_data WHERE user_id=? AND key='sf_invite_ref'",
-                            (user["id"],)
-                        ).fetchone()
-                        if not used and ref_row:
-                            inviter = c.execute(
-                                "SELECT id FROM users WHERE username=? COLLATE NOCASE AND id!=?",
-                                (ref_row["value"], user["id"])
-                            ).fetchone()
-                            if inviter:
-                                _add_coins_userdata(c, inviter["id"], 50)
-                                c.execute("""
-                                    INSERT INTO notifications (user_id, type, message, emoji)
-                                    VALUES (?, 'invite', ?, '🎉')
-                                """, (inviter["id"], f"{user['username']} ha completato la prima sessione con il tuo invito! +50 🪙"))
-                            c.execute("""
-                                INSERT INTO user_data (user_id, key, value, updated_at)
-                                VALUES (?,?,?,datetime('now','localtime'))
-                                ON CONFLICT(user_id, key) DO UPDATE SET value=excluded.value
-                            """, (user["id"], "sf_invite_used", "1"))
-                except Exception:
-                    pass
-                # Punto 3: aggiorna progresso sfide attive
-                try:
-                    sessions_row = c.execute(
-                        "SELECT value FROM user_data WHERE user_id=? AND key='sf_sessions'",
-                        (user["id"],)
-                    ).fetchone()
-                    if sessions_row and sessions_row["value"]:
-                        all_sessions = json_lib.loads(sessions_row["value"])
-                        active_challenges = c.execute(
-                            """SELECT ch.id, ch.target_min, ch.created_at, ch.ends_at
-                               FROM challenges ch
-                               JOIN challenge_members cm ON cm.challenge_id=ch.id
-                               WHERE cm.user_id=? AND ch.ends_at >= datetime('now','localtime')""",
-                            (user["id"],)
-                        ).fetchall()
-                        for ch in active_challenges:
-                            ch_start = ch["created_at"][:10]
-                            ch_end = ch["ends_at"][:10]
-                            mins = sum(
-                                int(s.get("duration") or 25)
-                                for s in all_sessions
-                                if ch_start <= (s.get("date") or s.get("endedAt") or "")[:10] <= ch_end
-                            )
-                            done = 1 if mins >= ch["target_min"] else 0
-                            c.execute(
-                                "UPDATE challenge_members SET minutes_done=?, completed=? WHERE challenge_id=? AND user_id=?",
-                                (mins, done, ch["id"], user["id"])
-                            )
-                except Exception:
-                    pass
-                # Bonus ruolo: monete extra per sessione basate sul ruolo utente
-                try:
-                    sessions_list = json_lib.loads(value)
-                    new_count = len(sessions_list) if isinstance(sessions_list, list) else 0
-                    prev_row = c.execute(
-                        "SELECT value FROM user_data WHERE user_id=? AND key='sf_role_bonus_sessions'",
-                        (user["id"],)
-                    ).fetchone()
-                    prev_count = int(prev_row["value"] or 0) if prev_row else 0
-                    new_sessions = max(0, new_count - prev_count)
-                    if new_sessions > 0:
-                        ov_row = c.execute(
-                            "SELECT value FROM user_data WHERE user_id=? AND key='sf_role_override'",
-                            (user["id"],)
-                        ).fetchone()
-                        role_ov = ov_row["value"] if ov_row and ov_row["value"] not in (None, "auto", "") else None
-                        role = _role_from_override(role_ov) if role_ov else _user_role(new_count)
-                        bonus_per = role.get("coin_bonus", 0)
-                        if bonus_per > 0:
-                            _add_coins_userdata(c, user["id"], bonus_per * new_sessions)
-                            fresh_coins = c.execute(
-                                "SELECT value FROM user_data WHERE user_id=? AND key='sf_coins'",
-                                (user["id"],)
-                            ).fetchone()
-                            if fresh_coins:
-                                corrections['sf_coins'] = fresh_coins["value"]
-                        c.execute("""
-                            INSERT INTO user_data (user_id, key, value, updated_at)
-                            VALUES (?,?,?,datetime('now','localtime'))
-                            ON CONFLICT(user_id, key) DO UPDATE SET value=excluded.value
-                        """, (user["id"], "sf_role_bonus_sessions", str(new_count)))
-                except Exception:
-                    pass
         c.execute(
             "UPDATE users SET last_seen=datetime('now','localtime') WHERE id=?",
             (user["id"],)
@@ -676,13 +563,6 @@ def admin_list_users():
                 except Exception:
                     pass
 
-            role_override = None
-            override_row = c.execute(
-                "SELECT value FROM user_data WHERE user_id=? AND key='sf_role_override'", (u["id"],)
-            ).fetchone()
-            if override_row and override_row["value"]:
-                role_override = override_row["value"]
-
             result.append({
                 "id":         u["id"],
                 "username":   u["username"],
@@ -691,8 +571,6 @@ def admin_list_users():
                 "last_seen":  u["last_seen"],
                 "coins":      coins,
                 "session_count": session_count,
-                "role":       _role_from_override(role_override) if role_override else _user_role(session_count),
-                "role_override": role_override or "auto",
             })
     return jsonify(result)
 
@@ -725,6 +603,19 @@ def admin_set_coins(uid):
         """, (uid, "sf_coins", json_lib.dumps(coins_data)))
         c.commit()
     return jsonify({"ok": True, "coins": new_coins})
+
+@app.route("/api/admin/users/<int:uid>/reset-pin", methods=["POST"])
+def admin_reset_pin(uid):
+    get_auth_user(required=True, admin=True)
+    with get_db() as c:
+        user = c.execute("SELECT username FROM users WHERE id=?", (uid,)).fetchone()
+        if not user:
+            return jsonify({"error": "Utente non trovato"}), 404
+        if user["username"].lower() == "kiwi07":
+            return jsonify({"error": "Non puoi resettare il PIN dell'admin"}), 403
+        c.execute("UPDATE users SET pin_hash=NULL WHERE id=?", (uid,))
+        c.commit()
+    return jsonify({"ok": True})
 
 @app.route("/api/admin/users/<int:uid>", methods=["DELETE"])
 def admin_delete_user(uid):
@@ -828,14 +719,6 @@ def admin_set_user_data(uid):
             ON CONFLICT(user_id, key)
             DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
         """, (uid, key, value))
-        # Segnala al client che admin ha modificato dati → ricaricherà tutto al prossimo sync
-        if key != 'sf_admin_flag':
-            c.execute("""
-                INSERT INTO user_data (user_id, key, value, updated_at)
-                VALUES (?,?,?,datetime('now','localtime'))
-                ON CONFLICT(user_id, key)
-                DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
-            """, (uid, 'sf_admin_flag', 'dirty'))
         c.commit()
     return jsonify({"ok": True})
 
@@ -1284,7 +1167,7 @@ def export_csv():
 @app.route("/api/friends/invite-bonus", methods=["POST"])
 def friends_invite_bonus():
     """Chiamato una sola volta quando un nuovo utente si registra via link ?ref=USERNAME.
-    Salva il referrer — le 50 monete vengono date all'invitante solo dopo la prima sessione."""
+    Dà 30 monete all'invitante e 30 monete al nuovo utente."""
     me   = get_auth_user(required=True)
     data = request.get_json(silent=True) or {}
     ref_username = (data.get("ref") or "").strip()
@@ -1302,14 +1185,22 @@ def friends_invite_bonus():
         ).fetchone()
         if not inviter:
             return jsonify({"error": "invitante non trovato"}), 404
-        # Salva il referrer in attesa della prima sessione
+        # +30 monete a entrambi
+        _add_coins_userdata(c, me["id"], 30)
+        _add_coins_userdata(c, inviter["id"], 30)
+        # Notifica all'invitante
+        c.execute("""
+            INSERT INTO notifications (user_id, type, message, emoji)
+            VALUES (?, 'invite', ?, '🎉')
+        """, (inviter["id"], f"{me['username']} si è registrato con il tuo invito! +30 🪙"))
+        # Segna bonus usato (anti-exploit)
         c.execute("""
             INSERT INTO user_data (user_id, key, value, updated_at)
             VALUES (?,?,?,datetime('now','localtime'))
             ON CONFLICT(user_id, key) DO UPDATE SET value=excluded.value
-        """, (me["id"], "sf_invite_ref", ref_username))
+        """, (me["id"], "sf_invite_used", "1"))
         c.commit()
-    return jsonify({"ok": True, "pending": True})
+    return jsonify({"ok": True, "coins": 30})
 
 @app.route("/api/notifications", methods=["GET"])
 def notifications_list():
@@ -1360,33 +1251,6 @@ def notifications_read_all():
 # ──────────────────────────────────────────
 # API: ANNUNCI ADMIN
 # ──────────────────────────────────────────
-
-@app.route("/api/notifications/role-up", methods=["POST"])
-def notification_role_up():
-    user = get_auth_user(required=True)
-    data = request.get_json(silent=True) or {}
-    role_key  = (data.get("roleKey") or "").strip()
-    role_name = (data.get("roleName") or role_key).strip()
-    perk      = (data.get("perk") or "").strip()
-    unlock    = (data.get("unlock") or "").strip()
-    if not role_key:
-        return jsonify({"ok": False}), 400
-    ROLE_EMOJIS = {"novizio":"🌱","studente":"📖","applicato":"🎯","determinato":"🔥","studioso":"⭐","esperto":"💎","maestro":"🏆"}
-    emoji = ROLE_EMOJIS.get(role_key, "🎉")
-    msg = f"Hai raggiunto il ruolo {role_name}! {('Sbloccato: ' + unlock) if unlock else perk}"
-    with get_db() as c:
-        # Evita notifiche duplicate per lo stesso ruolo
-        existing = c.execute(
-            "SELECT id FROM notifications WHERE user_id=? AND type='role_up' AND message LIKE ?",
-            (user["id"], f"%{role_name}%")
-        ).fetchone()
-        if not existing:
-            c.execute(
-                "INSERT INTO notifications (user_id, type, message, emoji) VALUES (?, 'role_up', ?, ?)",
-                (user["id"], msg, emoji)
-            )
-            c.commit()
-    return jsonify({"ok": True})
 
 @app.route("/api/admin/notifications/announce", methods=["POST"])
 def admin_announce():
@@ -1503,28 +1367,15 @@ def _user_weekly_minutes(c, uid, week_start):
             pass
     return minutes
 
-_ROLE_MAP = {
-    "novizio":     {"key": "novizio",     "label": "Novizio",     "emoji": "🌱", "level": 0, "color": "#6b7280", "coin_bonus": 0},
-    "studente":    {"key": "studente",    "label": "Studente",    "emoji": "📖", "level": 1, "color": "#3b82f6", "coin_bonus": 2},
-    "applicato":   {"key": "applicato",   "label": "Applicato",   "emoji": "🎯", "level": 2, "color": "#8b5cf6", "coin_bonus": 3},
-    "determinato": {"key": "determinato", "label": "Determinato", "emoji": "🔥", "level": 3, "color": "#f97316", "coin_bonus": 5},
-    "studioso":    {"key": "studioso",    "label": "Studioso",    "emoji": "⭐", "level": 4, "color": "#10b981", "coin_bonus": 8},
-    "esperto":     {"key": "esperto",     "label": "Esperto",     "emoji": "💎", "level": 5, "color": "#06b6d4", "coin_bonus": 12},
-    "maestro":     {"key": "maestro",     "label": "Maestro",     "emoji": "🏆", "level": 6, "color": "#f59e0b", "coin_bonus": 20},
-}
-
-def _role_from_override(key):
-    return _ROLE_MAP.get(key, _ROLE_MAP["novizio"])
-
 def _user_role(sessions):
     s = int(sessions or 0)
-    if s >= 200: return _ROLE_MAP["maestro"]
-    if s >= 100: return _ROLE_MAP["esperto"]
-    if s >= 50:  return _ROLE_MAP["studioso"]
-    if s >= 25:  return _ROLE_MAP["determinato"]
-    if s >= 10:  return _ROLE_MAP["applicato"]
-    if s >= 1:   return _ROLE_MAP["studente"]
-    return _ROLE_MAP["novizio"]
+    if s >= 200: return {"label": "Maestro",     "emoji": "🏆", "level": 6}
+    if s >= 100: return {"label": "Esperto",     "emoji": "💎", "level": 5}
+    if s >= 50:  return {"label": "Studioso",    "emoji": "⭐", "level": 4}
+    if s >= 25:  return {"label": "Determinato", "emoji": "🔥", "level": 3}
+    if s >= 10:  return {"label": "Applicato",   "emoji": "🎯", "level": 2}
+    if s >= 1:   return {"label": "Studente",    "emoji": "📖", "level": 1}
+    return {"label": "Novizio", "emoji": "🌱", "level": 0}
 
 def _get_friend_ids(c, uid):
     fs_rows = c.execute(
@@ -1560,11 +1411,7 @@ def leaderboard():
             try: stats_data = json_lib.loads(stats_row["value"]) if stats_row and stats_row["value"] else {}
             except: pass
             sessions = int(coins_data.get("totalSessions") or stats_data.get("sessions") or 0)
-            override_row = c.execute(
-                "SELECT value FROM user_data WHERE user_id=? AND key='sf_role_override'", (uid,)
-            ).fetchone()
-            role_ov = override_row["value"] if override_row and override_row["value"] not in (None, "auto", "") else None
-            role = _role_from_override(role_ov) if role_ov else _user_role(sessions)
+            role = _user_role(sessions)
             result.append({
                 "user_id":  uid,
                 "username": u2["username"],
@@ -1743,4 +1590,4 @@ def admin_notify_user(uid):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5002))
     print(f"\n  StudyFlow backend avviato su porta {port}!\n")
-    app.run(host="0.0.0.0", port=port, debug=True, use_reloader=True)
+    app.run(host="0.0.0.0", port=port, debug=False)

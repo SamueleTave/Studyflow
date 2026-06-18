@@ -604,6 +604,19 @@ def admin_set_coins(uid):
         c.commit()
     return jsonify({"ok": True, "coins": new_coins})
 
+@app.route("/api/admin/users/<int:uid>/reset-pin", methods=["POST"])
+def admin_reset_pin(uid):
+    get_auth_user(required=True, admin=True)
+    with get_db() as c:
+        user = c.execute("SELECT username FROM users WHERE id=?", (uid,)).fetchone()
+        if not user:
+            return jsonify({"error": "Utente non trovato"}), 404
+        if user["username"].lower() == "kiwi07":
+            return jsonify({"error": "Non puoi resettare il PIN dell'admin"}), 403
+        c.execute("UPDATE users SET pin_hash=NULL WHERE id=?", (uid,))
+        c.commit()
+    return jsonify({"ok": True})
+
 @app.route("/api/admin/users/<int:uid>", methods=["DELETE"])
 def admin_delete_user(uid):
     get_auth_user(required=True, admin=True)
