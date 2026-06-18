@@ -384,7 +384,6 @@ function _initMobileHamburger() {
       'font-family:inherit;z-index:2;transition:background 0.15s;';
     closeBtn.onmouseenter = function(){ this.style.background = 'rgba(0,0,0,0.12)'; };
     closeBtn.onmouseleave = function(){ this.style.background = 'rgba(0,0,0,0.06)'; };
-    sidebar.style.position = 'relative'; // needed for absolute child only when open
     sidebar.appendChild(closeBtn);
 
     /* Chiudi menu quando si clicca un link nella sidebar */
