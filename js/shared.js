@@ -1376,7 +1376,6 @@ function _applyAccentColor(hex, save) {
   document.documentElement.style.setProperty('--accent-rgb', rgb);
   if (save !== false) {
     localStorage.setItem('sf_accent_color', hex);
-    if (typeof syncData === 'function') syncData({ sf_accent_color: hex });
   }
   _syncAccentSwatches(hex);
 }

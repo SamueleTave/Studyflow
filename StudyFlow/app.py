@@ -1269,6 +1269,23 @@ def notifications_read_all():
         c.commit()
     return jsonify({"ok": True})
 
+@app.route("/api/notifications/role-up", methods=["POST"])
+def notification_role_up():
+    me = get_auth_user(required=True)
+    data = request.get_json(silent=True) or {}
+    role_name = str(data.get("roleName", ""))[:60]
+    perk      = str(data.get("perk",     ""))[:120]
+    if not role_name:
+        return jsonify({"ok": True})
+    msg = f"Hai raggiunto il ruolo {role_name}! {perk}".strip()
+    with get_db() as c:
+        c.execute(
+            "INSERT INTO notifications (user_id, type, message, emoji) VALUES (?, 'role_up', ?, '🏅')",
+            (me["id"], msg)
+        )
+        c.commit()
+    return jsonify({"ok": True})
+
 # ──────────────────────────────────────────
 # API: ANNUNCI ADMIN
 # ──────────────────────────────────────────

@@ -331,7 +331,7 @@
 
   async function loadPage() {
     const online = await (async () => {
-      try { const r = await fetch('/api/status', {signal: AbortSignal.timeout(1200)}); return r.ok; }
+      try { const r = await fetch((window.SF_API_BASE||'/api') + '/status', {signal: AbortSignal.timeout(1200)}); return r.ok; }
       catch { return false; }
     })();
 

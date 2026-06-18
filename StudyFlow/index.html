@@ -565,7 +565,7 @@
     try {
       if (typeof loadCoinData === 'function') loadCoinData();
       const owned = (typeof coinData !== 'undefined' && coinData.shop) ? coinData.shop : {};
-      const gardenIds = ['tree','cherryTree','sunflower','mushroom','fountain','bench','rainbow','butterfly','pond','lantern'];
+      const gardenIds = (typeof GARDEN_CATALOG !== 'undefined') ? Object.keys(GARDEN_CATALOG) : ['tree','cherryTree','mushroom','fountain','bench','rainbow','butterfly','pond','lantern'];
       const count = gardenIds.filter(id => owned[id]).length;
       const badge = document.getElementById('garden-badge');
       if (badge) badge.textContent = count;
