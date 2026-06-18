@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/themes.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scrollbar-gutter: stable; }
     body {
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%);
@@ -597,9 +598,18 @@
   </div>
 
   <!-- Banner SQLite warning (nascosto di default, mostrato se db=sqlite) -->
-  <div id="sqlite-warning" style="display:none;background:#ef4444;color:#fff;padding:12px 20px;font-size:0.85rem;font-weight:600;text-align:center;letter-spacing:0.02em">
-    ⚠️ ATTENZIONE: Render sta usando SQLite — tutti i dati vengono cancellati ad ogni deploy/restart!
-    Vai su Render → Environment → aggiungi la variabile DATABASE_URL con la stringa di connessione PostgreSQL.
+  <div id="sqlite-warning" style="display:none;margin:16px 24px 0;border-radius:16px;overflow:hidden;
+    background:linear-gradient(135deg,rgba(255,255,255,0.22),rgba(255,255,255,0.08));
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border:1.5px solid rgba(239,68,68,0.5);
+    box-shadow:0 4px 24px rgba(239,68,68,0.18),inset 0 1px 0 rgba(255,255,255,0.25)">
+    <div style="padding:14px 20px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:1.4rem;flex-shrink:0">⚠️</span>
+      <div>
+        <div style="font-size:0.82rem;font-weight:700;color:#ef4444;letter-spacing:0.02em;margin-bottom:2px">Render sta usando SQLite</div>
+        <div style="font-size:0.76rem;color:var(--text-soft);font-weight:500">Tutti i dati vengono cancellati ad ogni deploy. Vai su Render → Environment → aggiungi <code style="background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:4px;font-size:0.72rem">DATABASE_URL</code> con la connessione PostgreSQL.</div>
+      </div>
+    </div>
   </div>
 
   <!-- Stats -->
@@ -843,7 +853,7 @@
         <td><span class="date-soft">${fmtDate(u.last_seen)}</span></td>
         <td>
           <div class="action-cell">
-            ${!u.is_admin ? `<button class="act-btn act-edit" onclick="openUserEdit(${u.id}, '${u.username}')">✏️ Gestisci</button>` : '<span style="font-size:0.75rem;color:var(--text-soft)">— admin —</span>'}
+            <button class="act-btn act-edit" onclick="openUserEdit(${u.id}, '${u.username}')">✏️ Gestisci</button>
             ${!u.is_admin ? `
               <button class="act-btn" style="background:rgba(99,102,241,0.1);color:#6366f1;border-color:rgba(99,102,241,0.25)" onclick="openSendMessage(${u.id}, '${u.username}')">📩 Messaggio</button>
               <button class="act-btn act-reset" onclick="resetUser(${u.id}, '${u.username}')">↺ Reset</button>
@@ -923,6 +933,7 @@
     document.getElementById('editModalBody').innerHTML =
       '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">Caricamento...</div></div>';
     document.getElementById('editModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
 
     try {
       const r = await apiFetch('/api/admin/users/' + uid + '/data');
@@ -938,6 +949,7 @@
       _editState.friends = Array.isArray(friends) ? [...friends] : [];
       _editState.streak  = parseInt(stats.streak || 0);
       _editState.stats   = stats;
+      _editState.raw     = raw;
 
       _renderEditModal(coins, _editState.friends);
     } catch {
@@ -1122,6 +1134,26 @@
       });
       if (!r1b.ok) throw new Error('sf_stats: HTTP ' + r1b.status);
 
+      /* Sincronizza sf_sessions con il nuovo conteggio — il sistema ruoli legge .length */
+      let existingSessions = [];
+      try { existingSessions = JSON.parse(((_editState.raw || {})['sf_sessions']) || '[]'); } catch {}
+      if (!Array.isArray(existingSessions)) existingSessions = [];
+      const diff = sessions - existingSessions.length;
+      if (diff > 0) {
+        for (let i = 0; i < diff; i++) {
+          existingSessions.push({ id: 'adm_' + Date.now() + '_' + i, mode: 'work', mins: 25, ts: new Date().toISOString() });
+        }
+      } else if (diff < 0) {
+        existingSessions = existingSessions.slice(0, sessions);
+      }
+      if (diff !== 0) {
+        const rSess = await apiFetch('/api/admin/users/' + uid + '/data', {
+          method: 'PUT',
+          body: JSON.stringify({ key: 'sf_sessions', value: JSON.stringify(existingSessions) })
+        });
+        if (!rSess.ok) throw new Error('sf_sessions: HTTP ' + rSess.status);
+      }
+
       /* Salva sf_friends */
       const r2 = await apiFetch('/api/admin/users/' + uid + '/data', {
         method: 'PUT',
@@ -1148,6 +1180,7 @@
 
   function closeEditModal() {
     document.getElementById('editModal').classList.remove('show');
+    document.body.style.overflow = '';
     _editState = { uid: null, username: '', coins: {}, friends: [] };
   }
 

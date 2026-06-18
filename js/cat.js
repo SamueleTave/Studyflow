@@ -255,13 +255,10 @@ function initCat() {
   /* Blink casuale */
   _blinkTmr = setInterval(_blink, 4000 + Math.random() * 4000);
 
-  /* Ripristina colore */
-  if (typeof coinData !== 'undefined' && coinData.shop) {
-    ['catWhite','catBlack','catGrey'].forEach(id => {
-      if (coinData.shop[id] && coinData.activeEffects && coinData.activeEffects.catColor === id) {
-        _applyCatColor(id);
-      }
-    });
+  /* Ripristina colore (qualsiasi sia salvato, incluso catSilver) */
+  if (typeof coinData !== 'undefined' && coinData.activeEffects) {
+    const col = coinData.activeEffects.catColor;
+    if (col && coinData.shop && coinData.shop[col]) _applyCatColor(col);
   }
 }
 
@@ -587,6 +584,7 @@ const CAT_COLORS = {
   catWhite:  { main:'#F5F5F5', shadow:'#DCDCDC', earInner:'#FFB3C6', nose:'#FF8FAB', eye:'#3D5A80' },
   catBlack:  { main:'#2A2A2A', shadow:'#1A1A1A', earInner:'#C2185B', nose:'#EF5350', eye:'#E0E0E0' },
   catGrey:   { main:'#9E9E9E', shadow:'#757575', earInner:'#FFB3C6', nose:'#FF8FAB', eye:'#2C3E50' },
+  catSilver: { main:'#CBD5E1', shadow:'#94A3B8', earInner:'#E0F2FE', nose:'#64748B', eye:'#06b6d4', special: true },
 };
 
 function _applyCatColor(id) {

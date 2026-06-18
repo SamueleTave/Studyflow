@@ -473,6 +473,241 @@ body.focus-mode .focus-exit-btn { display: flex !important; }
 
 /* Responsive */
 @media (max-width: 960px) {
-  .app { grid-template-columns: 1fr; }
+  .app { grid-template-columns: 1fr; z-index: unset; position: static; }
   .clock-quote { display: none; }
+  .app > *:not(aside) { padding-top: 8px; }
+  .clock-bar { padding-left: 62px; }
 }
+
+/* ══════════════════════════════════════
+   ANIMALI — GPU layer forzato sopra backdrop-filter
+═══════════════════════════════════════ */
+.cat-companion, .dog-companion, .fox-companion,
+.rabbit-companion, .parrot-companion, .owl-companion,
+.campfire-wrap, .animal-house {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* ══════════════════════════════════════
+   PENSIERI ANIMALI
+═══════════════════════════════════════ */
+.animal-bubble {
+  position: fixed;
+  right: 130px;
+  bottom: 130px;
+  z-index: 601;
+  background: var(--card);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 16px 16px 16px 4px;
+  padding: 10px 15px;
+  font-size: 0.78rem;
+  color: var(--text);
+  max-width: 200px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px) scale(0.93);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  line-height: 1.45;
+}
+.animal-bubble::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  bottom: 18px;
+  border: 6px solid transparent;
+  border-left-color: var(--card);
+  border-right: none;
+}
+.animal-bubble.ab-show { opacity: 1; transform: translateY(0) scale(1); }
+.animal-bubble.ab-hide { opacity: 0; transform: translateY(-8px) scale(0.93); }
+
+/* ══════════════════════════════════════
+   CHECK-IN COMPRENSIONE
+═══════════════════════════════════════ */
+.checkin-compreh-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 10px 0 6px;
+  text-align: center;
+}
+.checkin-compreh { display: flex; gap: 5px; margin-bottom: 10px; }
+.compreh-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 7px 2px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: inherit;
+}
+.compreh-btn span { font-size: 0.55rem; font-weight: 600; }
+.compreh-btn:hover { background: rgba(255,255,255,0.1); }
+.compreh-btn.selected { border-color: var(--accent); background: rgba(255,255,255,0.14); color: var(--text); }
+
+/* ══════════════════════════════════════
+   MATERIE PRESET
+═══════════════════════════════════════ */
+.subj-presets-label {
+  font-size: 0.67rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 4px 0 7px;
+}
+.subj-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.subj-preset-pill {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--c, currentColor);
+  background: transparent;
+  color: var(--c, var(--text));
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.subj-preset-pill:hover { background: var(--c, var(--accent)); color: #fff; }
+
+/* ══════════════════════════════════════
+   SOCIAL PRESENZA
+═══════════════════════════════════════ */
+.presence-section {
+  padding: 8px 10px 6px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  margin: 0 2px;
+}
+.presence-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 5px;
+}
+.presence-count { font-size: 0.67rem; color: var(--accent); font-weight: 600; margin-bottom: 3px; }
+.presence-empty { font-size: 0.65rem; color: var(--text-soft); }
+.presence-user  { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.presence-dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.presence-dot.studying { background: #4CAF50; box-shadow: 0 0 5px rgba(76,175,80,0.6); }
+.presence-dot.idle     { background: #FF9800; }
+.presence-name  { font-size: 0.68rem; color: var(--text); }
+
+/* ══════════════════════════════════════
+   AURORA BOREALE — Effetto Esperto
+══════════════════════════════════════ */
+@keyframes aurora-wave-1 {
+  0%   { transform: translateX(-20%) scaleX(1.4) skewX(-12deg); opacity: 0.72; }
+  30%  { transform: translateX(10%)  scaleX(1.1) skewX(8deg);   opacity: 0.90; }
+  60%  { transform: translateX(-8%)  scaleX(1.3) skewX(-6deg);  opacity: 0.78; }
+  100% { transform: translateX(-20%) scaleX(1.4) skewX(-12deg); opacity: 0.72; }
+}
+@keyframes aurora-wave-2 {
+  0%   { transform: translateX(15%)  scaleX(1.2) skewX(10deg);  opacity: 0.65; }
+  40%  { transform: translateX(-12%) scaleX(1.5) skewX(-8deg);  opacity: 0.85; }
+  75%  { transform: translateX(5%)   scaleX(1.1) skewX(4deg);   opacity: 0.70; }
+  100% { transform: translateX(15%)  scaleX(1.2) skewX(10deg);  opacity: 0.65; }
+}
+@keyframes aurora-wave-3 {
+  0%   { transform: translateX(-5%)  scaleX(1.3) skewX(6deg);   opacity: 0.55; }
+  50%  { transform: translateX(18%)  scaleX(1.0) skewX(-10deg); opacity: 0.75; }
+  100% { transform: translateX(-5%)  scaleX(1.3) skewX(6deg);   opacity: 0.55; }
+}
+@keyframes aurora-wave-4 {
+  0%   { transform: translateX(8%)   scaleX(1.5) skewX(-5deg);  opacity: 0.50; }
+  45%  { transform: translateX(-15%) scaleX(1.2) skewX(12deg);  opacity: 0.68; }
+  100% { transform: translateX(8%)   scaleX(1.5) skewX(-5deg);  opacity: 0.50; }
+}
+@keyframes aurora-flicker {
+  0%,100% { opacity: 1;   }
+  20%      { opacity: 0.82; }
+  40%      { opacity: 0.95; }
+  60%      { opacity: 0.78; }
+  80%      { opacity: 0.90; }
+}
+
+#sf-aurora {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  animation: aurora-flicker 7s ease-in-out infinite;
+}
+#sf-aurora .ab {
+  position: absolute;
+  left: -30%;
+  width: 160%;
+  border-radius: 50%;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+#sf-aurora .ab-1 {
+  top: 5%;
+  height: 38%;
+  background: radial-gradient(ellipse at 50% 100%,
+    rgba(0,255,160,0.70) 0%,
+    rgba(0,220,130,0.50) 30%,
+    rgba(0,180,200,0.25) 60%,
+    transparent 100%);
+  animation: aurora-wave-1 11s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+#sf-aurora .ab-2 {
+  top: 18%;
+  height: 45%;
+  background: radial-gradient(ellipse at 45% 100%,
+    rgba(100,0,255,0.55) 0%,
+    rgba(120,60,255,0.38) 35%,
+    rgba(60,0,200,0.18)  65%,
+    transparent 100%);
+  animation: aurora-wave-2 15s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+#sf-aurora .ab-3 {
+  top: 0%;
+  height: 55%;
+  background: radial-gradient(ellipse at 60% 100%,
+    rgba(0,230,255,0.60) 0%,
+    rgba(0,180,240,0.38) 35%,
+    rgba(0,100,200,0.15) 65%,
+    transparent 100%);
+  animation: aurora-wave-3 19s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+#sf-aurora .ab-4 {
+  top: 8%;
+  height: 42%;
+  background: radial-gradient(ellipse at 38% 100%,
+    rgba(120,255,180,0.45) 0%,
+    rgba(60,200,255,0.28)  40%,
+    rgba(160,0,255,0.12)   70%,
+    transparent 100%);
+  animation: aurora-wave-4 23s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+/* Scintille coniglio arancione */
+@keyframes rabbit-sparkle {
+  0%,100% { box-shadow: none; }
+  50%      { filter: drop-shadow(0 0 8px #F97316) drop-shadow(0 0 16px #FDB975); }
+}
+.rabbit-special {
+  animation: rabbit-sparkle 2.4s ease-in-out infinite !important;
+}
+
+/* Shop card con posizione relativa (per overlay ruolo) */
+.shop-card { position: relative; overflow: hidden; }

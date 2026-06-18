@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Statistiche — StudyFlow</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/themes.css">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/sidebar.css">
-  <link rel="stylesheet" href="css/calendar.css">
-  <link rel="stylesheet" href="css/stats.css">
-  <link rel="stylesheet" href="css/shop.css">
+  <link rel="stylesheet" href="css/themes.css?v=3">
+  <link rel="stylesheet" href="css/base.css?v=3">
+  <link rel="stylesheet" href="css/sidebar.css?v=3">
+  <link rel="stylesheet" href="css/calendar.css?v=3">
+  <link rel="stylesheet" href="css/stats.css?v=3">
+  <link rel="stylesheet" href="css/shop.css?v=3">
 </head>
 <body>
 
@@ -85,10 +85,6 @@
           <div class="tdot" data-t="sakura"></div>
         </div>
       </div>
-      <div style="padding:4px 10px;display:flex;align-items:center;gap:8px">
-        <div id="backend-dot" style="width:8px;height:8px;border-radius:50%;background:#BDBDBD;flex-shrink:0"></div>
-        <span style="font-size:0.65rem;color:var(--text-soft)">Backend</span>
-      </div>
     </div>
   </aside>
 
@@ -116,8 +112,7 @@
 
     <!-- OFFLINE NOTICE -->
     <div class="offline-notice" id="offline-notice">
-      Backend non attivo. Avvia <code>python3 app.py</code> per le statistiche complete.
-      Le statistiche mostrate usano i dati del browser (localStorage).
+      Connessione al server in corso... Le statistiche potrebbero essere incomplete.
     </div>
 
     <!-- STAT CARDS -->
@@ -292,7 +287,7 @@
 </div>
 
 <!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js?v=3"></script>
 <!-- Feather icons -->
 <script>
   /* Guard login sincrono */
@@ -300,18 +295,18 @@
 </script>
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 
-<script src="js/config.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/shared.js"></script>
-<script src="js/api.js"></script>
-<script src="js/coins.js"></script>
-<script src="js/cat.js"></script>
-<script src="js/companions.js"></script>
-<script src="js/rabbit.js"></script>
-<script src="js/parrot.js"></script>
-<script src="js/fox.js"></script>
-<script src="js/owl.js"></script>
-<script src="js/lion.js"></script>
+<script src="js/config.js?v=3"></script>
+<script src="js/auth.js?v=3"></script>
+<script src="js/shared.js?v=3"></script>
+<script src="js/api.js?v=3"></script>
+<script src="js/coins.js?v=3"></script>
+<script src="js/cat.js?v=3"></script>
+<script src="js/companions.js?v=3"></script>
+<script src="js/rabbit.js?v=3"></script>
+<script src="js/parrot.js?v=3"></script>
+<script src="js/fox.js?v=3"></script>
+<script src="js/owl.js?v=3"></script>
+<script src="js/lion.js?v=3"></script>
 <script>
   /* ── Init ── */
   initShared();

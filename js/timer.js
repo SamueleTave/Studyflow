@@ -204,6 +204,7 @@ function toggleTimer() {
     if (typeof syncOwlToTimer    === 'function') syncOwlToTimer(false);
     if (typeof syncHydroToTimer  === 'function') syncHydroToTimer(false, timerMode);
     if (typeof setPresenceStudying === 'function') setPresenceStudying(false);
+    _saveTimer();
   } else {
     isRunning = true;
     _setRunningStyle(true);
@@ -308,6 +309,8 @@ function _onEnd(silent) {
       updateChallengeProgress('sessionsToday', stats.sessions);
       updateChallengeProgress('minutesToday', stats.minutes);
     }
+    /* Aggiorna progresso sfide amici (friend challenges nel DB) */
+    _updateFriendChallengesProgress(cfg.work);
     if (typeof checkAchievements === 'function') checkAchievements();
     if (typeof setCatState    === 'function') setCatState('happy');
     if (typeof setDogState    === 'function') setDogState('happy');
@@ -391,4 +394,25 @@ function onSettingsClosed() {
     for (let i = 0; i < cfg.goal; i++) h += '<span class="sdot"></span>';
     _dots.innerHTML = h;
   }
+}
+
+/* Aggiorna il progresso di tutte le sfide amici attive dopo una sessione */
+async function _updateFriendChallengesProgress(sessionMins) {
+  const auth = (typeof _getAuth === 'function') ? _getAuth() : null;
+  if (!auth || !auth.token) return;
+  const api = (typeof window.SF_API_BASE !== 'undefined') ? window.SF_API_BASE : '/api';
+  try {
+    const r = await fetch(api + '/challenges', { headers: { 'Authorization': 'Bearer ' + auth.token } });
+    if (!r.ok) return;
+    const challenges = await r.json();
+    const active = challenges.filter(ch => !ch.my_completed && ch.am_member);
+    for (const ch of active) {
+      const newMins = (ch.my_minutes || 0) + sessionMins;
+      await fetch(api + '/challenges/' + ch.id + '/progress', {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + auth.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ minutes: newMins })
+      });
+    }
+  } catch {}
 }

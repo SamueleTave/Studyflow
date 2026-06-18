@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyFlow ✨</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Orbitron:wght@400;700&family=Bebas+Neue&family=Playfair+Display:wght@700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/themes.css">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/sidebar.css">
-  <link rel="stylesheet" href="css/timer.css">
-  <link rel="stylesheet" href="css/tasks.css">
-  <link rel="stylesheet" href="css/calendar.css">
-  <link rel="stylesheet" href="css/shop.css">
-  <link rel="stylesheet" href="css/garden.css">
+  <link rel="stylesheet" href="css/themes.css?v=3">
+  <link rel="stylesheet" href="css/base.css?v=3">
+  <link rel="stylesheet" href="css/sidebar.css?v=3">
+  <link rel="stylesheet" href="css/timer.css?v=3">
+  <link rel="stylesheet" href="css/tasks.css?v=3">
+  <link rel="stylesheet" href="css/calendar.css?v=3">
+  <link rel="stylesheet" href="css/shop.css?v=3">
+  <link rel="stylesheet" href="css/garden.css?v=3">
 </head>
 <body>
 
@@ -87,10 +87,6 @@
           <div class="tdot" data-t="sakura"></div>
         </div>
       </div>
-      <div style="padding:4px 10px;display:flex;align-items:center;gap:8px">
-        <div id="backend-dot" style="width:8px;height:8px;border-radius:50%;background:#BDBDBD;flex-shrink:0"></div>
-        <span style="font-size:0.65rem;color:var(--text-soft)">Backend</span>
-      </div>
     </div>
   </aside>
 
@@ -113,8 +109,8 @@
           <span class="stat-pill-val"   id="pill-minutes">0m</span>
           <span class="stat-pill-label">Oggi</span>
         </div>
-        <div class="level-pill" id="level-pill" title="Livello studio di oggi">
-          <span class="level-icon" id="level-icon">📚</span>
+        <div class="level-pill" id="level-pill" title="Il tuo ruolo — clicca per dettagli" onclick="openRolePanel()">
+          <span class="level-icon" id="level-icon">🌱</span>
           <span class="level-name" id="level-name">Novizio</span>
         </div>
         <div class="coin-chip">
@@ -365,7 +361,7 @@
       <span>✦ Personalizza Pagina</span>
       <button class="widget-picker-close" onclick="closeWidgetPicker()">✕</button>
     </div>
-    <p class="widget-picker-sub">Scegli i widget da mostrare. Alcuni si sbloccano con le monete 🪙</p>
+    <p class="widget-picker-sub">Scegli i widget da mostrare. Alcuni si sbloccano con le monete <svg width="13" height="13" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg></p>
     <div class="widget-picker-list" id="widget-picker-list"></div>
   </div>
 </div>
@@ -374,9 +370,12 @@
 <div class="overlay" id="settingsModal" onclick="overlayClick(event)">
   <div class="modal">
     <div class="modal-hdr">
-      Impostazioni Timer
+      ⚙️ Impostazioni
       <button class="modal-close" onclick="closeSettings()">&#10005;</button>
     </div>
+
+    <!-- Sezione Timer -->
+    <div class="s-section-label">⏱ Timer</div>
     <div class="s-row">
       <div><div class="s-label">Tempo di Lavoro</div><div class="s-sub">minuti</div></div>
       <div class="num-ctrl">
@@ -402,31 +401,51 @@
       </div>
     </div>
     <div class="s-row">
-      <div><div class="s-label">Sessioni per Pausa Lunga</div></div>
+      <div><div class="s-label">Sessioni × Pausa Lunga</div></div>
       <div class="num-ctrl">
         <button class="num-btn" onclick="changeSetting('goal',-1)">&#8722;</button>
         <div class="num-val" id="sv-goal">4</div>
         <button class="num-btn" onclick="changeSetting('goal',1)">+</button>
       </div>
     </div>
+
+    <!-- Sezione Automazione -->
+    <div class="s-section-label" style="margin-top:8px">🤖 Automazione</div>
     <div class="s-row">
-      <div><div class="s-label">Auto-avvio Pausa</div><div class="s-sub">inizia la pausa automaticamente</div></div>
+      <div><div class="s-label">Auto-avvio Pausa</div><div class="s-sub">pausa parte in automatico</div></div>
       <button class="toggle" id="tog-autoBreak" onclick="toggleSetting('autoBreak')"></button>
     </div>
     <div class="s-row">
-      <div><div class="s-label">Auto-avvio Lavoro</div><div class="s-sub">riprendi il lavoro automaticamente</div></div>
+      <div><div class="s-label">Auto-avvio Lavoro</div><div class="s-sub">timer riparte in automatico</div></div>
       <button class="toggle" id="tog-autoWork" onclick="toggleSetting('autoWork')"></button>
     </div>
     <div class="s-row">
-      <div><div class="s-label">Suono al termine</div></div>
+      <div><div class="s-label">Suono al termine</div><div class="s-sub">notifica sonora fine sessione</div></div>
       <button class="toggle on" id="tog-sound" onclick="toggleSetting('sound')"></button>
     </div>
-    <div class="s-row" style="border-top:1px solid var(--card-border);margin-top:6px;padding-top:14px">
+
+    <!-- Sezione Widget -->
+    <div class="s-section-label" style="margin-top:8px">🧩 Widget</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:4px">
+      <div id="settings-widget-list"></div>
+      <button onclick="openWidgetPicker();closeSettings()" style="margin-top:4px;padding:8px;border-radius:10px;border:1.5px dashed var(--card-border);background:none;cursor:pointer;font-size:0.8rem;color:var(--accent);font-family:Poppins,sans-serif;font-weight:600;width:100%;transition:background 0.15s" onmouseover="this.style.background='rgba(var(--accent-rgb,99,102,241),0.07)'" onmouseout="this.style.background='none'">+ Aggiungi widget</button>
+    </div>
+
+    <!-- Sezione Colore -->
+    <div class="s-section-label" style="margin-top:8px">🎨 Colore Accent</div>
+    <div class="s-row" style="border-bottom:none;padding:10px 0">
+      <div class="s-sub">Personalizza il colore principale</div>
+      <div id="accent-swatches" style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end"></div>
+    </div>
+
+    <!-- Sezione Account -->
+    <div class="s-section-label" style="margin-top:8px">👤 Account</div>
+    <div class="s-row">
       <div>
-        <div class="s-label">Account</div>
-        <div class="s-sub" id="settings-user-label" style="margin-top:2px">—</div>
+        <div class="s-label" id="settings-user-label">—</div>
+        <div class="s-sub">utente collegato</div>
       </div>
-      <button onclick="logout()" style="padding:8px 18px;border-radius:10px;border:1.5px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);color:#dc2626;font-family:Poppins,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">Esci</button>
+      <button onclick="logout()" style="padding:8px 18px;border-radius:10px;border:1.5px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);color:#dc2626;font-family:Poppins,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.15s" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">Esci</button>
     </div>
   </div>
 </div>
@@ -449,7 +468,7 @@
   <div class="nav-guard-box">
     <div class="nav-guard-icon">💪</div>
     <div class="nav-guard-title">Sei sicuro?</div>
-    <p class="nav-guard-text">Stai ancora lavorando! Se passi alla pausa adesso il timer verrà <strong>azzerato</strong>.<br><span style="opacity:.7;font-size:.8em">Finisci la sessione per guadagnare le tue monete! 🪙</span></p>
+    <p class="nav-guard-text">Stai ancora lavorando! Se passi alla pausa adesso il timer verrà <strong>azzerato</strong>.<br><span style="opacity:.7;font-size:.8em">Finisci la sessione per guadagnare le tue monete! <svg width="12" height="12" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg></span></p>
     <div class="nav-guard-btns">
       <button class="nav-guard-stay"  onclick="_closeModeGuard()">Continua a lavorare</button>
       <button class="nav-guard-leave" onclick="_confirmModeSwitch()">Vai in pausa</button>
@@ -458,27 +477,28 @@
 </div>
 
 <script>
+  
   /* Guard login sincrono */
   (function(){var a=JSON.parse(sessionStorage.getItem('sf_auth')||'null');if(!a||!a.token)location.replace('login.html');})();
 </script>
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
-<script src="js/config.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/shared.js"></script>
-<script src="js/api.js"></script>
-<script src="js/coins.js"></script>
-<script src="js/garden.js"></script>
-<script src="js/cat.js"></script>
-<script src="js/companions.js"></script>
-<script src="js/rabbit.js"></script>
-<script src="js/parrot.js"></script>
-<script src="js/fox.js"></script>
-<script src="js/owl.js"></script>
-<script src="js/lion.js"></script>
-<script src="js/widgets.js"></script>
-<script src="js/timer.js"></script>
-<script src="js/tasks.js"></script>
-<script src="js/calendar.js"></script>
+<script src="js/config.js?v=3"></script>
+<script src="js/auth.js?v=3"></script>
+<script src="js/shared.js?v=3"></script>
+<script src="js/api.js?v=3"></script>
+<script src="js/coins.js?v=3"></script>
+<script src="js/garden.js?v=3"></script>
+<script src="js/cat.js?v=3"></script>
+<script src="js/companions.js?v=3"></script>
+<script src="js/rabbit.js?v=3"></script>
+<script src="js/parrot.js?v=3"></script>
+<script src="js/fox.js?v=3"></script>
+<script src="js/owl.js?v=3"></script>
+<script src="js/lion.js?v=3"></script>
+<script src="js/widgets.js?v=3"></script>
+<script src="js/timer.js?v=3"></script>
+<script src="js/tasks.js?v=3"></script>
+<script src="js/calendar.js?v=3"></script>
 <script>
   initShared();
   initCoins();
@@ -486,6 +506,11 @@
   initGarden();
   initCat();
   initDog();
+  initRabbit();
+  initParrot();
+  initFox();
+  initOwl();
+  initLion();
   initCampfire();
   initTimer();
   initCalendar();
@@ -627,7 +652,7 @@
     const coinsEl = document.getElementById('scb-coins');
     if (coinsEl && typeof coinData !== 'undefined') {
       const c = Math.max(3, Math.round(15 * (typeof cfg !== 'undefined' ? cfg.work : 25) / 25));
-      coinsEl.textContent = '+' + c + ' monete 🪙';
+      coinsEl.innerHTML = '+' + c + ' monete <svg width="13" height="13" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>';
     }
     modal.classList.add('active');
     if (inp) setTimeout(() => inp.focus(), 100);
@@ -953,6 +978,123 @@
     _refreshSpTiles();
   }
   initStyles();
+</script>
+
+<!-- ROLE PANEL -->
+<div id="role-panel-overlay" onclick="if(event.target===this)closeRolePanel()"
+  style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.3);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px">
+  <div id="role-panel-box" style="background:var(--card);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);border:1px solid var(--card-border);border-radius:26px;box-shadow:0 24px 60px rgba(0,0,0,0.18);padding:28px 26px;max-width:440px;width:100%;position:relative;max-height:85vh;overflow-y:auto">
+    <button onclick="closeRolePanel()" style="position:absolute;top:16px;right:16px;background:rgba(0,0,0,0.06);border:none;border-radius:10px;width:32px;height:32px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:var(--text-soft)">✕</button>
+    <div id="role-panel-content"></div>
+  </div>
+</div>
+
+<script>
+function openRolePanel() {
+  const overlay = document.getElementById('role-panel-overlay');
+  overlay.style.display = 'flex';
+  _renderRolePanel();
+}
+function closeRolePanel() {
+  document.getElementById('role-panel-overlay').style.display = 'none';
+}
+function _renderRolePanel() {
+  let sessionCount = 0;
+  try { const s = JSON.parse(localStorage.getItem('sf_sessions')||'[]'); sessionCount = s.length; } catch {}
+
+  const roles = typeof SF_ROLES !== 'undefined' ? SF_ROLES : [];
+  const _ov = localStorage.getItem('sf_role_override');
+  const hasOverride = _ov && _ov !== 'auto' && _ov !== '';
+  const current = hasOverride
+    ? (roles.find(r => r.key === _ov) || roles.reduce((r,x) => sessionCount>=x.min?x:r, roles[0]||{}))
+    : roles.reduce((r, x) => sessionCount >= x.min ? x : r, roles[0] || {});
+  const currentIdx = roles.indexOf(current);
+
+  // Per override: sblocca tutti i ruoli fino al ruolo corrente
+  const isUnlocked = r => hasOverride ? roles.indexOf(r) <= currentIdx : sessionCount >= r.min;
+
+  const nextRole = roles.find(r => !isUnlocked(r));
+  const prevSessions = nextRole ? current.min : 0;
+  const pct = nextRole ? Math.min(100, Math.round(((sessionCount - prevSessions) / (nextRole.min - prevSessions)) * 100)) : 100;
+
+  // Hero card con gradiente del ruolo corrente
+  const heroGrad = current.grad ? current.grad : [current.color, current.color];
+  const heroHTML = `<div style="border-radius:20px;padding:22px 20px;margin-bottom:18px;
+    background:linear-gradient(135deg,${heroGrad[0]}22,${heroGrad[1]}44);
+    border:1.5px solid ${current.color}44;text-align:center;position:relative;overflow:hidden">
+    <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;
+      background:radial-gradient(circle,${current.color}22,transparent);pointer-events:none"></div>
+    <div style="font-size:3.2rem;line-height:1;filter:drop-shadow(0 4px 12px ${current.color}55)">${current.emoji}</div>
+    <div style="font-size:1.3rem;font-weight:900;color:${current.color};margin-top:8px;letter-spacing:-0.01em">${current.name}</div>
+    ${current.coinBonus > 0
+      ? `<div style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:4px 12px;
+          border-radius:20px;background:${current.color}22;border:1px solid ${current.color}44;
+          font-size:0.75rem;font-weight:700;color:${current.color}">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="${current.color}"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="${heroGrad[0]}"/></svg>
+          +${current.coinBonus} monete per sessione
+        </div>`
+      : ''}
+    <div style="font-size:0.75rem;color:#6b7280;margin-top:6px">${sessionCount} sessioni completate</div>
+  </div>`;
+
+  // Barra progresso verso prossimo ruolo
+  let progressHTML = '';
+  if (nextRole) {
+    progressHTML = `<div style="margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#6b7280;margin-bottom:6px">
+        <span>${sessionCount} sessioni</span>
+        <span>${nextRole.emoji} ${nextRole.name} — ${nextRole.min} sessioni</span>
+      </div>
+      <div style="height:7px;border-radius:8px;background:rgba(0,0,0,0.08);overflow:hidden">
+        <div style="height:100%;width:${pct}%;border-radius:8px;
+          background:linear-gradient(90deg,${current.color},${nextRole.color});
+          transition:width 0.6s cubic-bezier(0.32,0.72,0,1)"></div>
+      </div>
+    </div>`;
+  } else {
+    progressHTML = `<div style="margin-bottom:18px;text-align:center;font-size:0.78rem;font-weight:700;
+      color:${current.color}">🏆 Livello massimo raggiunto!</div>`;
+  }
+
+  // Lista ruoli
+  const rolesHTML = roles.map(r => {
+    const unlocked = isUnlocked(r);
+    const isCurrent = r.key === current.key;
+    const rGrad = r.grad || [r.color, r.color];
+    const perksChips = (r.perks || [r.perk]).map(p =>
+      `<span style="display:inline-block;margin:2px 3px 2px 0;padding:2px 8px;
+        border-radius:8px;font-size:0.65rem;font-weight:600;
+        background:${unlocked ? r.color+'20' : 'rgba(0,0,0,0.06)'};
+        color:${unlocked ? r.color : '#6b7280'};
+        border:1px solid ${unlocked ? r.color+'44' : 'rgba(0,0,0,0.1)'}">${p}</span>`
+    ).join('');
+    return `<div style="display:flex;align-items:flex-start;gap:12px;padding:13px 14px;border-radius:16px;
+      background:${isCurrent
+        ? `linear-gradient(135deg,${rGrad[0]}22,${rGrad[1]}33)`
+        : unlocked ? `${r.color}10` : 'rgba(0,0,0,0.04)'};
+      border:1.5px solid ${isCurrent ? r.color+'66' : unlocked ? r.color+'33' : 'rgba(0,0,0,0.08)'};
+      margin-bottom:7px;
+      box-shadow:${isCurrent ? `0 4px 16px ${r.color}22` : 'none'};
+      transition:all 0.2s">
+      <div style="font-size:1.5rem;width:32px;text-align:center;line-height:1;padding-top:2px;
+        filter:${unlocked ? 'none' : 'grayscale(0.5) opacity(0.6)'}">${r.emoji}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+          <span style="font-weight:800;font-size:0.88rem;color:${isCurrent ? r.color : unlocked ? '#1f2937' : '#6b7280'}">${r.name}</span>
+          ${isCurrent ? `<span style="font-size:0.6rem;background:${r.color};color:#fff;border-radius:6px;padding:1px 7px;font-weight:700;letter-spacing:0.03em">TU</span>` : ''}
+          ${!unlocked ? `<span style="font-size:0.62rem;color:#9ca3af;font-weight:600">🔒 ${r.min} sessioni</span>` : r.coinBonus > 0 ? `<span style="font-size:0.62rem;color:${r.color};font-weight:700">+${r.coinBonus}🪙</span>` : ''}
+        </div>
+        <div>${perksChips}</div>
+      </div>
+      <span style="font-size:0.85rem;padding-top:2px">${unlocked ? (isCurrent ? '✅' : '✓') : ''}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('role-panel-content').innerHTML =
+    heroHTML + progressHTML +
+    `<div style="font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9ca3af;margin-bottom:10px">Progressione ruoli</div>` +
+    rolesHTML;
+}
 </script>
 </body>
 </html>

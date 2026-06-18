@@ -9,7 +9,7 @@ const _SF_SYNC_KEYS = [
   'sf_sessions','sf_events','sf_daily_deal','sf_moods',
   'sf_cfg','sf_tasks','sf_theme','sf_subjects','sf_notes','sf_friends',
   'sf_checkins','sf_work_label','sf_accent','sf_cs','sf_td','sf_ts','sf_work_dur',
-  'sf_countdown','sf_flash','sf_spotify'
+  'sf_countdown','sf_flash','sf_spotify','sf_role_override'
 ];
 
 /* ── Lettura auth ── */
@@ -64,13 +64,13 @@ async function syncToServer() {
       const res = await r.json();
       /* Il server può rimandare correzioni (es. balance ripristinato dall'admin).
          Le scriviamo in localStorage senza triggerare un altro sync. */
-      if (res.corrections && typeof res.corrections === 'object') {
+      if (res.corrections && typeof res.corrections === 'object' && Object.keys(res.corrections).length) {
         _sfSyncSuppressed = true;
         Object.entries(res.corrections).forEach(([k, v]) => {
           if (_SF_SYNC_KEYS.includes(k)) _sfOrigSetItem(k, v);
         });
         _sfSyncSuppressed = false;
-        if (typeof initCoins === 'function') initCoins();
+        _sfReinitAll();
       }
     }
   } catch {}
@@ -89,17 +89,45 @@ async function loadFromServer() {
     });
     if (!r.ok) { if (r.status === 401) logout(); return false; }
     const data = await r.json();
-    const isFirstLoad = !sessionStorage.getItem('sf_session_loaded');
+    // Se admin ha modificato i dati (flag dirty), forza reload completo ignorando la cache
+    const adminDirty = data['sf_admin_flag'] === 'dirty';
+    const isFirstLoad = !sessionStorage.getItem('sf_session_loaded') || adminDirty;
     _SF_SYNC_KEYS.forEach(k => {
-      /* Prima pagina della sessione: sovrascrive sempre (server è fonte di verità).
-         Pagine successive: ripristina solo le chiavi assenti in localStorage. */
-      if (data[k] != null && (isFirstLoad || localStorage.getItem(k) == null)) {
-        _sfOrigSetItem(k, data[k]);
+      if (data[k] == null) return;
+      const localVal = localStorage.getItem(k);
+      if (!isFirstLoad && localVal != null) return;
+      // sf_timer e sf_garden sono real-time: il dato locale è sempre più fresco del server
+      if ((k === 'sf_timer' || k === 'sf_garden') && localVal != null) return;
+      // Per sf_coins: merge intelligente — acquisti locali vincono, activeEffects locali vincono, balance dal server
+      if (k === 'sf_coins' && localVal) {
+        try {
+          const local  = JSON.parse(localVal);
+          const server = JSON.parse(data[k]);
+          const merged = Object.assign({}, server, {
+            shop:          Object.assign({}, server.shop  || {}, local.shop  || {}),
+            activeEffects: Object.assign({}, server.activeEffects || {}, local.activeEffects || {}),
+          });
+          if (server._adminTs) merged._adminTs = server._adminTs;
+          _sfOrigSetItem(k, JSON.stringify(merged));
+          return;
+        } catch {}
       }
+      _sfOrigSetItem(k, data[k]);
     });
     if (isFirstLoad) sessionStorage.setItem('sf_session_loaded', '1');
+    // Se era dirty (admin aveva modificato), reinizializza tutta la UI su questa pagina
+    if (adminDirty) _sfReinitAll();
     return true;
   } catch { return false; }
+}
+
+function _sfReinitAll() {
+  if (typeof initCoins       === 'function') initCoins();
+  if (typeof initWidgets     === 'function') initWidgets();
+  if (typeof updateLevelPill === 'function') updateLevelPill();
+  if (typeof initTheme       === 'function') initTheme();
+  if (typeof renderShop      === 'function') renderShop();
+  if (typeof renderDailyDeal === 'function') renderDailyDeal();
 }
 
 /* ── Auto-sync debounced su ogni setItem sf_ ── */

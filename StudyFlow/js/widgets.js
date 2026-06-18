@@ -112,7 +112,7 @@ function _renderOrderedDynamicWidgets() {
   const col = document.getElementById('widget-column');
   if (!col) return;
 
-  const dynamicIds = ['quote', 'focusgoal', 'music', 'stats', 'mood', 'postit', 'countdown', 'flash', 'spotify', 'taskrandom', 'calc'];
+  const dynamicIds = ['quote', 'focusgoal', 'music', 'stats', 'mood', 'postit', 'countdown', 'flash', 'taskrandom', 'calc'];
 
   dynamicIds.forEach(id => {
     const inOrder    = _wState.order.includes(id);
@@ -204,7 +204,7 @@ function _refreshPickerList() {
         <span class="wpl-icon">${w.icon}</span>
         <div class="wpl-info"><div class="wpl-label">${w.label}</div><div class="wpl-sub">Premium</div></div>
         <button class="wpl-buy ${balance >= w.price ? '' : 'wpl-poor'}"
-          onclick="unlockWidget('${w.id}',${w.price})">🪙 ${w.price}</button>
+          onclick="unlockWidget('${w.id}',${w.price})"><svg width="12" height="12" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg> ${w.price}</button>
       </div>`;
     }
 
@@ -345,7 +345,7 @@ function _statsHTML() {
       <div class="wst-cell"><div class="wst-v">${s.sessions || 0}</div><div class="wst-l">Sessioni</div></div>
       <div class="wst-cell"><div class="wst-v">${Math.round((s.minutes || 0) / 60)}h</div><div class="wst-l">Totale</div></div>
       <div class="wst-cell"><div class="wst-v">${s.streak || 0}🔥</div><div class="wst-l">Streak</div></div>
-      <div class="wst-cell"><div class="wst-v">${s.coins || 0}🪙</div><div class="wst-l">Monete</div></div>
+      <div class="wst-cell"><div class="wst-v">${s.coins || 0}<svg width="12" height="12" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle;margin-left:2px"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg></div><div class="wst-l">Monete</div></div>
     </div>`;
 }
 function _refreshStats() {
@@ -645,7 +645,7 @@ function _initFlash() {
   const skipEl = document.getElementById('wfl-skip');
   if (textEl) textEl.textContent = _FLASH_CHALLENGES[idx].t;
   if (data.done) {
-    if (btnEl)  { btnEl.textContent = '✅ Fatto! +3 🪙'; btnEl.classList.add('wfl-done'); }
+    if (btnEl)  { btnEl.textContent = '✅ Fatto! +3'; btnEl.classList.add('wfl-done'); }
     if (skipEl) skipEl.style.display = 'none';
   } else {
     if (btnEl)  { btnEl.textContent = 'Completa ✓'; btnEl.classList.remove('wfl-done'); }
@@ -978,7 +978,7 @@ function shuffleRandomTask() {
 function completeRandomTask(btn, id) {
   /* Feedback visivo immediato */
   if (btn) {
-    btn.textContent = '✓ Completata! +5🪙';
+    btn.textContent = '✓ Completata! +5';
     btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
     btn.style.transform  = 'scale(0.97)';
     btn.disabled = true;

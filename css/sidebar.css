@@ -300,24 +300,112 @@
 .accent-swatch.active { border-color: var(--text); transform: scale(1.1); }
 
 /* Responsive */
+/* ── Hamburger button (mobile only) ── */
+#sf-hamburger {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 16px;
+  z-index: 700;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: none;
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10), 0 0 0 1px rgba(255,255,255,0.6) inset;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 11px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+#sf-hamburger:active { transform: scale(0.93); }
+
+.hb-line {
+  display: block;
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--text, #1a1a2e);
+  transform-origin: center;
+  transition: transform 0.32s cubic-bezier(0.32,0.72,0,1),
+              opacity   0.24s ease,
+              width     0.28s ease;
+}
+#sf-hamburger.mob-open .hb-line:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+#sf-hamburger.mob-open .hb-line:nth-child(2) { opacity: 0; width: 0; }
+#sf-hamburger.mob-open .hb-line:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Overlay ── */
+#sf-mob-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 490;
+  background: rgba(0,0,0,0);
+  transition: background 0.35s ease;
+}
+#sf-mob-overlay.mob-open {
+  background: rgba(0,0,0,0.32);
+}
+
 @media (max-width: 960px) {
+  #sf-hamburger      { display: flex; }
+  #sf-mob-overlay    { display: block; pointer-events: none; }
+  #sf-mob-overlay.mob-open { pointer-events: all; }
+
+  /* Sidebar: drawer fisso che scivola da sinistra */
   .sidebar {
-    flex-direction: row;
-    height: auto;
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 20;
-    padding: 8px 14px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--card-border);
-    gap: 6px;
+    left: 0;
+    height: 100dvh;
+    width: 270px;
+    z-index: 600;
+    flex-direction: column;
+    padding: 24px 14px 30px;
+    gap: 4px;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    /* Glass morphism Apple */
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border-right: 1px solid rgba(255,255,255,0.55);
+    box-shadow: 4px 0 40px rgba(0,0,0,0.12);
+
+    /* Off-screen di default */
+    transform: translateX(-100%);
+    transition: transform 0.42s cubic-bezier(0.32,0.72,0,1),
+                box-shadow 0.42s ease;
   }
-  .sidebar-logo { padding: 4px 6px 4px; border-bottom: none; margin-bottom: 0; }
-  .logo-text, .nav-section-label, .theme-label, .sidebar-spacer { display: none; }
-  .nav-link { padding: 8px 10px; gap: 6px; flex-direction: column; font-size: 0.65rem; }
-  .nav-link .nav-label { display: none; }
-  .theme-row { padding: 6px; }
-  .sidebar-bottom { flex-direction: row; padding-top: 0; border-top: none; border-left: 1px solid rgba(255,255,255,0.5); padding-left: 10px; }
+
+  .sidebar.mob-open {
+    transform: translateX(0);
+    box-shadow: 8px 0 60px rgba(0,0,0,0.18);
+  }
+
+  /* Elementi visibili nel drawer */
+  .sidebar-logo      { padding: 4px 8px 18px 62px; border-bottom: 1px solid rgba(0,0,0,0.08); margin-bottom: 8px; }
+  .logo-text         { display: block; }
+  .nav-section-label { display: block; }
+  .nav-link          { padding: 10px 12px; flex-direction: row; gap: 10px; }
+  .nav-link .nav-label { display: block; }
+  .theme-row         { display: flex; }
+  .theme-label       { display: block; }
+  .sidebar-spacer    { display: block; flex: 1; }
+  .sidebar-bottom    { flex-direction: column; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.08); }
+  .sidebar-coin      { display: flex; }
+  .presence-section  { display: block; }
+  .sidebar-user-pill { display: flex; }
+
+  /* Spazio in alto per non coprire il timer content */
+  .timer-page, .page-content, main, .app-content {
+    padding-top: 0;
+  }
 }

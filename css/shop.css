@@ -10,12 +10,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 11px;
-  background: rgba(255,255,255,0.5);
-  border: 1px solid var(--card-border);
+  padding: 6px 14px;
+  background: rgba(245,158,11,0.15);
+  border: 1.5px solid rgba(245,158,11,0.4);
   border-radius: 20px;
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 0.88rem;
+  font-weight: 800;
   color: var(--text);
   transition: background 0.2s;
 }
@@ -359,16 +359,7 @@ body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out inf
 .coin-balance-total{ margin-top:3px; font-size:0.72rem; opacity:.7; }
 
 /* Daily deal in shop — versione più grande */
-.shop-page .daily-deal-card { border-radius: 20px; }
-.shop-page .deal-head   { padding: 11px 18px; }
-.shop-page .deal-body   { padding: 16px 18px 12px; gap: 16px; }
-.shop-page .deal-icon   { width: 56px; height: 56px; border-radius: 14px; }
-.shop-page .deal-icon svg { width: 28px; height: 28px; }
-.shop-page .deal-name   { font-size: 1rem; }
-.shop-page .deal-desc   { font-size: 0.72rem; }
-.shop-page .deal-sale   { font-size: 1.2rem; }
-.shop-page .deal-foot   { padding: 0 14px 14px; }
-.shop-page .deal-btn    { padding: 11px; font-size: 0.85rem; border-radius: 14px; }
+.shop-page .daily-deal-card { margin: 0 0 8px; }
 
 /* Sezione categoria */
 .shop-section { margin-bottom:4px; }
@@ -393,9 +384,9 @@ body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out inf
   backdrop-filter: blur(22px);
   border: 1px solid var(--card-border);
   border-radius: 20px;
-  padding: 18px;
+  padding: 14px;
   box-shadow: var(--shadow);
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 7px;
   transition: all 0.25s;
   animation: fadeInUp 0.4s ease backwards;
   position: relative;
@@ -419,10 +410,11 @@ body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out inf
 }
 .shop-icon svg { width:22px; height:22px; stroke:var(--accent); stroke-width:1.8; fill:none; }
 
-.shop-name  { font-size:0.9rem; font-weight:700; color:var(--text); line-height:1.2; }
-.shop-desc  { font-size:0.72rem; color:var(--text-soft); line-height:1.4; flex:1; }
+.shop-name  { font-size:0.88rem; font-weight:700; color:var(--text); line-height:1.2; }
+.shop-desc  { font-size:0.71rem; color:var(--text-soft); line-height:1.35;
+              overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
 
-.shop-footer { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:4px; }
+.shop-footer { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:auto; padding-top:4px; }
 .shop-price {
   display:flex; align-items:center; gap:5px;
   font-size:0.85rem; font-weight:700; color:var(--text);
@@ -440,7 +432,8 @@ body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out inf
 .btn-buy:disabled, .disabled-buy { background:rgba(0,0,0,0.12) !important; color:var(--text-soft) !important; cursor:not-allowed; transform:none !important; box-shadow:none !important; }
 
 .btn-toggle-on  { background:linear-gradient(135deg,var(--accent-2),#00ACC1); }
-.btn-toggle-off { background:rgba(0,0,0,0.1); color:var(--text-soft); }
+.btn-toggle-off { background:transparent; color:var(--accent); border:1.5px solid var(--accent); }
+.btn-toggle-off:hover { background:var(--accent); color:#fff; }
 
 /* ── Achievements ── */
 .achiev-grid {

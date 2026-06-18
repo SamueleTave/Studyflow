@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Amici — StudyFlow</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/themes.css">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/sidebar.css">
-  <link rel="stylesheet" href="css/calendar.css">
-  <link rel="stylesheet" href="css/shop.css">
-  <link rel="stylesheet" href="css/timer.css">
+  <link rel="stylesheet" href="css/themes.css?v=3">
+  <link rel="stylesheet" href="css/base.css?v=3">
+  <link rel="stylesheet" href="css/sidebar.css?v=3">
+  <link rel="stylesheet" href="css/calendar.css?v=3">
+  <link rel="stylesheet" href="css/shop.css?v=3">
+  <link rel="stylesheet" href="css/timer.css?v=3">
 <style>
 /* ── Friends page ── */
 .friends-page {
@@ -595,9 +595,9 @@
 
       <!-- INVITA UN AMICO -->
       <div class="friends-section">
-        <div class="friends-section-title">🔗 Invita un amico</div>
+        <div class="friends-section-title">🔗 Invita un amico <span style="background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:8px;vertical-align:middle">+50 monete</span></div>
         <div style="font-size:0.82rem;color:var(--text-soft);line-height:1.55">
-          Condividi questo link — il tuo amico si registra con il suo username e poi cercalo qui per aggiungerlo!
+          Condividi il link — quando il tuo amico completa la prima sessione di studio ricevi <strong>50 monete</strong>!
         </div>
         <div style="display:flex;gap:10px;align-items:center;margin-top:4px">
           <div id="invite-url-box" style="
@@ -734,12 +734,12 @@
   (function(){var a=JSON.parse(sessionStorage.getItem('sf_auth')||'null');if(!a||!a.token)location.replace('login.html');})();
 </script>
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
-<script src="js/config.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/shared.js"></script>
-<script src="js/api.js"></script>
-<script src="js/coins.js"></script>
-<script src="js/friends.js"></script>
+<script src="js/config.js?v=3"></script>
+<script src="js/auth.js?v=3"></script>
+<script src="js/shared.js?v=3"></script>
+<script src="js/api.js?v=3"></script>
+<script src="js/coins.js?v=3"></script>
+<script src="js/friends.js?v=3"></script>
 <script>
   initShared();
   setActivePage('friends');
@@ -877,15 +877,61 @@
       const r = await fetch((window.SF_API_BASE||'/api')+'/leaderboard', {headers:{'Authorization':'Bearer '+_getToken()}});
       const data = await r.json();
       if (!data.length) { el.innerHTML='<div class="friends-empty">Nessun dato questa settimana.</div>'; return; }
+      // Punto 4: aggiungi minuti locali non ancora sincronizzati per l'utente corrente
+      try {
+        const localSessions = JSON.parse(localStorage.getItem('sf_sessions') || '[]');
+        const today = new Date();
+        const weekStart = new Date(today); weekStart.setDate(today.getDate() - today.getDay() + 1);
+        const weekStartStr = weekStart.toISOString().slice(0,10);
+        let localMins = 0;
+        for (const s of localSessions) {
+          const d = (s.date || s.endedAt || '').slice(0,10);
+          if (d >= weekStartStr) localMins += parseInt(s.duration || 25);
+        }
+        const me = data.find(u => u.is_me);
+        if (me && localMins > me.minutes) {
+          me.minutes = localMins;
+          me.hours = Math.round(localMins / 60 * 10) / 10;
+        }
+        data.sort((a,b) => b.minutes - a.minutes);
+      } catch(e) {}
+      // Mappa ruolo → colore (sincronizzata con SF_ROLES in shared.js)
+      const ROLE_COLORS = {
+        novizio:'#6b7280', studente:'#3b82f6', applicato:'#8b5cf6',
+        determinato:'#f97316', studioso:'#10b981', esperto:'#06b6d4', maestro:'#f59e0b'
+      };
+      // Per "me": usa il ruolo dal localStorage (aggiornato dall'admin prima del server)
+      const myRoleOv = localStorage.getItem('sf_role_override');
+      const myRoleKey = myRoleOv && myRoleOv !== 'auto' ? myRoleOv : null;
+
       const medals = ['🥇','🥈','🥉'];
       el.innerHTML = data.map(function(u, i) {
-        const role = u.role || {emoji:'🌱', label:'Novizio'};
-        return '<div class="lb-card '+(u.is_me?'lb-me':'')+'">' +
+        let role = u.role || {emoji:'🌱', label:'Novizio', key:'novizio', level:0};
+        // Per l'utente corrente, usa ruolo locale se disponibile
+        if (u.is_me && myRoleKey && typeof SF_ROLES !== 'undefined') {
+          const localRole = SF_ROLES.find(function(r){ return r.key === myRoleKey; });
+          if (localRole) role = {emoji: localRole.emoji, label: localRole.name, key: localRole.key, level: SF_ROLES.indexOf(localRole)};
+        }
+        const roleKey = role.key || 'novizio';
+        const roleColor = ROLE_COLORS[roleKey] || '#6b7280';
+        const roleLevel = role.level || 0;
+        // Bordo speciale per ruoli alti
+        const borderStyle = roleLevel >= 6
+          ? 'border:2px solid #f59e0b;box-shadow:0 2px 12px rgba(245,158,11,0.25)'
+          : roleLevel >= 5
+          ? 'border:2px solid #06b6d4;box-shadow:0 2px 10px rgba(6,182,212,0.2)'
+          : roleLevel >= 4
+          ? 'border:1.5px solid #10b98144'
+          : '';
+        return '<div class="lb-card '+(u.is_me?'lb-me':'')+'" style="'+borderStyle+'">' +
           '<div class="lb-rank">'+(medals[i]||'#'+(i+1))+'</div>' +
-          '<div class="lb-avatar">'+u.username.charAt(0).toUpperCase()+'</div>' +
+          '<div class="lb-avatar" style="background:linear-gradient(135deg,'+roleColor+'33,'+roleColor+'66);color:'+roleColor+';border:1.5px solid '+roleColor+'44">'+u.username.charAt(0).toUpperCase()+'</div>' +
           '<div class="lb-info">' +
             '<div class="lb-name">'+(u.is_me?'<strong>'+u.username+'</strong>':u.username)+'</div>' +
-            '<div class="lb-role">'+role.emoji+' '+role.label+' &nbsp;&middot;&nbsp; 🔥 '+u.streak+' giorni</div>' +
+            '<div class="lb-role" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+              '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:700;background:'+roleColor+'18;color:'+roleColor+';border:1px solid '+roleColor+'33">'+role.emoji+' '+role.label+'</span>' +
+              '<span style="font-size:0.68rem;color:var(--text-soft)">🔥 '+u.streak+' giorni</span>' +
+            '</div>' +
           '</div>' +
           '<div class="lb-hours"><div class="lb-hours-num">'+u.hours+'h</div><div class="lb-hours-label">'+u.minutes+' min</div></div>' +
         '</div>';

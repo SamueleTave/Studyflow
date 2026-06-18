@@ -23,6 +23,7 @@ const GARDEN_CATALOG = {
   waterfall:  { label: 'Cascata',      render: _gWaterfall,  w: 78,  h: 92,  defY: 90,  moves: false },
   swing:      { label: 'Altalena',     render: _gSwing,      w: 74,  h: 68,  defY: 36,  moves: false },
   balloon:    { label: 'Mongolfiera',  render: _gBalloon,    w: 88,  h: 102, defY: 188, moves: 'fly' },
+  starBalloon:{ label: 'Mongolfiera Stellata', render: _gStarBalloon, w: 92, h: 108, defY: 178, moves: 'fly' },
   nest:       { label: 'Nido',         render: _gNest,       w: 46,  h: 36,  defY: 36,  moves: false },
   ball:       { label: 'Pallina',      render: _gBall,       w: 38,  h: 38,  defY: 36,  moves: false },
   hole:       { label: 'Tana',         render: _gHole,       w: 60,  h: 30,  defY: 36,  moves: false },
@@ -77,6 +78,7 @@ function toggleGarden() {
   if (arrow) arrow.style.transform = _gardenExpanded ? 'rotate(180deg)' : '';
   if (_gardenExpanded) {
     renderGarden();
+    initGardenSky();
     _startNightStars();
     // Porta il giardino in vista così il canvas è nel viewport quando gli animali calcolano la posizione
     setTimeout(() => {
@@ -91,6 +93,7 @@ function toggleGarden() {
     if (typeof owlEnterGarden    === 'function') owlEnterGarden();
     if (typeof lionEnterGarden   === 'function') lionEnterGarden();
   } else {
+    destroyGardenSky();
     _stopNightStars();
     if (typeof catExitGarden    === 'function') catExitGarden();
     if (typeof dogExitGarden    === 'function') dogExitGarden();
@@ -121,7 +124,6 @@ function placeGardenItem(id) {
   }
   _updateGardenBadge();
   if (_gardenExpanded) renderGarden();
-  else openGarden();
 }
 
 /* ── Rimuovi un oggetto ── */
@@ -275,7 +277,7 @@ function _makeDraggable(el, id, cat) {
   const move = (clientX, clientY) => {
     const maxPct = 100 - (cat.w / cW) * 100;
     const newX   = Math.max(0, Math.min(maxPct, ((sLeft + clientX - sX) / cW) * 100));
-    const yMax   = (id === 'balloon') ? 290 : 200;
+    const yMax   = (id === 'balloon' || id === 'starBalloon') ? 290 : 200;
     const newY   = Math.max(30, Math.min(yMax, sBottom - (clientY - sY)));
     const depth  = Math.max(0.22, 1 - ((newY - 30) / 170) * 0.72);
     el.style.left      = newX + '%';
@@ -365,7 +367,7 @@ function _startFlight(el, id, cat) {
   const canvas = document.getElementById('garden-canvas');
   if (!canvas) return;
 
-  const isBalloon   = (id === 'balloon');
+  const isBalloon   = (id === 'balloon' || id === 'starBalloon');
   const minY = isBalloon ? 200 : 100;
   const maxY = isBalloon ? 290 : 200;
   const speed = isBalloon ? 5500 : 2200;
@@ -1007,4 +1009,192 @@ function _gNest() {
     <circle cx="22" cy="21" r="1.2" fill="#A5D6A7" opacity="0.6"/>
     <circle cx="28" cy="24" r="1.2" fill="#FFF176" opacity="0.6"/>
   </svg>`;
+}
+
+/* ══════════════════════════════════════════════
+   MONGOLFIERA STELLATA (Ruolo: Studioso)
+══════════════════════════════════════════════ */
+function _gStarBalloon() {
+  return `<svg viewBox="0 0 92 108" width="92" height="108" style="overflow:visible">
+    <!-- scia stellare -->
+    <ellipse cx="46" cy="108" rx="14" ry="4" fill="rgba(245,158,11,0.18)"/>
+    <!-- cesta dorata -->
+    <rect x="30" y="80" width="32" height="24" rx="6" fill="#92400E"/>
+    <rect x="32" y="81" width="28" height="22" rx="5" fill="#D97706"/>
+    <rect x="32" y="87" width="28" height="2" fill="#B45309" opacity="0.6"/>
+    <rect x="32" y="93" width="28" height="2" fill="#B45309" opacity="0.6"/>
+    <!-- corde dorate -->
+    <line x1="46" y1="80" x2="28" y2="66" stroke="#F59E0B" stroke-width="1.8"/>
+    <line x1="46" y1="80" x2="64" y2="66" stroke="#F59E0B" stroke-width="1.8"/>
+    <line x1="46" y1="80" x2="20" y2="62" stroke="#F59E0B" stroke-width="1.5"/>
+    <line x1="46" y1="80" x2="72" y2="62" stroke="#F59E0B" stroke-width="1.5"/>
+    <!-- pallone gradiente oro -->
+    <defs>
+      <radialGradient id="sgBallGrad" cx="38%" cy="35%">
+        <stop offset="0%"   stop-color="#FDE68A"/>
+        <stop offset="45%"  stop-color="#F59E0B"/>
+        <stop offset="100%" stop-color="#B45309"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="46" cy="40" rx="40" ry="42" fill="url(#sgBallGrad)"/>
+    <!-- spicchi scuri -->
+    <path d="M46 0 Q64 22 46 80 Q28 22 46 0Z" fill="rgba(180,83,9,0.28)"/>
+    <path d="M6 40 Q12 8 46 0 Q18 20 12 48Z" fill="rgba(253,230,138,0.45)"/>
+    <path d="M86 40 Q80 8 46 0 Q74 20 80 48Z" fill="rgba(253,230,138,0.35)"/>
+    <!-- lucido -->
+    <ellipse cx="30" cy="22" rx="12" ry="14" fill="rgba(255,255,255,0.22)"/>
+    <!-- stelle decorative -->
+    <text x="40" y="32" font-size="10" fill="rgba(255,255,255,0.85)" text-anchor="middle">★</text>
+    <text x="56" y="48" font-size="7"  fill="rgba(255,255,255,0.70)" text-anchor="middle">✦</text>
+    <text x="34" y="52" font-size="6"  fill="rgba(255,255,255,0.65)" text-anchor="middle">✦</text>
+    <text x="52" y="24" font-size="8"  fill="rgba(255,255,255,0.75)" text-anchor="middle">★</text>
+  </svg>`;
+}
+
+/* ══════════════════════════════════════════════
+   CIELO DINAMICO — Sole che si muove con l'ora
+   + Tema cielo per ruolo
+══════════════════════════════════════════════ */
+
+/* Palettes cielo per fascia oraria */
+const _SKY_TIMES = [
+  { h:  0, top: '#080E1A', bot: '#162540',  sun: null,      night: true,  label: 'notte',    sunSize: 50, sunCore: null,      sunMid: null,      sunOuter: null,     glow1: null,                   glow2: null },
+  { h:  5, top: '#1A1040', bot: '#3D1B6E',  sun: null,      night: true,  label: 'alba0',    sunSize: 50, sunCore: null,      sunMid: null,      sunOuter: null,     glow1: null,                   glow2: null },
+  { h:  6, top: '#C2523C', bot: '#FF9A3C',  sun: '#FFB74D', night: false, label: 'alba',     sunSize: 58, sunCore: '#FFECB3', sunMid: '#FFB74D', sunOuter: '#E64A1988', glow1: 'rgba(255,152,0,0.20)',  glow2: 'rgba(255,112,67,0.35)' },
+  { h:  7, top: '#FF8A65', bot: '#FFCC80',  sun: '#FFF9C4', night: false, label: 'mattina0', sunSize: 54, sunCore: '#FFFFFF',  sunMid: '#FFF176', sunOuter: '#FFCC0255', glow1: 'rgba(255,235,59,0.18)', glow2: 'rgba(255,200,0,0.30)' },
+  { h:  8, top: '#42A5F5', bot: '#B3E5FC',  sun: '#FFF9C4', night: false, label: 'mattina',  sunSize: 50, sunCore: '#FFFFFF',  sunMid: '#FFFDE7', sunOuter: '#FFF17633', glow1: 'rgba(255,241,118,0.12)', glow2: 'rgba(253,216,53,0.22)' },
+  { h: 12, top: '#1E88E5', bot: '#B3E5FC',  sun: '#FFF176', night: false, label: 'mezzodì',  sunSize: 48, sunCore: '#FFFFFF',  sunMid: '#FFFDE7', sunOuter: '#FDD83533', glow1: 'rgba(255,255,255,0.15)', glow2: 'rgba(253,216,53,0.25)' },
+  { h: 16, top: '#1565C0', bot: '#90CAF9',  sun: '#FDD835', night: false, label: 'pomeri',   sunSize: 52, sunCore: '#FFFFFF',  sunMid: '#FFF176', sunOuter: '#FBC02D55', glow1: 'rgba(251,192,45,0.18)',  glow2: 'rgba(253,216,53,0.30)' },
+  { h: 18, top: '#B83200', bot: '#FF8C42',  sun: '#FF6B00', night: false, label: 'tramonto', sunSize: 68, sunCore: '#FFF3E0',  sunMid: '#FF8A00', sunOuter: '#E64A1966', glow1: 'rgba(255,107,0,0.32)',   glow2: 'rgba(229,74,25,0.50)' },
+  { h: 19, top: '#7B2600', bot: '#E65C00',  sun: '#FF4500', night: false, label: 'crepusc',  sunSize: 62, sunCore: '#FFCCBC',  sunMid: '#FF6D00', sunOuter: '#BF360C77', glow1: 'rgba(255,69,0,0.28)',    glow2: 'rgba(191,54,12,0.45)' },
+  { h: 20, top: '#4527A0', bot: '#7B1FA2',  sun: '#FF5722', night: false, label: 'sera',     sunSize: 52, sunCore: '#FFCCBC',  sunMid: '#FF7043', sunOuter: '#BF360C66', glow1: 'rgba(255,87,34,0.20)',   glow2: 'rgba(149,27,0,0.30)' },
+  { h: 21, top: '#1A237E', bot: '#283593',  sun: null,      night: true,  label: 'notte0',   sunSize: 50, sunCore: null,      sunMid: null,      sunOuter: null,     glow1: null,                   glow2: null },
+];
+
+/* Overlay ruolo sul cielo: tint addizionale */
+const _SKY_ROLE_TINT = {
+  novizio:     null,
+  studente:    'rgba(59,130,246,0.22)',
+  applicato:   'rgba(139,92,246,0.25)',
+  determinato: 'rgba(249,115,22,0.25)',
+  studioso:    'rgba(16,185,129,0.22)',
+  esperto:     'rgba(6,182,212,0.25)',
+  maestro:     'rgba(245,158,11,0.28)',
+};
+
+let _skyUpdateInterval = null;
+
+function _getSkyPhase(hour) {
+  let phase = _SKY_TIMES[0];
+  for (const t of _SKY_TIMES) { if (hour >= t.h) phase = t; }
+  return phase;
+}
+
+function _getSunPosition(hour, minute) {
+  // Sole visibile dalle 6 alle 21
+  // Arco orizzontale: da sx (6h) a dx (20h), con picco al centro (13h)
+  const totalHours = 14; // 6→20
+  const elapsed = Math.max(0, Math.min(totalHours, (hour + minute/60) - 6));
+  const t = elapsed / totalHours; // 0→1
+  // posizione X: da 5% a 90%
+  const x = 5 + t * 85;
+  // posizione Y: parabola — alta a metà giornata, bassa ai bordi
+  const arc = 1 - (2*t - 1) ** 2; // 0→1→0 (picco a t=0.5)
+  const yPct = 8 + (1 - arc) * 38; // px dal top: 8px a mezzogiorno, 46px alle 6/20
+  return { x, y: yPct };
+}
+
+function updateGardenSky() {
+  const sky = document.querySelector('.g-sky');
+  const sun = document.querySelector('.g-sun');
+  const moon = document.querySelector('.g-moon');
+  const stars = document.querySelector('.g-stars-container');
+  if (!sky) return;
+
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  const phase = _getSkyPhase(h);
+
+  // Cielo
+  sky.style.background = `linear-gradient(180deg, ${phase.top} 0%, ${phase.bot} 100%)`;
+
+  // Tint ruolo (disattivabile dalle impostazioni)
+  let tintEl = sky.querySelector('.g-sky-role-tint');
+  const _skyTintEnabled = (typeof cfg === 'undefined') || cfg.skyRoleTint !== false;
+  const roleKey = (typeof _shopCurrentRoleKey === 'function') ? _shopCurrentRoleKey() : 'novizio';
+  const tint = _skyTintEnabled ? _SKY_ROLE_TINT[roleKey] : null;
+  if (tint) {
+    if (!tintEl) {
+      tintEl = document.createElement('div');
+      tintEl.className = 'g-sky-role-tint';
+      tintEl.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:1;transition:background 3s ease';
+      sky.appendChild(tintEl);
+    }
+    tintEl.style.background = tint;
+  } else if (tintEl) {
+    tintEl.style.background = 'transparent';
+  }
+
+  // Sole/Luna
+  if (phase.night) {
+    if (sun)  sun.style.display  = 'none';
+    if (moon) moon.style.display = 'block';
+    if (stars) stars.style.display = 'block';
+    _updateSunHaze(sky, null);
+  } else {
+    if (moon)  moon.style.display  = 'none';
+    if (stars) stars.style.display = 'none';
+    if (sun) {
+      sun.style.display = 'block';
+      const pos  = _getSunPosition(h, m);
+      const size = phase.sunSize || 50;
+      // Offset per centrare il sole sulla posizione calcolata
+      sun.style.left      = `calc(${pos.x}% - ${size/2}px)`;
+      sun.style.top       = pos.y + 'px';
+      sun.style.right     = 'auto';
+      sun.style.width     = size + 'px';
+      sun.style.height    = size + 'px';
+
+      if (phase.sunCore) {
+        sun.style.background = `radial-gradient(circle, ${phase.sunCore} 0%, ${phase.sunMid} 45%, ${phase.sunOuter || phase.sunMid+'44'} 100%)`;
+        sun.style.boxShadow  = `0 0 0 ${Math.round(size*0.22)}px ${phase.glow1 || 'rgba(253,216,53,0.12)'}, 0 0 ${size*1.1}px ${phase.glow2 || 'rgba(253,216,53,0.4)'}`;
+      } else if (phase.sun) {
+        sun.style.background = `radial-gradient(circle, #FFFFFF 0%, ${phase.sun} 45%, ${phase.sun}44 100%)`;
+        sun.style.boxShadow  = `0 0 0 10px ${phase.sun}22, 0 0 40px ${phase.sun}55`;
+      }
+
+      // Alone atmosferico al tramonto
+      _updateSunHaze(sky, phase, pos, size);
+    }
+  }
+}
+
+function _updateSunHaze(sky, phase, pos, size) {
+  let haze = sky.querySelector('.g-sun-haze');
+  if (!phase || !phase.glow2 || (phase.h < 17)) {
+    if (haze) haze.style.opacity = '0';
+    return;
+  }
+  if (!haze) {
+    haze = document.createElement('div');
+    haze.className = 'g-sun-haze';
+    sky.appendChild(haze);
+  }
+  const hazeSize = size * 3.5;
+  haze.style.width   = hazeSize + 'px';
+  haze.style.height  = hazeSize + 'px';
+  haze.style.left    = `calc(${pos.x}% - ${hazeSize/2}px)`;
+  haze.style.top     = (pos.y - hazeSize/2 + size/2) + 'px';
+  haze.style.background = `radial-gradient(circle, ${phase.glow2} 0%, ${phase.glow1} 40%, transparent 70%)`;
+  haze.style.opacity = '1';
+}
+
+function initGardenSky() {
+  updateGardenSky();
+  // Aggiorna ogni 30 secondi — il sole scivola fluidamente grazie alle transizioni CSS
+  _skyUpdateInterval = setInterval(updateGardenSky, 30000);
+}
+
+function destroyGardenSky() {
+  if (_skyUpdateInterval) { clearInterval(_skyUpdateInterval); _skyUpdateInterval = null; }
 }

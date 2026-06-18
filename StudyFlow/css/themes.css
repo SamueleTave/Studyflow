@@ -115,6 +115,31 @@
 [data-theme="night"] .card { background: rgba(30,41,59,0.88); border-color: rgba(255,255,255,0.08); }
 [data-theme="night"] .falling-star { box-shadow: 0 0 5px white, 0 0 12px #7C3AED; }
 
+/* ── Tema Oro ✨ — Esclusivo Maestro ── */
+[data-theme="gold"] {
+  --bg-1: #FFFBEB;
+  --bg-2: #FEF3C7;
+  --bg-3: #FDE68A;
+  --accent:      #D97706;
+  --accent-2:    #F59E0B;
+  --accent-dark: #B45309;
+  --text:        #3B1A00;
+  --text-soft:   #92400E;
+  --card:        rgba(255,251,235,0.72);
+  --card-border: rgba(245,158,11,0.40);
+  --shadow:      0 8px 32px rgba(217,119,6,0.18);
+  --orb1: rgba(245,158,11,0.32);
+  --orb2: rgba(217,119,6,0.24);
+  --orb3: rgba(252,211,77,0.36);
+}
+[data-theme="gold"] body {
+  background: linear-gradient(135deg, #FFFBEB, #FEF3C7, #FDE68A) !important;
+}
+[data-theme="gold"] .sidebar { background: rgba(255,251,235,0.88); border-right-color: rgba(245,158,11,0.25); }
+[data-theme="gold"] .clock-bar { background: rgba(255,251,235,0.90); border-bottom-color: rgba(245,158,11,0.20); }
+[data-theme="gold"] .card { border-color: rgba(245,158,11,0.25); }
+[data-theme="gold"] .level-pill { box-shadow: 0 0 12px rgba(245,158,11,0.35) !important; }
+
 /* ── Tema Tramonto (shop unlock) ── */
 [data-theme="sunset"] {
   --bg-1: #FFF1E6;

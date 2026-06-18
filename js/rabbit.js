@@ -97,6 +97,12 @@ function initRabbit() {
 
   _rabbitHouseEl = _createGroundHouse(RABBIT_RIGHT, RABBIT_BOTTOM, '#E8E0D8');
   _rabbitHouseEl.classList.add('house-hidden');
+
+  /* Ripristina colore (incluso rabbitOrange) */
+  if (typeof coinData !== 'undefined' && coinData.activeEffects) {
+    const col = coinData.activeEffects.activeRabbitColor;
+    if (col && coinData.shop && coinData.shop[col]) setRabbitColor(col);
+  }
 }
 
 function _rShow(el, visible) { if (el) el.style.display = visible ? '' : 'none'; }
@@ -365,9 +371,10 @@ function _onRabbitClick() {
    COLORI
    ══════════════════════════ */
 const RABBIT_COLORS = {
-  rabbitBrown: { main:'#C4813A', shadow:'#A06628', ear:'#D4956B' },
-  rabbitGrey:  { main:'#9E9E9E', shadow:'#757575', ear:'#BDBDBD' },
-  rabbitBlack: { main:'#333333', shadow:'#1A1A1A', ear:'#555555' },
+  rabbitBrown:  { main:'#C4813A', shadow:'#A06628', ear:'#D4956B' },
+  rabbitGrey:   { main:'#9E9E9E', shadow:'#757575', ear:'#BDBDBD' },
+  rabbitBlack:  { main:'#333333', shadow:'#1A1A1A', ear:'#555555' },
+  rabbitOrange: { main:'#F97316', shadow:'#C2410C', ear:'#FFFFFF', special: true },
 };
 
 function setRabbitColor(id) {
@@ -382,6 +389,8 @@ function setRabbitColor(id) {
       _rabbitEl.style.setProperty('--rabbit-main',   c.main);
       _rabbitEl.style.setProperty('--rabbit-shadow', c.shadow);
       _rabbitEl.style.setProperty('--rabbit-ear',    c.ear);
+      // Animazione speciale per il pelo arancione
+      _rabbitEl.classList.toggle('rabbit-special', !!c.special);
     }
   }
   if (typeof coinData !== 'undefined' && coinData.activeEffects) {

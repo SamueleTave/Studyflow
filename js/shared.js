@@ -323,6 +323,7 @@ function toggleSetting(k) {
   if (tog) tog.classList.toggle('on', cfg[k]);
   saveCfg();
   if (k === 'hydration') updateHydroDrop();
+  if (k === 'skyRoleTint' && typeof updateGardenSky === 'function') updateGardenSky();
 }
 
 /* ===== INIT (chiamato da ogni pagina) ===== */
@@ -334,13 +335,68 @@ function initShared() {
   _initQuickNote();
   _initCheckin();
   _injectHydrationToggle();
+  _injectSkyRoleTintToggle();
   checkAnimalMood();
   _initPresence();
   _initHelpButton();
   _initNotifications();
   _initStreakBadge();
   _initCustomTheme();
-  _injectLeaderboardLink();
+  // _injectLeaderboardLink(); // classifica già presente in friends.html
+  _initMobileHamburger();
+}
+
+/* ══════════════════════════════════════
+   MOBILE HAMBURGER MENU
+═══════════════════════════════════════ */
+function _initMobileHamburger() {
+  if (document.getElementById('sf-hamburger')) return;
+
+  /* Overlay */
+  var overlay = document.createElement('div');
+  overlay.id = 'sf-mob-overlay';
+  overlay.onclick = _closeMobileMenu;
+  document.body.appendChild(overlay);
+
+  /* Hamburger button */
+  var btn = document.createElement('button');
+  btn.id = 'sf-hamburger';
+  btn.setAttribute('aria-label', 'Menu');
+  btn.innerHTML =
+    '<span class="hb-line"></span>' +
+    '<span class="hb-line"></span>' +
+    '<span class="hb-line"></span>';
+  btn.onclick = _toggleMobileMenu;
+  document.body.appendChild(btn);
+
+  /* Chiudi menu quando si clicca un link nella sidebar */
+  var sidebar = document.querySelector('aside.sidebar');
+  if (sidebar) {
+    sidebar.addEventListener('click', function(e) {
+      var link = e.target.closest('a[href], button.nav-link');
+      if (link && window.innerWidth <= 960) _closeMobileMenu();
+    });
+  }
+}
+
+function _toggleMobileMenu() {
+  var sidebar = document.querySelector('aside.sidebar');
+  var open = sidebar && sidebar.classList.toggle('mob-open');
+  var overlay = document.getElementById('sf-mob-overlay');
+  var btn = document.getElementById('sf-hamburger');
+  if (overlay) overlay.classList.toggle('mob-open', open);
+  if (btn) btn.classList.toggle('mob-open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+
+function _closeMobileMenu() {
+  var sidebar = document.querySelector('aside.sidebar');
+  var overlay = document.getElementById('sf-mob-overlay');
+  var btn = document.getElementById('sf-hamburger');
+  if (sidebar) sidebar.classList.remove('mob-open');
+  if (overlay) overlay.classList.remove('mob-open');
+  if (btn) btn.classList.remove('mob-open');
+  document.body.style.overflow = '';
 }
 
 /* ══════════════════════════════════════
@@ -575,15 +631,81 @@ function syncHydroToTimer(running, mode) {
 /* ══════════════════════════════════════
    LIVELLO GIORNALIERO
 ═══════════════════════════════════════ */
-const STUDY_LEVELS = [
-  { min:   0, icon: '📚', name: 'Novizio' },
-  { min:  30, icon: '🔥', name: 'Studente' },
-  { min:  60, icon: '⚡', name: 'Concentrato' },
-  { min: 120, icon: '💪', name: 'Studioso' },
-  { min: 180, icon: '🌟', name: 'Ricercatore' },
-  { min: 240, icon: '👑', name: 'Genio' },
+/* ── Ruoli backend (specchiati da app.py) ── */
+const SF_ROLES = [
+  { min:   0, key: 'novizio',
+    emoji: '🌱', name: 'Novizio',
+    color: '#6b7280', bg: 'rgba(107,114,128,0.12)',
+    grad: ['#9ca3af','#6b7280'], coinBonus: 0,
+    perk: 'Punto di partenza',
+    perks: ['⏱ Timer Pomodoro base', '🪙 Monete standard per sessione'] },
+
+  { min:   1, key: 'studente',
+    emoji: '📖', name: 'Studente',
+    color: '#3b82f6', bg: 'rgba(59,130,246,0.13)',
+    grad: ['#60a5fa','#3b82f6'], coinBonus: 2,
+    perk: 'Widget Citazione sbloccato',
+    perks: ['💬 Widget Citazione motivazionale', '🪙 +2 monete per sessione', '🤝 Accesso alle sfide amici'] },
+
+  { min:  10, key: 'applicato',
+    emoji: '🎯', name: 'Applicato',
+    color: '#8b5cf6', bg: 'rgba(139,92,246,0.13)',
+    grad: ['#a78bfa','#8b5cf6'], coinBonus: 3,
+    perk: 'Tema Viola sbloccato',
+    perks: ['🎨 Tema Viola e Smeraldo', '🐰 Coniglio compagno', '🪙 +3 monete per sessione', '📊 Statistiche avanzate'] },
+
+  { min:  25, key: 'determinato',
+    emoji: '🔥', name: 'Determinato',
+    color: '#f97316', bg: 'rgba(249,115,22,0.15)',
+    grad: ['#fb923c','#f97316'], coinBonus: 5,
+    perk: 'Coniglio compagno interattivo',
+    perks: ['🔥 Animali interattivi sbloccati', '⚡ Sfide premium accesso', '🪙 +5 monete per sessione', '🏅 Badge fuoco in classifica'] },
+
+  { min:  50, key: 'studioso',
+    emoji: '⭐', name: 'Studioso',
+    color: '#10b981', bg: 'rgba(16,185,129,0.14)',
+    grad: ['#34d399','#10b981'], coinBonus: 8,
+    perk: 'Tema Foresta sbloccato',
+    perks: ['🌲 Tema Foresta esclusivo', '🦉 Tutti gli animali base', '🪙 +8 monete per sessione', '🥇 Bordo verde in classifica'] },
+
+  { min: 100, key: 'esperto',
+    emoji: '💎', name: 'Esperto',
+    color: '#06b6d4', bg: 'rgba(6,182,212,0.14)',
+    grad: ['#22d3ee','#06b6d4'], coinBonus: 12,
+    perk: 'Tutti gli animali sbloccati',
+    perks: ['💎 Tutti gli animali premium', '📐 Widget taglia XL', '🪙 +12 monete per sessione', '✨ Frame speciale profilo classifica'] },
+
+  { min: 200, key: 'maestro',
+    emoji: '🏆', name: 'Maestro',
+    color: '#f59e0b', bg: 'rgba(245,158,11,0.18)',
+    grad: ['#fcd34d','#f59e0b'], coinBonus: 20,
+    perk: 'Tutto sbloccato — titolo esclusivo',
+    perks: ['👑 Titolo Maestro nel profilo', '🏆 Bordo oro in classifica', '🪙 +20 monete per sessione', '🎁 Tutto sbloccato per sempre'] },
 ];
-let _lastLevelIdx = -1;
+
+function _getBackendRole(sessionCount) {
+  // Controlla prima l'override admin
+  const override = localStorage.getItem('sf_role_override');
+  if (override && override !== 'auto' && override !== '') {
+    const found = SF_ROLES.find(r => r.key === override);
+    if (found) return found;
+  }
+  let role = SF_ROLES[0];
+  for (const r of SF_ROLES) { if (sessionCount >= r.min) role = r; }
+  return role;
+}
+
+let _lastRoleKey = (() => {
+  try {
+    const ov = localStorage.getItem('sf_role_override');
+    if (ov && ov !== 'auto' && ov !== '') return ov;
+    const sessions = JSON.parse(localStorage.getItem('sf_sessions') || '[]');
+    const n = Array.isArray(sessions) ? sessions.length : 0;
+    let key = SF_ROLES[0].key;
+    for (const r of SF_ROLES) { if (n >= r.min) key = r.key; }
+    return key;
+  } catch { return ''; }
+})();
 
 function updateLevelPill() {
   const pill   = document.getElementById('level-pill');
@@ -591,21 +713,79 @@ function updateLevelPill() {
   const nameEl = document.getElementById('level-name');
   if (!pill || !iconEl || !nameEl) return;
 
-  const mins = (typeof stats !== 'undefined' && stats) ? (stats.minutes || 0) : 0;
-  let level = STUDY_LEVELS[0], levelIdx = 0;
-  for (let i = 0; i < STUDY_LEVELS.length; i++) {
-    if (mins >= STUDY_LEVELS[i].min) { level = STUDY_LEVELS[i]; levelIdx = i; }
-  }
+  let sessionCount = 0;
+  try {
+    const sessions = JSON.parse(localStorage.getItem('sf_sessions') || '[]');
+    sessionCount = Array.isArray(sessions) ? sessions.length : 0;
+  } catch {}
 
-  if (levelIdx !== _lastLevelIdx && _lastLevelIdx !== -1) {
+  const role = _getBackendRole(sessionCount);
+
+  if (_lastRoleKey && _lastRoleKey !== role.key) {
     pill.classList.remove('levelup');
     void pill.offsetWidth;
     pill.classList.add('levelup');
-    if (typeof celebrate === 'function') celebrate(15);
+    if (typeof celebrate === 'function') celebrate(20);
+    _showRoleLevelUpToast(role);
   }
-  _lastLevelIdx = levelIdx;
-  iconEl.textContent = level.icon;
-  nameEl.textContent = level.name;
+  _lastRoleKey = role.key;
+
+  iconEl.textContent = role.emoji;
+  nameEl.textContent = role.name;
+  pill.style.background = role.bg;
+  pill.style.borderColor = role.color + '55';
+  nameEl.style.color = role.color;
+}
+
+function _showRoleLevelUpToast(role) {
+  // Unlock description: prima riga = perk, seconda = item sbloccato nello shop
+  const ROLE_UNLOCKS = {
+    studente:    'Widget Citazione gratis sbloccato!',
+    applicato:   'Tema Tramonto sbloccato nello shop!',
+    determinato: 'Pelo Arancione del Coniglio sbloccato!',
+    studioso:    'Mongolfiera Stellata + Pelo Viola sbloccati!',
+    esperto:     'Gatto Argento + Aurora Boreale sbloccati!',
+    maestro:     'Drago 🐉 + Tema Oro ✨ sbloccati!',
+  };
+  const unlockText = ROLE_UNLOCKS[role.key] || role.perk;
+
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);z-index:9000;' +
+    'background:rgba(255,255,255,0.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);' +
+    'border:2px solid ' + role.color + '55;border-radius:20px;padding:16px 24px 14px;max-width:320px;width:90%;' +
+    'box-shadow:0 12px 40px ' + role.color + '33,0 4px 16px rgba(0,0,0,0.12);' +
+    'font-family:Poppins,sans-serif;transition:transform 0.5s cubic-bezier(0.32,0.72,0,1),opacity 0.5s;opacity:0';
+  t.innerHTML =
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">' +
+      '<span style="font-size:2rem;line-height:1;filter:drop-shadow(0 2px 8px ' + role.color + '66)">' + role.emoji + '</span>' +
+      '<div>' +
+        '<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:' + role.color + ';margin-bottom:1px">Ruolo sbloccato!</div>' +
+        '<div style="font-weight:800;color:' + role.color + ';font-size:1.05rem">' + role.name + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="height:1px;background:' + role.color + '25;margin-bottom:8px"></div>' +
+    '<div style="font-size:0.75rem;color:#374151;font-weight:600">🎁 ' + unlockText + '</div>' +
+    '<div style="font-size:0.7rem;color:#9ca3af;margin-top:3px">' + (role.coinBonus > 0 ? '+' + role.coinBonus + ' 🪙 per ogni sessione da ora in poi' : '') + '</div>';
+  document.body.appendChild(t);
+  requestAnimationFrame(() => {
+    t.style.transform = 'translateX(-50%) translateY(0)';
+    t.style.opacity = '1';
+  });
+  setTimeout(() => {
+    t.style.transform = 'translateX(-50%) translateY(80px)';
+    t.style.opacity = '0';
+    setTimeout(() => t.remove(), 500);
+  }, 5500);
+
+  // Salva notifica nel server
+  const auth = typeof getAuth === 'function' ? getAuth() : null;
+  if (auth && auth.token && role.key !== 'novizio') {
+    fetch((window.SF_API_BASE || '/api') + '/notifications/role-up', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + auth.token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roleKey: role.key, roleName: role.name, perk: role.perk, unlock: unlockText })
+    }).catch(() => {});
+  }
 }
 
 function _showHydrationToast() {
@@ -617,6 +797,19 @@ function _showHydrationToast() {
     <button onclick="document.getElementById('hydro-toast').remove()">✕</button>`;
   document.body.appendChild(t);
   setTimeout(() => { if (t.parentNode) t.remove(); }, 8000);
+}
+
+/* Inietta il toggle tint cielo ruolo nel modale impostazioni */
+function _injectSkyRoleTintToggle() {
+  requestAnimationFrame(() => {
+    const modal = document.querySelector('#settingsModal .modal');
+    if (!modal || document.getElementById('tog-skyRoleTint')) return;
+    const row = document.createElement('div');
+    row.className = 's-row';
+    row.innerHTML = `<div><div class="s-label">🌤 Cielo ruolo</div><div class="s-sub">tint colorato nel giardino</div></div>
+      <button class="toggle ${cfg.skyRoleTint !== false ? 'on' : ''}" id="tog-skyRoleTint" onclick="toggleSetting('skyRoleTint')"></button>`;
+    modal.appendChild(row);
+  });
 }
 
 /* Inietta il toggle idratazione nel modale impostazioni se non c'è */
@@ -740,6 +933,7 @@ function showAnimalThought(text, duration) {
 }
 
 function checkAnimalMood() {
+  if (sessionStorage.getItem('sf_mood_shown')) return;
   // Mostra il fumetto solo se c'è almeno un animale attivo
   if (typeof coinData === 'undefined' || !coinData || !coinData.activeEffects) return;
   var fx = coinData.activeEffects;
@@ -774,7 +968,10 @@ function checkAnimalMood() {
     else if (h >= 21) msg = "Un’ultima sessione prima di dormire? 🌙";
     else              msg = 'Dai, inizia la prima sessione di oggi! 🎯';
   }
-  if (msg) setTimeout(function() { showAnimalThought(msg); }, 2000);
+  if (msg) {
+    sessionStorage.setItem('sf_mood_shown', '1');
+    setTimeout(function() { showAnimalThought(msg); }, 2000);
+  }
 }
 
 /* ══════════════════════════════════════

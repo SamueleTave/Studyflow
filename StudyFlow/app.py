@@ -307,6 +307,12 @@ def _migrate_db():
                     PRIMARY KEY (challenge_id, user_id),
                     FOREIGN KEY (challenge_id) REFERENCES challenges(id) ON DELETE CASCADE,
                     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)""",
+                """CREATE TABLE IF NOT EXISTS support_tickets (
+                    id SERIAL PRIMARY KEY, user_id INTEGER,
+                    username TEXT, message TEXT NOT NULL,
+                    created_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'),
+                    is_read INTEGER DEFAULT 0,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL)""",
             ]
             for ddl in _PG_DDL:
                 try:

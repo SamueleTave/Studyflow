@@ -10,6 +10,7 @@ const DOG_COLORS = {
   dogGolden: { main:'#E8C97A', dark:'#C4A052', nose:'#2A1800', eye:'#3D2800' },
   dogBlack:  { main:'#252525', dark:'#121212', nose:'#111',    eye:'#C87820' },
   dogWhite:  { main:'#F0F0F0', dark:'#D0D0D0', nose:'#C8A4A4', eye:'#2C3E50' },
+  dogPurple: { main:'#818CF8', dark:'#4F46E5', nose:'#1E1B4B', eye:'#FCD34D', special: true },
 };
 
 const DOG_W           = 110;
@@ -146,12 +147,9 @@ function initDog() {
   _dogHouseEl = _createGroundHouse(DOG_RIGHT_HOME, DOG_BOTTOM_HOME, '#C4A882');
   _dogHouseEl.classList.add('house-hidden');
 
-  if (typeof coinData !== 'undefined' && coinData.shop) {
-    ['dogGolden','dogBlack','dogWhite'].forEach(id => {
-      if (coinData.shop[id] && coinData.activeEffects && coinData.activeEffects.activeDogColor === id) {
-        _applyDogColor(id);
-      }
-    });
+  if (typeof coinData !== 'undefined' && coinData.activeEffects) {
+    const col = coinData.activeEffects.activeDogColor;
+    if (col && coinData.shop && coinData.shop[col]) _applyDogColor(col);
   }
 }
 

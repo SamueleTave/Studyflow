@@ -7,6 +7,8 @@
   padding: 0;
   overflow: hidden;
   transition: box-shadow 0.3s;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 .garden-zone.open {
   box-shadow: 0 8px 32px rgba(0,0,0,0.1), 0 0 0 2px rgba(99,200,99,0.2);
@@ -82,6 +84,8 @@
   inset: 0;
   background: linear-gradient(180deg, #42A5F5 0%, #81D4FA 55%, #E3F2FD 88%);
   z-index: 0;
+  transition: background 4s ease;
+  overflow: hidden;
 }
 [data-theme="night"] .g-sky {
   background: linear-gradient(180deg, #080E1A 0%, #111D2E 50%, #162540 85%);
@@ -91,7 +95,7 @@
 .g-sun {
   position: absolute;
   top: 18px;
-  right: 82px;
+  left: 70%;
   width: 50px;
   height: 50px;
   background: radial-gradient(circle, #FFF9C4 0%, #FDD835 40%, #FBC02D 100%);
@@ -99,6 +103,7 @@
   box-shadow: 0 0 0 10px rgba(253,216,53,0.12), 0 0 40px rgba(253,216,53,0.4);
   z-index: 1;
   animation: gardenSunPulse 7s ease-in-out infinite;
+  transition: left 6s ease, top 6s ease, background 4s ease, box-shadow 4s ease, width 4s ease, height 4s ease, margin 4s ease;
 }
 [data-theme="night"] .g-sun { display: none; }
 
@@ -110,13 +115,27 @@
   width: 44px;
   height: 44px;
   z-index: 1;
-  animation: gardenSunPulse 8s ease-in-out infinite;
+  animation: gardenMoonPulse 8s ease-in-out infinite;
 }
 [data-theme="night"] .g-moon { display: block; }
 
 @keyframes gardenSunPulse {
-  0%,100% { box-shadow: 0 0 0 10px rgba(197,202,233,0.12), 0 0 40px rgba(197,202,233,0.4); }
-  50%     { box-shadow: 0 0 0 18px rgba(197,202,233,0.18), 0 0 60px rgba(197,202,233,0.55); }
+  0%,100% { filter: brightness(1); }
+  50%     { filter: brightness(1.12); }
+}
+
+@keyframes gardenMoonPulse {
+  0%,100% { box-shadow: 0 0 0 8px rgba(197,202,233,0.10), 0 0 30px rgba(197,202,233,0.30); filter: brightness(1); }
+  50%     { box-shadow: 0 0 0 14px rgba(197,202,233,0.16), 0 0 50px rgba(197,202,233,0.45); filter: brightness(1.08); }
+}
+
+/* Alone atmosferico tramonto */
+.g-sun-haze {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  transition: all 5s ease;
 }
 
 /* ── Stelle statiche notturne (render in canvas) ── */
