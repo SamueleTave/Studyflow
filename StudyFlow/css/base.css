@@ -15,6 +15,7 @@ body {
   background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%);
   background-attachment: fixed;
   min-height: 100vh;
+  min-height: 100svh; /* Fix iOS Safari: esclude barra browser */
   color: var(--text);
   overflow-x: hidden;
   transition: background 0.7s ease;
@@ -48,6 +49,7 @@ a { text-decoration: none; color: inherit; }
   display: grid;
   grid-template-columns: 210px 1fr;
   min-height: 100vh;
+  min-height: 100svh;
   position: relative;
   z-index: 1;
 }
@@ -115,6 +117,7 @@ a { text-decoration: none; color: inherit; }
   font-weight: 700;
   letter-spacing: -2px;
   line-height: 1;
+  font-variant-numeric: tabular-nums; /* cifre larghezza fissa: evita reflow ogni secondo */
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -471,12 +474,44 @@ body.focus-mode .focus-exit-btn { display: flex !important; }
 @keyframes slideInLeft { from { opacity:0; transform:translateX(-12px); } to { opacity:1; transform:translateX(0); } }
 @keyframes pulse       { 0%,100% { transform:scale(1); } 50% { transform:scale(1.015); } }
 
-/* Responsive */
+/* Responsive — tablet */
 @media (max-width: 960px) {
   .app { grid-template-columns: 1fr; z-index: unset; position: static; }
   .clock-quote { display: none; }
   .app > *:not(aside) { padding-top: 8px; }
   .clock-bar { padding-left: 62px; }
+}
+
+/* Responsive — mobile */
+@media (max-width: 600px) {
+  /* Clock bar: semplificato, non trabocca più */
+  .clock-bar {
+    padding: 10px 14px 10px 62px;
+    gap: 6px;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  .clock-time {
+    font-size: 1.7rem;
+    letter-spacing: -1px;
+  }
+  .clock-date { font-size: 0.62rem; margin-top: 1px; }
+  /* Nascondi le pill meno importanti su schermi piccoli */
+  .clock-bar .stat-pill  { display: none; }
+  .clock-bar .level-pill { display: none; }
+  /* Il contatore monete rimane visibile */
+  .coin-chip {
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    padding: 5px 9px;
+    gap: 4px;
+  }
+
+  /* Evita overflow orizzontale su qualsiasi elemento */
+  .app > *:not(aside) {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
 }
 
 /* ══════════════════════════════════════
