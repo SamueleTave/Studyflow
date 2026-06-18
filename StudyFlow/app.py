@@ -481,7 +481,15 @@ def user_get_data():
         rows = c.execute(
             "SELECT key, value FROM user_data WHERE user_id=?", (user["id"],)
         ).fetchall()
-    return jsonify({r["key"]: r["value"] for r in rows})
+        result = {r["key"]: r["value"] for r in rows}
+        # Consuma il flag dirty dopo averlo restituito (una sola rilettura forzata)
+        if result.get("sf_admin_flag") == "dirty":
+            c.execute(
+                "DELETE FROM user_data WHERE user_id=? AND key='sf_admin_flag'",
+                (user["id"],)
+            )
+            c.commit()
+    return jsonify(result)
 
 @app.route("/api/user/sync", methods=["POST"])
 def user_sync_data():
@@ -563,14 +571,20 @@ def admin_list_users():
                 except Exception:
                     pass
 
+            role_row = c.execute(
+                "SELECT value FROM user_data WHERE user_id=? AND key='sf_role_override'", (u["id"],)
+            ).fetchone()
+            role_override = (role_row["value"] if role_row and role_row["value"] else "auto")
+
             result.append({
-                "id":         u["id"],
-                "username":   u["username"],
-                "is_admin":   bool(u["is_admin"]),
-                "created_at": u["created_at"],
-                "last_seen":  u["last_seen"],
-                "coins":      coins,
+                "id":           u["id"],
+                "username":     u["username"],
+                "is_admin":     bool(u["is_admin"]),
+                "created_at":   u["created_at"],
+                "last_seen":    u["last_seen"],
+                "coins":        coins,
                 "session_count": session_count,
+                "role_override": role_override,
             })
     return jsonify(result)
 
@@ -719,6 +733,13 @@ def admin_set_user_data(uid):
             ON CONFLICT(user_id, key)
             DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
         """, (uid, key, value))
+        # Segnala al client che l'admin ha modificato i dati → forza reload completo
+        c.execute("""
+            INSERT INTO user_data (user_id, key, value, updated_at)
+            VALUES (?,?,?,datetime('now','localtime'))
+            ON CONFLICT(user_id, key)
+            DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+        """, (uid, "sf_admin_flag", "dirty"))
         c.commit()
     return jsonify({"ok": True})
 

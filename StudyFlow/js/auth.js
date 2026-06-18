@@ -98,13 +98,17 @@ async function loadFromServer() {
       if (!isFirstLoad && localVal != null) return;
       // sf_timer e sf_garden sono real-time: il dato locale è sempre più fresco del server
       if ((k === 'sf_timer' || k === 'sf_garden') && localVal != null) return;
-      // Per sf_coins: merge intelligente — acquisti locali vincono, activeEffects locali vincono, balance dal server
+      // Per sf_coins: merge intelligente — se admin ha aggiornato (_adminTs diverso), server vince su shop/balance.
+      // Altrimenti gli acquisti locali recenti vengono preservati.
       if (k === 'sf_coins' && localVal) {
         try {
           const local  = JSON.parse(localVal);
           const server = JSON.parse(data[k]);
+          const adminChanged = server._adminTs && server._adminTs !== local._adminTs;
           const merged = Object.assign({}, server, {
-            shop:          Object.assign({}, server.shop  || {}, local.shop  || {}),
+            shop:          adminChanged
+              ? (server.shop || {})
+              : Object.assign({}, server.shop || {}, local.shop || {}),
             activeEffects: Object.assign({}, server.activeEffects || {}, local.activeEffects || {}),
           });
           if (server._adminTs) merged._adminTs = server._adminTs;

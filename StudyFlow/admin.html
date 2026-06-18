@@ -683,6 +683,16 @@
   function getRole(sessions) {
     return _ROLE_DATA.find(r => sessions >= r.min) || _ROLE_DATA[_ROLE_DATA.length - 1];
   }
+  function getEffectiveRole(sessions, roleOverride) {
+    const auto    = getRole(sessions);
+    if (!roleOverride || roleOverride === 'auto') return { role: auto, forced: false };
+    const autoIdx = _ROLE_DATA.findIndex(r => r.key === auto.key);
+    const ovIdx   = _ROLE_DATA.findIndex(r => r.key === roleOverride);
+    if (ovIdx < 0) return { role: auto, forced: false };
+    // Prendi il ruolo più alto tra override e automatico
+    const effectiveIdx = Math.min(autoIdx, ovIdx); // _ROLE_DATA è DESC quindi indice minore = ruolo più alto
+    return { role: _ROLE_DATA[effectiveIdx], forced: ovIdx < autoIdx };
+  }
 
   /* ── Carica utenti ── */
   let _users = [];
@@ -744,7 +754,8 @@
     users.forEach(u => {
       const initial  = (u.username[0]||'?').toUpperCase();
       const adminTag = u.is_admin ? '<span class="user-admin-tag">admin</span>' : '';
-      const role     = getRole(u.session_count || 0);
+      const { role, forced } = getEffectiveRole(u.session_count || 0, u.role_override || 'auto');
+      const forcedTag = forced ? ' <span title="Ruolo forzato dall\'admin" style="font-size:0.6rem;opacity:0.7">✦</span>' : '';
       html += `<tr id="row-${u.id}">
         <td>
           <div class="user-name-cell">
@@ -756,7 +767,7 @@
         <td><span class="coin-value" id="coin-val-${u.id}">${u.coins} 🪙</span></td>
         <td>
           <span class="role-badge" style="color:${role.color};background:${role.bg};border-color:${role.border}">
-            ${role.emoji} ${role.name}
+            ${role.emoji} ${role.name}${forcedTag}
           </span>
         </td>
         <td>${u.session_count}</td>
@@ -1079,7 +1090,7 @@
       const el = document.getElementById('coin-val-' + uid);
       if (el) el.textContent = balance + ' 🪙';
       const u = _users.find(x => x.id === uid);
-      if (u) { u.coins = balance; u.session_count = sessions; }
+      if (u) { u.coins = balance; u.session_count = sessions; u.role_override = roleOverride; }
       renderStats(_users); renderTable(_users);
       sessionStorage.setItem('_sf_admin_users', JSON.stringify(_users));
 

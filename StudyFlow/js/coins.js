@@ -18,12 +18,15 @@ const _ROLE_META  = {
   maestro:     { color:'#f59e0b', emoji:'🏆', name:'Maestro' },
 };
 function _shopCurrentRoleKey() {
-  const ov = localStorage.getItem('sf_role_override');
-  if (ov && ov !== 'auto' && ov !== '') return ov;
   let n = 0; try { n = (JSON.parse(localStorage.getItem('sf_sessions')||'[]')||[]).length; } catch {}
-  let key = 'novizio';
-  for (const k of _ROLE_ORDER) { if (n >= _ROLE_MINS[k]) key = k; }
-  return key;
+  let autoKey = 'novizio';
+  for (const k of _ROLE_ORDER) { if (n >= _ROLE_MINS[k]) autoKey = k; }
+  // L'override è un MINIMO: se le sessioni superano il ruolo forzato, si usa quello più alto
+  const ov = localStorage.getItem('sf_role_override');
+  if (!ov || ov === 'auto' || ov === '') return autoKey;
+  const autoIdx = _ROLE_ORDER.indexOf(autoKey);
+  const ovIdx   = _ROLE_ORDER.indexOf(ov);
+  return (ovIdx > autoIdx) ? ov : autoKey;
 }
 
 const SHOP_ITEMS = [
