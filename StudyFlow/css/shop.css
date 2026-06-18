@@ -358,7 +358,111 @@ body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out inf
 .coin-balance-label{ font-size:0.8rem; font-weight:500; opacity:.85; text-transform:uppercase; letter-spacing:.1em; }
 .coin-balance-total{ margin-top:3px; font-size:0.72rem; opacity:.7; }
 
-/* Daily deal in shop — versione più grande */
+/* ══ OFFERTA DEL GIORNO nel Shop ══ */
+.daily-deal-card {
+  border-radius: 24px;
+  overflow: hidden;
+  margin-top: 6px;
+  position: relative;
+  background: linear-gradient(145deg, #ff6b00 0%, #f59e0b 40%, #e63946 100%);
+  box-shadow:
+    0 12px 40px rgba(239,68,68,0.32),
+    0 4px 12px rgba(0,0,0,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+  animation: dealPulse 4s ease-in-out infinite;
+}
+@keyframes dealPulse {
+  0%,100% { box-shadow: 0 12px 40px rgba(239,68,68,0.28), 0 4px 12px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.25); }
+  50%     { box-shadow: 0 16px 52px rgba(239,68,68,0.42), 0 6px 18px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.35); }
+}
+.daily-deal-card::before {
+  content: '';
+  position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%);
+  animation: dealShimmer 3.5s ease-in-out infinite;
+  pointer-events: none; z-index: 1;
+}
+.daily-deal-card::after {
+  content: '';
+  position: absolute; top: -30px; right: -20px;
+  width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, transparent 70%);
+  pointer-events: none;
+}
+@keyframes dealShimmer {
+  0%   { left: -100%; }
+  45%,100% { left: 140%; }
+}
+.deal-head {
+  padding: 12px 16px 6px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; z-index: 2;
+}
+.deal-badge {
+  font-size: 0.66rem; font-weight: 900; color: #fff;
+  letter-spacing: .08em; text-transform: uppercase;
+  background: rgba(0,0,0,0.22); backdrop-filter: blur(8px);
+  padding: 4px 11px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.25);
+  display: flex; align-items: center; gap: 5px;
+}
+.deal-badge-bolt { font-size: 0.7rem; animation: boltFlash 1.4s ease-in-out infinite; }
+@keyframes boltFlash {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%     { opacity:0.6; transform:scale(1.2); }
+}
+.deal-timer {
+  font-size: 0.66rem; color: rgba(255,255,255,0.92); font-weight: 700;
+  background: rgba(0,0,0,0.25); backdrop-filter: blur(8px);
+  padding: 3px 10px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.18); letter-spacing: 0.04em;
+}
+.deal-body {
+  display: flex; align-items: center; gap: 14px;
+  padding: 8px 16px 10px; position: relative; z-index: 2;
+}
+.deal-icon {
+  flex-shrink: 0; width: 64px; height: 64px; border-radius: 18px;
+  background: rgba(255,255,255,0.20); backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.deal-icon svg { width: 32px; height: 32px; stroke: #fff; color: #fff; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+.deal-info { flex: 1; min-width: 0; }
+.deal-name {
+  font-size: 1.05rem; font-weight: 900; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.20); letter-spacing: -0.01em;
+}
+.deal-desc { font-size: 0.67rem; color: rgba(255,255,255,0.78); margin-top: 3px; line-height: 1.35; }
+.deal-price { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.deal-original { font-size: 0.74rem; color: rgba(255,255,255,0.48); text-decoration: line-through; font-weight: 600; }
+.deal-save-badge {
+  font-size: 0.62rem; font-weight: 800;
+  background: rgba(0,0,0,0.25); color: #fff;
+  border-radius: 8px; padding: 2px 7px; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;
+}
+.deal-sale { font-size: 1.55rem; font-weight: 900; color: #fff; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.25); }
+.deal-foot { padding: 0 14px 14px; position: relative; z-index: 2; }
+.deal-btn {
+  width: 100%; padding: 12px; border: none; border-radius: 16px;
+  background: rgba(255,255,255,0.96);
+  color: #c2410c; font-size: 0.86rem; font-weight: 800;
+  font-family: 'Poppins', sans-serif; cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,1);
+  display: flex; align-items: center; justify-content: center; gap: 7px; letter-spacing: -0.01em;
+}
+.deal-btn:hover:not(:disabled) {
+  background: #fff; transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.20); color: #b91c1c;
+}
+.deal-btn:active:not(:disabled) { transform: scale(0.97); }
+.deal-btn.deal-owned { background: rgba(255,255,255,0.18) !important; color: rgba(255,255,255,0.75) !important; cursor: default; box-shadow: none; transform: none !important; }
+.deal-btn.deal-poor  { background: rgba(255,255,255,0.14) !important; color: rgba(255,255,255,0.5)  !important; cursor: not-allowed; box-shadow: none; transform: none !important; }
+.deal-btn:disabled { opacity: 0.9; }
+
 .shop-page .daily-deal-card { margin: 0 0 8px; }
 
 /* Sezione categoria */
