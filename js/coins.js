@@ -1117,19 +1117,20 @@ function renderDailyDeal() {
   const salePrice = Math.round(item.price * (1 - deal.discount / 100));
   const canBuy    = !owned && coinData.balance >= salePrice;
   const coinSvg = `<svg width="13" height="13" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle;flex-shrink:0"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>`;
+  const saved = Math.round(item.price * deal.discount / 100);
   el.innerHTML = `
     <div class="deal-head">
-      <span class="deal-badge">⚡ OFFERTA DEL GIORNO &nbsp;·&nbsp; -${deal.discount}%</span>
+      <span class="deal-badge"><span class="deal-badge-bolt">⚡</span> OFFERTA DEL GIORNO &nbsp;·&nbsp; -${deal.discount}%</span>
       <span class="deal-timer" id="deal-timer"></span>
     </div>
     <div class="deal-body">
-      <div class="deal-icon">${_shopIcon(item.type).replace('<svg ', '<svg width="22" height="22" ')}</div>
+      <div class="deal-icon">${_shopIcon(item.type).replace('<svg ', '<svg width="26" height="26" ')}</div>
       <div class="deal-info">
         <div class="deal-name">${item.name}</div>
         <div class="deal-desc">${item.desc}</div>
         <div class="deal-price">
           <span class="deal-original">${item.price}</span>${coinSvg}
-          <span class="deal-arrow">→</span>
+          <span class="deal-save-badge">-${saved} 🪙</span>
           <span class="deal-sale">${salePrice}</span>${coinSvg}
         </div>
       </div>
@@ -1137,7 +1138,7 @@ function renderDailyDeal() {
     <div class="deal-foot">
       <button class="deal-btn ${owned ? 'deal-owned' : canBuy ? '' : 'deal-poor'}"
         onclick="buyDailyDeal()" ${owned || !canBuy ? 'disabled' : ''}>
-        ${owned ? '✓ Già in tuo possesso' : canBuy ? `Acquista ora — ${salePrice} <svg width="13" height="13" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>` : 'Monete insufficienti'}
+        ${owned ? '✓ Già in tuo possesso' : canBuy ? `🛒 Acquista ora — ${salePrice} ${coinSvg}` : '🪙 Monete insufficienti'}
       </button>
     </div>`;
 }

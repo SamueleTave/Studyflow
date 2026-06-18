@@ -114,6 +114,8 @@
   right: 86px;
   width: 44px;
   height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
   z-index: 1;
   animation: gardenMoonPulse 8s ease-in-out infinite;
 }

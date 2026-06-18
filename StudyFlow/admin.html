@@ -670,14 +670,18 @@
     });
   }
 
-  /* ── Ruoli ── */
+  /* ── Ruoli reali (da coins.js: _ROLE_ORDER / _ROLE_MINS / _ROLE_META) ── */
+  const _ROLE_DATA = [
+    { key:'maestro',    min:200, name:'Maestro',     emoji:'🏆', color:'#f59e0b', bg:'rgba(245,158,11,0.13)', border:'rgba(245,158,11,0.38)' },
+    { key:'esperto',    min:100, name:'Esperto',      emoji:'💎', color:'#06b6d4', bg:'rgba(6,182,212,0.12)',  border:'rgba(6,182,212,0.35)'  },
+    { key:'studioso',   min:50,  name:'Studioso',     emoji:'⭐', color:'#10b981', bg:'rgba(16,185,129,0.12)', border:'rgba(16,185,129,0.35)' },
+    { key:'determinato',min:25,  name:'Determinato',  emoji:'🔥', color:'#f97316', bg:'rgba(249,115,22,0.12)', border:'rgba(249,115,22,0.35)' },
+    { key:'applicato',  min:10,  name:'Applicato',    emoji:'🎯', color:'#8b5cf6', bg:'rgba(139,92,246,0.12)', border:'rgba(139,92,246,0.35)' },
+    { key:'studente',   min:1,   name:'Studente',     emoji:'📖', color:'#3b82f6', bg:'rgba(59,130,246,0.12)', border:'rgba(59,130,246,0.35)' },
+    { key:'novizio',    min:0,   name:'Novizio',      emoji:'🌱', color:'#6b7280', bg:'rgba(107,114,128,0.10)',border:'rgba(107,114,128,0.28)' },
+  ];
   function getRole(sessions) {
-    if (sessions >= 100) return { name:'Leggenda', emoji:'👑', color:'#F59E0B', bg:'rgba(245,158,11,0.12)', border:'rgba(245,158,11,0.35)' };
-    if (sessions >= 50)  return { name:'Maestro',  emoji:'🏆', color:'#8B5CF6', bg:'rgba(139,92,246,0.12)', border:'rgba(139,92,246,0.35)' };
-    if (sessions >= 30)  return { name:'Esperto',  emoji:'⭐', color:'#3B82F6', bg:'rgba(59,130,246,0.12)', border:'rgba(59,130,246,0.35)' };
-    if (sessions >= 15)  return { name:'Diligente',emoji:'📚', color:'#10B981', bg:'rgba(16,185,129,0.12)', border:'rgba(16,185,129,0.35)' };
-    if (sessions >= 5)   return { name:'Studente', emoji:'✏️', color:'#6B7280', bg:'rgba(107,114,128,0.12)', border:'rgba(107,114,128,0.35)' };
-    return { name:'Novizio', emoji:'🌱', color:'#9CA3AF', bg:'rgba(156,163,175,0.10)', border:'rgba(156,163,175,0.3)' };
+    return _ROLE_DATA.find(r => sessions >= r.min) || _ROLE_DATA[_ROLE_DATA.length - 1];
   }
 
   /* ── Carica utenti ── */
@@ -833,13 +837,14 @@
   ];
 
   const _ROLES = [
-    { id:'auto',      name:'🤖 Automatico (da sessioni)' },
-    { id:'novizio',   name:'🌱 Novizio'   },
-    { id:'studente',  name:'✏️ Studente'  },
-    { id:'diligente', name:'📚 Diligente' },
-    { id:'esperto',   name:'⭐ Esperto'   },
-    { id:'maestro',   name:'🏆 Maestro'   },
-    { id:'leggenda',  name:'👑 Leggenda'  },
+    { id:'auto',       name:'🤖 Automatico (da sessioni)' },
+    { id:'novizio',    name:'🌱 Novizio'     },
+    { id:'studente',   name:'📖 Studente'    },
+    { id:'applicato',  name:'🎯 Applicato'   },
+    { id:'determinato',name:'🔥 Determinato' },
+    { id:'studioso',   name:'⭐ Studioso'    },
+    { id:'esperto',    name:'💎 Esperto'     },
+    { id:'maestro',    name:'🏆 Maestro'     },
   ];
 
   let _editState = { uid: null, username: '', coins: {}, friends: [], streak: 0, roleOverride: 'auto' };
