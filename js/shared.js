@@ -369,9 +369,25 @@ function _initMobileHamburger() {
   btn.onclick = _toggleMobileMenu;
   document.body.appendChild(btn);
 
-  /* Chiudi menu quando si clicca un link nella sidebar */
+  /* Pulsante ✕ interno alla sidebar (visibile solo su mobile schermo intero) */
   var sidebar = document.querySelector('aside.sidebar');
   if (sidebar) {
+    var closeBtn = document.createElement('button');
+    closeBtn.id = 'sf-sidebar-close';
+    closeBtn.setAttribute('aria-label', 'Chiudi menu');
+    closeBtn.innerHTML = '✕';
+    closeBtn.onclick = _closeMobileMenu;
+    closeBtn.style.cssText =
+      'display:none;position:absolute;top:16px;right:16px;width:36px;height:36px;' +
+      'border-radius:10px;border:none;background:rgba(0,0,0,0.06);color:var(--text);' +
+      'font-size:1.05rem;cursor:pointer;align-items:center;justify-content:center;' +
+      'font-family:inherit;z-index:2;transition:background 0.15s;';
+    closeBtn.onmouseenter = function(){ this.style.background = 'rgba(0,0,0,0.12)'; };
+    closeBtn.onmouseleave = function(){ this.style.background = 'rgba(0,0,0,0.06)'; };
+    sidebar.style.position = 'relative'; // needed for absolute child only when open
+    sidebar.appendChild(closeBtn);
+
+    /* Chiudi menu quando si clicca un link nella sidebar */
     sidebar.addEventListener('click', function(e) {
       var link = e.target.closest('a[href], button.nav-link');
       if (link && window.innerWidth <= 960) _closeMobileMenu();
@@ -382,20 +398,24 @@ function _initMobileHamburger() {
 function _toggleMobileMenu() {
   var sidebar = document.querySelector('aside.sidebar');
   var open = sidebar && sidebar.classList.toggle('mob-open');
-  var overlay = document.getElementById('sf-mob-overlay');
-  var btn = document.getElementById('sf-hamburger');
-  if (overlay) overlay.classList.toggle('mob-open', open);
-  if (btn) btn.classList.toggle('mob-open', open);
+  var overlay  = document.getElementById('sf-mob-overlay');
+  var btn      = document.getElementById('sf-hamburger');
+  var closeBtn = document.getElementById('sf-sidebar-close');
+  if (overlay)  overlay.classList.toggle('mob-open', open);
+  if (btn)      btn.classList.toggle('mob-open', open);
+  if (closeBtn) closeBtn.style.display = open ? 'flex' : 'none';
   document.body.style.overflow = open ? 'hidden' : '';
 }
 
 function _closeMobileMenu() {
-  var sidebar = document.querySelector('aside.sidebar');
-  var overlay = document.getElementById('sf-mob-overlay');
-  var btn = document.getElementById('sf-hamburger');
-  if (sidebar) sidebar.classList.remove('mob-open');
-  if (overlay) overlay.classList.remove('mob-open');
-  if (btn) btn.classList.remove('mob-open');
+  var sidebar  = document.querySelector('aside.sidebar');
+  var overlay  = document.getElementById('sf-mob-overlay');
+  var btn      = document.getElementById('sf-hamburger');
+  var closeBtn = document.getElementById('sf-sidebar-close');
+  if (sidebar)  sidebar.classList.remove('mob-open');
+  if (overlay)  overlay.classList.remove('mob-open');
+  if (btn)      btn.classList.remove('mob-open');
+  if (closeBtn) closeBtn.style.display = 'none';
   document.body.style.overflow = '';
 }
 

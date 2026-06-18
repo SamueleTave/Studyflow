@@ -350,7 +350,7 @@
   transition: background 0.35s ease;
 }
 #sf-mob-overlay.mob-open {
-  background: rgba(0,0,0,0.32);
+  background: rgba(0,0,0,0.48);
 }
 
 @media (max-width: 960px) {
@@ -364,7 +364,7 @@
     top: 0;
     left: 0;
     height: 100dvh;
-    width: 270px;
+    width: 300px;
     z-index: 600;
     flex-direction: column;
     padding: 24px 14px 30px;
@@ -372,25 +372,22 @@
     overflow-y: auto;
     overflow-x: hidden;
 
-    /* Glass morphism Apple */
-    background: rgba(255,255,255,0.78);
+    background: rgba(255,255,255,0.88);
     backdrop-filter: blur(40px) saturate(200%);
     -webkit-backdrop-filter: blur(40px) saturate(200%);
     border-right: 1px solid rgba(255,255,255,0.55);
     box-shadow: 4px 0 40px rgba(0,0,0,0.12);
 
-    /* Off-screen di default */
     transform: translateX(-100%);
-    transition: transform 0.42s cubic-bezier(0.32,0.72,0,1),
-                box-shadow 0.42s ease;
+    transition: transform 0.38s cubic-bezier(0.32,0.72,0,1),
+                box-shadow 0.38s ease;
   }
 
   .sidebar.mob-open {
     transform: translateX(0);
-    box-shadow: 8px 0 60px rgba(0,0,0,0.18);
+    box-shadow: 8px 0 60px rgba(0,0,0,0.22);
   }
 
-  /* Elementi visibili nel drawer */
   .sidebar-logo      { padding: 4px 8px 18px 62px; border-bottom: 1px solid rgba(0,0,0,0.08); margin-bottom: 8px; }
   .logo-text         { display: block; }
   .nav-section-label { display: block; }
@@ -404,8 +401,18 @@
   .presence-section  { display: block; }
   .sidebar-user-pill { display: flex; }
 
-  /* Spazio in alto per non coprire il timer content */
-  .timer-page, .page-content, main, .app-content {
-    padding-top: 0;
+  .timer-page, .page-content, main, .app-content { padding-top: 0; }
+}
+
+/* ── Mobile piccolo: sidebar a schermo intero ── */
+@media (max-width: 600px) {
+  .sidebar {
+    width: 100vw;
+    border-right: none;
+    background: rgba(255,255,255,0.97);
+    backdrop-filter: blur(40px) saturate(220%);
+    -webkit-backdrop-filter: blur(40px) saturate(220%);
   }
+  /* Overlay non serve (sidebar copre tutto) ma teniamo per coerenza */
+  #sf-mob-overlay.mob-open { background: rgba(0,0,0,0); pointer-events: none; }
 }
