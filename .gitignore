@@ -10,3 +10,6 @@ __pycache__/
 # Env / segreti
 .env
 restore_elly.py
+ignore
+.venv/
+.DS_Store
