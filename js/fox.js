@@ -3,7 +3,7 @@
    States: sleeping | sitting | walking | happy
    ===================================================== */
 
-const FOX_W      = 68;
+const FOX_W      = 92;
 const FOX_BOTTOM = 24;
 const FOX_RIGHT  = 414;
 
@@ -18,78 +18,67 @@ let _foxInGarden  = false;
 
 const FOX_SVG = `
 <div class="fox-dir-wrap">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="${FOX_W}" height="${Math.round(FOX_W*1.2)}" aria-label="Volpe">
-
-    <!-- Coda grande (destra, dietro corpo) -->
-    <path d="M66,78 C84,66 96,44 90,24 C86,12 76,16 74,30 C72,44 76,64 68,76Z" fill="#E87B2A"/>
-    <ellipse cx="85" cy="20" rx="9" ry="12" fill="white" opacity="0.88" transform="rotate(15 85 20)"/>
-    <path d="M78,60 C82,46 84,32 80,22" fill="none" stroke="#F5A050" stroke-width="3.5" opacity="0.4" stroke-linecap="round"/>
-
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-8 0 138 158" width="${FOX_W}" height="${Math.round(FOX_W*1.215)}" aria-label="Volpe">
+    <ellipse cx="64" cy="154" rx="28" ry="5" fill="rgba(0,0,0,0.12)"/>
+    <!-- Coda -->
+    <path d="M18,102 C0,84 -6,58 2,34 C7,20 19,20 17,37 C15,54 17,78 18,100Z" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.2" stroke-linejoin="round"/>
+    <ellipse cx="3" cy="37" rx="7" ry="10" fill="white" stroke="#1a0a2e" stroke-width="2.4" transform="rotate(-12 3 37)"/>
     <!-- Corpo -->
-    <ellipse cx="50" cy="87" rx="26" ry="22" fill="#E87B2A"/>
-    <!-- Pancia bianca -->
-    <ellipse cx="50" cy="91" rx="18" ry="14" fill="white" opacity="0.82"/>
-
+    <circle cx="64" cy="108" r="36" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.5"/>
+    <ellipse cx="64" cy="113" rx="22" ry="23" fill="#FFF0E0" stroke="#1a0a2e" stroke-width="2"/>
     <!-- Zampa sinistra -->
     <g class="fox-paw-l">
-      <ellipse cx="37" cy="108" rx="11" ry="7" fill="#D06828"/>
-      <line x1="33" y1="108" x2="33" y2="112" stroke="#B85820" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="37" y1="110" x2="37" y2="114" stroke="#B85820" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="41" y1="108" x2="41" y2="112" stroke="#B85820" stroke-width="1.8" stroke-linecap="round"/>
+      <ellipse cx="46" cy="138" rx="14" ry="8" fill="#C85A10" stroke="#1a0a2e" stroke-width="3"/>
+      <line x1="37" y1="142" x2="34" y2="148" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="46" y1="144" x2="46" y2="150" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="55" y1="142" x2="58" y2="148" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
     </g>
     <!-- Zampa destra -->
     <g class="fox-paw-r">
-      <ellipse cx="63" cy="108" rx="11" ry="7" fill="#D06828"/>
-      <line x1="59" y1="108" x2="59" y2="112" stroke="#B85820" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="63" y1="110" x2="63" y2="114" stroke="#B85820" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="67" y1="108" x2="67" y2="112" stroke="#B85820" stroke-width="1.8" stroke-linecap="round"/>
+      <ellipse cx="82" cy="138" rx="14" ry="8" fill="#C85A10" stroke="#1a0a2e" stroke-width="3"/>
+      <line x1="73" y1="142" x2="70" y2="148" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="82" y1="144" x2="82" y2="150" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="91" y1="142" x2="94" y2="148" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
     </g>
-
+    <!-- Orecchie -->
+    <polygon points="28,46 50,32 30,2" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.2" stroke-linejoin="round"/>
+    <polygon points="33,43 47,35 32,8" fill="#F4907A"/>
+    <polygon points="100,46 78,32 98,2" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.2" stroke-linejoin="round"/>
+    <polygon points="95,43 81,35 96,8" fill="#F4907A"/>
     <!-- Testa -->
-    <circle cx="50" cy="43" r="27" fill="#E87B2A"/>
-
-    <!-- Orecchie appuntite -->
-    <polygon points="26,28 17,3 44,22" fill="#E87B2A"/>
-    <polygon points="74,28 83,3 56,22" fill="#E87B2A"/>
-    <polygon points="28,25 21,8 42,21" fill="#FF9AB3"/>
-    <polygon points="72,25 79,8 58,21" fill="#FF9AB3"/>
-
-    <!-- Museruolo chiaro -->
-    <ellipse cx="50" cy="57" rx="17" ry="12" fill="#F8D29A" opacity="0.88"/>
-
-    <!-- Occhi aperti (tondi patatini teneri) -->
+    <circle cx="64" cy="62" r="38" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.5"/>
+    <ellipse cx="64" cy="70" rx="27" ry="22" fill="#FFF0E0" stroke="#1a0a2e" stroke-width="2"/>
+    <!-- Occhi aperti -->
     <g class="fox-eye-open">
-      <circle cx="39" cy="41" r="7.0" fill="#1C0E00"/>
-      <circle cx="39" cy="41" r="5.8" fill="#E8A820"/>
-      <circle cx="39" cy="41.5" r="3.2" fill="#0A0400"/>
-      <circle cx="40.6" cy="39.4" r="1.6" fill="white"/>
-      <circle cx="37.6" cy="43.0" r="0.8" fill="rgba(255,255,255,0.5)"/>
-      <circle cx="61" cy="41" r="7.0" fill="#1C0E00"/>
-      <circle cx="61" cy="41" r="5.8" fill="#E8A820"/>
-      <circle cx="61" cy="41.5" r="3.2" fill="#0A0400"/>
-      <circle cx="62.6" cy="39.4" r="1.6" fill="white"/>
-      <circle cx="59.6" cy="43.0" r="0.8" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="46" cy="62" r="13" fill="white" stroke="#1a0a2e" stroke-width="3"/>
+      <circle cx="46" cy="63" r="8.5" fill="#3A9A3A"/><circle cx="46" cy="63" r="5" fill="#1a0a2e"/><circle cx="49" cy="59" r="2.8" fill="white"/>
+      <circle cx="82" cy="62" r="13" fill="white" stroke="#1a0a2e" stroke-width="3"/>
+      <circle cx="82" cy="63" r="8.5" fill="#3A9A3A"/><circle cx="82" cy="63" r="5" fill="#1a0a2e"/><circle cx="85" cy="59" r="2.8" fill="white"/>
     </g>
-    <!-- Occhi chiusi (dormendo) -->
+    <!-- Occhi chiusi -->
     <g class="fox-eye-closed" style="display:none">
-      <path d="M33,41 Q39,35 45,41" fill="none" stroke="#3A2800" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M55,41 Q61,35 67,41" fill="none" stroke="#3A2800" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M33,63 Q46,52 59,63" fill="none" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M69,63 Q82,52 95,63" fill="none" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round"/>
     </g>
-
-    <!-- Naso -->
-    <ellipse cx="50" cy="60" rx="4.5" ry="3" fill="#1A0A00"/>
-    <ellipse cx="49" cy="59" rx="1.8" ry="1.2" fill="rgba(255,255,255,0.45)"/>
-    <!-- Bocca -->
-    <path d="M45,63 Q50,68 55,63" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="1.5" stroke-linecap="round"/>
-
-    <!-- ZZZ (dormendo) -->
+    <ellipse cx="27" cy="73" rx="10" ry="7" fill="#F06050" opacity="0.4"/>
+    <ellipse cx="101" cy="73" rx="10" ry="7" fill="#F06050" opacity="0.4"/>
+    <polygon points="64,76 58,82 70,82" fill="#1a0a2e"/>
+    <line x1="64" y1="82" x2="64" y2="86" stroke="#1a0a2e" stroke-width="2.2"/>
+    <path d="M56,86 Q64,94 72,86" fill="none" stroke="#1a0a2e" stroke-width="2.8" stroke-linecap="round"/>
+    <line x1="52" y1="78" x2="22" y2="72" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="52" y1="82" x2="20" y2="82" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="76" y1="78" x2="106" y2="72" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="76" y1="82" x2="108" y2="82" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <path d="M26,100 Q14,110 18,120 Q28,122 30,112 Q32,106 28,100Z" fill="#C85A10" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M102,100 Q114,110 110,120 Q100,122 98,112 Q96,106 100,100Z" fill="#C85A10" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <!-- ZZZ -->
     <g class="fox-zzz" style="display:none">
-      <text x="64" y="22" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="9">z</text>
-      <text x="70" y="14" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="11">z</text>
+      <text x="90" y="22" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="13">z</text>
+      <text x="102" y="8" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="17">z</text>
     </g>
-    <!-- Cuore (felice) -->
+    <!-- Cuore -->
     <g class="fox-heart" style="display:none">
-      <path d="M50,15 C50,15 42,8 37,13 C34,17 35,23 39,26 L50,35 L61,26 C65,23 66,17 63,13 C58,8 50,15 50,15Z" fill="#EC4899" opacity="0.9"/>
+      <path d="M64,18 C64,18 54,10 47,16 C43,21 45,28 50,31 L64,42 L78,31 C83,28 85,21 81,16 C74,10 64,18 64,18Z" fill="#EC4899" opacity="0.9"/>
     </g>
   </svg>
 </div>`;
@@ -120,7 +109,7 @@ function initFox() {
   _foxEl.className = 'fox-companion fox-hidden';
   _foxEl.innerHTML = FOX_SVG;
   _foxEl.title     = 'Clicca la volpe!';
-  _foxEl.style.cssText = `position:fixed;right:${FOX_RIGHT}px;bottom:${FOX_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
+  _foxEl.style.cssText = `position:fixed;right:${_companionSlotRight('fox')}px;bottom:${FOX_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
   _foxEl.addEventListener('click', _onFoxClick);
   (document.querySelector('.app') || document.body).appendChild(_foxEl);
 
@@ -166,7 +155,8 @@ function hideFoxHouse() { if (_foxHouseEl) _foxHouseEl.classList.add('house-hidd
    ══════════════════════════ */
 function showFox() {
   if (!_foxEl) initFox();
-  _foxEl.classList.remove('fox-hidden');
+  _foxEl.classList.remove('fox-hidden')
+  if (_foxHouseEl) _foxHouseEl.style.right = (_companionSlotRight('fox') - 8) + 'px';;
   _foxGoHome(0);
   setFoxState('sitting');
   clearTimeout(_foxSleepTmr);
@@ -209,19 +199,19 @@ function _foxMoveTo(targetLeft, targetBottom, durationMs) {
 }
 
 function _foxGoHome(durationMs) {
-  const homeLeft = window.innerWidth - FOX_W - FOX_RIGHT;
+  const homeLeft = window.innerWidth - FOX_W - _companionSlotRight('fox');
   if (durationMs > 0) {
     _foxMoveTo(homeLeft, FOX_BOTTOM, durationMs);
     setTimeout(() => {
       if (!_foxEl) return;
       _foxEl.style.transition = 'none';
       _foxEl.style.left   = 'auto';
-      _foxEl.style.right  = FOX_RIGHT + 'px';
+      _foxEl.style.right  = _companionSlotRight('fox') + 'px';
       _foxEl.style.bottom = FOX_BOTTOM + 'px';
     }, durationMs + 80);
   } else {
     _foxEl.style.transition = 'none';
-    _foxEl.style.right  = FOX_RIGHT + 'px';
+    _foxEl.style.right  = _companionSlotRight('fox') + 'px';
     _foxEl.style.left   = 'auto';
     _foxEl.style.bottom = FOX_BOTTOM + 'px';
   }

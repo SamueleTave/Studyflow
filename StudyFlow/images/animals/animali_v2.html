@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Animali v2 — Cute Fat Style</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #5492B8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 36px;
+    padding: 36px 20px 60px;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  .animal-block { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .animal-title { font-size: 0.95rem; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: white; text-shadow: 0 2px 6px rgba(0,0,0,0.35); }
+  .poses-row { display: flex; gap: 24px; align-items: flex-end; background: rgba(255,255,255,0.16); border-radius: 22px; padding: 26px 36px; backdrop-filter: blur(8px); }
+  .pose-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .pose-label { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.88); }
+  .card { background: white; border-radius: 14px; padding: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.18); display:flex; align-items:center; justify-content:center; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ VOLPE ═══════════════════ -->
+<div class="animal-block">
+<div class="animal-title">🦊 Volpe — fixed</div>
+<div class="poses-row">
+
+  <!-- IDLE -->
+  <div class="pose-wrap">
+  <div class="card">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 155" width="118" height="141">
+    <ellipse cx="64" cy="151" rx="30" ry="5" fill="rgba(0,0,0,0.12)"/>
+
+    <!-- Coda sinistra -->
+    <path d="M20,100 C2,82 -4,56 4,34 C8,20 20,20 18,36 C16,52 18,76 20,98Z"
+      fill="#E8722A" stroke="#1a0a2e" stroke-width="3.2" stroke-linejoin="round"/>
+    <!-- punta bianca coda -->
+    <ellipse cx="5" cy="37" rx="8" ry="11" fill="white" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-12 5 37)"/>
+    <path d="M6,28 C4,32 4,38 6,44 C10,40 12,34 10,28Z" fill="white"/>
+
+    <!-- Corpo -->
+    <circle cx="64" cy="106" r="36" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.5"/>
+    <!-- Pancia -->
+    <ellipse cx="64" cy="111" rx="22" ry="24" fill="#FFF0E0" stroke="#1a0a2e" stroke-width="2"/>
+
+    <!-- Piedini -->
+    <ellipse cx="46" cy="137" rx="14" ry="8" fill="#D06018" stroke="#1a0a2e" stroke-width="3"/>
+    <ellipse cx="82" cy="137" rx="14" ry="8" fill="#D06018" stroke="#1a0a2e" stroke-width="3"/>
+    <line x1="37" y1="141" x2="34" y2="147" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="46" y1="143" x2="46" y2="149" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="55" y1="141" x2="58" y2="147" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="73" y1="141" x2="70" y2="147" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="82" y1="143" x2="82" y2="149" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="91" y1="141" x2="94" y2="147" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- ═ ORECCHIE (disegnate PRIMA della testa, così la testa le copre alla base) ═ -->
+    <!-- Orecchio sinistro — triangolo pulito -->
+    <polygon points="26,46 42,26 58,40" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.2" stroke-linejoin="round"/>
+    <!-- interno rosa -->
+    <polygon points="30,44 42,30 54,40" fill="#F4907A"/>
+
+    <!-- Orecchio destro -->
+    <polygon points="102,46 86,26 70,40" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.2" stroke-linejoin="round"/>
+    <!-- interno rosa -->
+    <polygon points="98,44 86,30 74,40" fill="#F4907A"/>
+
+    <!-- TESTA (copre le basi delle orecchie) -->
+    <circle cx="64" cy="62" r="38" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.5"/>
+
+    <!-- Maschera bianca faccia volpe -->
+    <ellipse cx="64" cy="70" rx="27" ry="22" fill="#FFF0E0" stroke="#1a0a2e" stroke-width="2"/>
+
+    <!-- Occhi grandi -->
+    <circle cx="46" cy="62" r="13" fill="white" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="46" cy="63" r="8.5" fill="#3A9A3A"/>
+    <circle cx="46" cy="63" r="5" fill="#1a0a2e"/>
+    <circle cx="49" cy="59" r="2.8" fill="white"/>
+    <circle cx="44" cy="66" r="1.2" fill="white" opacity="0.7"/>
+
+    <circle cx="82" cy="62" r="13" fill="white" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="82" cy="63" r="8.5" fill="#3A9A3A"/>
+    <circle cx="82" cy="63" r="5" fill="#1a0a2e"/>
+    <circle cx="85" cy="59" r="2.8" fill="white"/>
+    <circle cx="80" cy="66" r="1.2" fill="white" opacity="0.7"/>
+
+    <!-- Guancette -->
+    <ellipse cx="28" cy="72" rx="10" ry="7" fill="#F06050" opacity="0.45"/>
+    <ellipse cx="100" cy="72" rx="10" ry="7" fill="#F06050" opacity="0.45"/>
+
+    <!-- Naso a triangolino -->
+    <polygon points="64,74 58,80 70,80" fill="#1a0a2e"/>
+    <!-- Linea naso-bocca -->
+    <line x1="64" y1="80" x2="64" y2="84" stroke="#1a0a2e" stroke-width="2.2"/>
+    <!-- Bocca -->
+    <path d="M56,84 Q64,92 72,84" fill="none" stroke="#1a0a2e" stroke-width="2.8" stroke-linecap="round"/>
+    <!-- Baffi -->
+    <line x1="52" y1="76" x2="24" y2="70" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="52" y1="80" x2="22" y2="80" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="76" y1="76" x2="104" y2="70" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="76" y1="80" x2="106" y2="80" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Braccioline -->
+    <path d="M26,98 Q14,108 18,118 Q28,120 30,112 Q32,104 28,98Z"
+      fill="#D06018" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M102,98 Q114,108 110,118 Q100,120 98,112 Q96,104 100,98Z"
+      fill="#D06018" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+  </svg>
+  </div>
+  <span class="pose-label">Idle</span>
+  </div>
+
+  <!-- HAPPY -->
+  <div class="pose-wrap">
+  <div class="card">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 162" width="118" height="148">
+    <!-- stelline -->
+    <text x="20" y="24" font-size="18" fill="#FFD700" stroke="#1a0a2e" stroke-width="1.2" paint-order="stroke" font-family="Arial">⭐</text>
+    <text x="92" y="18" font-size="13" fill="#FFD700" stroke="#1a0a2e" stroke-width="1" paint-order="stroke" font-family="Arial">✨</text>
+
+    <ellipse cx="64" cy="158" rx="30" ry="5" fill="rgba(0,0,0,0.12)"/>
+
+    <!-- Coda alta (felice) -->
+    <path d="M18,96 C0,72 -6,44 4,16 C10,2 22,4 20,22 C18,42 18,68 18,94Z"
+      fill="#E8722A" stroke="#1a0a2e" stroke-width="3.2" stroke-linejoin="round"/>
+    <ellipse cx="5" cy="20" rx="7" ry="10" fill="white" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-10 5 20)"/>
+
+    <!-- Corpo -->
+    <circle cx="64" cy="112" r="36" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.5"/>
+    <ellipse cx="64" cy="117" rx="22" ry="24" fill="#FFF0E0" stroke="#1a0a2e" stroke-width="2"/>
+
+    <!-- Piedini -->
+    <ellipse cx="46" cy="143" rx="14" ry="8" fill="#D06018" stroke="#1a0a2e" stroke-width="3"/>
+    <ellipse cx="82" cy="143" rx="14" ry="8" fill="#D06018" stroke="#1a0a2e" stroke-width="3"/>
+    <line x1="37" y1="147" x2="34" y2="153" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="46" y1="149" x2="46" y2="155" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="55" y1="147" x2="58" y2="153" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="73" y1="147" x2="70" y2="153" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="82" y1="149" x2="82" y2="155" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="91" y1="147" x2="94" y2="153" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Orecchie (prima della testa) -->
+    <polygon points="26,52 42,32 58,46" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.2" stroke-linejoin="round"/>
+    <polygon points="30,50 42,36 54,46" fill="#F4907A"/>
+    <polygon points="102,52 86,32 70,46" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.2" stroke-linejoin="round"/>
+    <polygon points="98,50 86,36 74,46" fill="#F4907A"/>
+
+    <!-- Testa -->
+    <circle cx="64" cy="68" r="38" fill="#E8722A" stroke="#1a0a2e" stroke-width="3.5"/>
+    <ellipse cx="64" cy="76" rx="27" ry="22" fill="#FFF0E0" stroke="#1a0a2e" stroke-width="2"/>
+
+    <!-- Occhi chiusi a mezzaluna (felice) -->
+    <path d="M30,66 Q46,54 60,66" fill="none" stroke="#1a0a2e" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M68,66 Q82,54 98,66" fill="none" stroke="#1a0a2e" stroke-width="4.5" stroke-linecap="round"/>
+
+    <!-- Guancette grandi (super felice) -->
+    <ellipse cx="24" cy="78" rx="13" ry="9" fill="#F06050" opacity="0.55"/>
+    <ellipse cx="104" cy="78" rx="13" ry="9" fill="#F06050" opacity="0.55"/>
+
+    <!-- Naso -->
+    <polygon points="64,80 58,86 70,86" fill="#1a0a2e"/>
+    <line x1="64" y1="86" x2="64" y2="90" stroke="#1a0a2e" stroke-width="2.2"/>
+    <!-- Bocca aperta -->
+    <path d="M46,90 Q64,106 82,90" fill="#1a0a2e" stroke="#1a0a2e" stroke-width="2"/>
+    <path d="M46,90 Q64,104 82,90 Q64,100 46,90Z" fill="#D01050"/>
+    <ellipse cx="64" cy="101" rx="11" ry="7" fill="#F9A8D4"/>
+    <!-- Baffi -->
+    <line x1="52" y1="82" x2="24" y2="76" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="52" y1="86" x2="22" y2="86" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="76" y1="82" x2="104" y2="76" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="76" y1="86" x2="106" y2="86" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Braccioline alzate -->
+    <path d="M26,104 Q12,90 16,78 Q28,82 30,94 Q30,100 28,104Z"
+      fill="#D06018" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M102,104 Q116,90 112,78 Q100,82 98,94 Q98,100 100,104Z"
+      fill="#D06018" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+  </svg>
+  </div>
+  <span class="pose-label">Happy</span>
+  </div>
+
+</div><!-- /poses-row volpe -->
+</div><!-- /animal-block volpe -->
+
+
+<!-- ═══════════════════ PROCIONE ═══════════════════ -->
+<div class="animal-block">
+<div class="animal-title">🦝 Procione — fixed</div>
+<div class="poses-row">
+
+  <!-- IDLE -->
+  <div class="pose-wrap">
+  <div class="card">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 152" width="118" height="138">
+    <ellipse cx="64" cy="148" rx="30" ry="5" fill="rgba(0,0,0,0.12)"/>
+
+    <!-- Coda a strisce -->
+    <path d="M20,100 C2,82 -4,56 2,34 C6,20 18,20 16,36 C14,52 16,76 18,98Z"
+      fill="#8B9AAF" stroke="#1a0a2e" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M4,38 C8,48 12,56 14,64" fill="none" stroke="#3A4252" stroke-width="6" stroke-linecap="round" opacity="0.75"/>
+    <path d="M4,54 C8,64 12,72 14,80" fill="none" stroke="#3A4252" stroke-width="6" stroke-linecap="round" opacity="0.75"/>
+    <path d="M6,70 C10,80 13,86 14,92" fill="none" stroke="#3A4252" stroke-width="6" stroke-linecap="round" opacity="0.75"/>
+
+    <!-- Corpo -->
+    <circle cx="64" cy="104" r="35" fill="#8B9AAF" stroke="#1a0a2e" stroke-width="3.5"/>
+    <ellipse cx="64" cy="109" rx="21" ry="23" fill="#DCDCD0" stroke="#1a0a2e" stroke-width="2"/>
+
+    <!-- Piedini (scuri) -->
+    <ellipse cx="46" cy="133" rx="13" ry="8" fill="#4C5568" stroke="#1a0a2e" stroke-width="3"/>
+    <ellipse cx="82" cy="133" rx="13" ry="8" fill="#4C5568" stroke="#1a0a2e" stroke-width="3"/>
+    <line x1="37" y1="137" x2="34" y2="143" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="46" y1="139" x2="46" y2="145" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="55" y1="137" x2="58" y2="143" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="73" y1="137" x2="70" y2="143" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="82" y1="139" x2="82" y2="145" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="91" y1="137" x2="94" y2="143" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- ═ ORECCHIE TONDE (prima della testa) ═ -->
+    <!-- base grigia -->
+    <circle cx="36" cy="28" r="17" fill="#8B9AAF" stroke="#1a0a2e" stroke-width="3.2"/>
+    <!-- interno più chiaro -->
+    <circle cx="36" cy="28" r="10" fill="#DCDCD0"/>
+    <circle cx="92" cy="28" r="17" fill="#8B9AAF" stroke="#1a0a2e" stroke-width="3.2"/>
+    <circle cx="92" cy="28" r="10" fill="#DCDCD0"/>
+
+    <!-- TESTA (copre le basi delle orecchie) -->
+    <circle cx="64" cy="62" r="38" fill="#8B9AAF" stroke="#1a0a2e" stroke-width="3.5"/>
+
+    <!-- MASCHERA nera tipica procione -->
+    <path d="M22,54 Q64,43 106,54 Q98,76 84,74 Q75,60 64,62 Q53,60 44,74 Q30,76 22,54Z"
+      fill="#2A2E3C" stroke="#1a0a2e" stroke-width="1.8" stroke-linejoin="round"/>
+
+    <!-- Occhi grandi (dentro maschera) -->
+    <circle cx="44" cy="58" r="14" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+    <circle cx="44" cy="59" r="9" fill="#8B5A2B"/>
+    <circle cx="44" cy="59" r="5.5" fill="#1a0a2e"/>
+    <circle cx="47.5" cy="55" r="3" fill="white"/>
+    <circle cx="42" cy="62" r="1.2" fill="white" opacity="0.7"/>
+
+    <circle cx="84" cy="58" r="14" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+    <circle cx="84" cy="59" r="9" fill="#8B5A2B"/>
+    <circle cx="84" cy="59" r="5.5" fill="#1a0a2e"/>
+    <circle cx="87.5" cy="55" r="3" fill="white"/>
+    <circle cx="82" cy="62" r="1.2" fill="white" opacity="0.7"/>
+
+    <!-- Museruolo (area chiara) -->
+    <ellipse cx="64" cy="74" rx="19" ry="14" fill="#C8C8BC" stroke="#1a0a2e" stroke-width="2"/>
+
+    <!-- NASO piccolo (fix!) -->
+    <ellipse cx="64" cy="71" rx="4.5" ry="3.5" fill="#2A2E3C"/>
+    <circle cx="62.2" cy="70.5" r="1.2" fill="#4A4E5C" opacity="0.6"/>
+    <circle cx="65.8" cy="70.5" r="1.2" fill="#4A4E5C" opacity="0.6"/>
+
+    <!-- Bocca -->
+    <line x1="64" y1="74" x2="64" y2="78" stroke="#1a0a2e" stroke-width="2"/>
+    <path d="M56,78 Q64,87 72,78" fill="none" stroke="#1a0a2e" stroke-width="2.8" stroke-linecap="round"/>
+
+    <!-- Baffi bianchi -->
+    <line x1="50" y1="74" x2="22" y2="67" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="50" y1="78" x2="20" y2="78" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="78" y1="74" x2="106" y2="67" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="78" y1="78" x2="108" y2="78" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+
+    <!-- Braccioline scure -->
+    <path d="M26,98 Q14,108 18,118 Q28,120 30,112 Q32,104 28,98Z"
+      fill="#4C5568" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M102,98 Q114,108 110,118 Q100,120 98,112 Q96,104 100,98Z"
+      fill="#4C5568" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+  </svg>
+  </div>
+  <span class="pose-label">Idle</span>
+  </div>
+
+  <!-- THROW -->
+  <div class="pose-wrap">
+  <div class="card">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 152 152" width="138" height="138">
+    <!-- Pallina lanciata -->
+    <circle cx="138" cy="26" r="13" fill="#FFD700" stroke="#1a0a2e" stroke-width="3"/>
+    <line x1="127" y1="20" x2="104" y2="54" stroke="#1a0a2e" stroke-width="2" stroke-dasharray="4,5" stroke-linecap="round" opacity="0.45"/>
+
+    <ellipse cx="66" cy="148" rx="30" ry="5" fill="rgba(0,0,0,0.12)"/>
+
+    <!-- Coda -->
+    <path d="M22,100 C4,82 -2,58 4,36 C8,22 18,22 16,38 C14,54 16,78 18,98Z"
+      fill="#8B9AAF" stroke="#1a0a2e" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M6,40 C10,50 12,58 14,66" fill="none" stroke="#3A4252" stroke-width="6" stroke-linecap="round" opacity="0.75"/>
+    <path d="M6,56 C10,66 13,74 14,82" fill="none" stroke="#3A4252" stroke-width="6" stroke-linecap="round" opacity="0.75"/>
+
+    <!-- Corpo -->
+    <circle cx="66" cy="104" r="35" fill="#8B9AAF" stroke="#1a0a2e" stroke-width="3.5"/>
+    <ellipse cx="66" cy="109" rx="21" ry="23" fill="#DCDCD0" stroke="#1a0a2e" stroke-width="2"/>
+
+    <!-- Piedini -->
+    <ellipse cx="48" cy="133" rx="13" ry="8" fill="#4C5568" stroke="#1a0a2e" stroke-width="3"/>
+    <ellipse cx="84" cy="133" rx="13" ry="8" fill="#4C5568" stroke="#1a0a2e" stroke-width="3"/>
+    <line x1="39" y1="137" x2="36" y2="143" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="48" y1="139" x2="48" y2="145" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="57" y1="137" x2="60" y2="143" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="75" y1="137" x2="72" y2="143" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="84" y1="139" x2="84" y2="145" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="93" y1="137" x2="96" y2="143" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Orecchie -->
+    <circle cx="38" cy="28" r="17" fill="#8B9AAF" stroke="#1a0a2e" stroke-width="3.2"/>
+    <circle cx="38" cy="28" r="10" fill="#DCDCD0"/>
+    <circle cx="94" cy="28" r="17" fill="#8B9AAF" stroke="#1a0a2e" stroke-width="3.2"/>
+    <circle cx="94" cy="28" r="10" fill="#DCDCD0"/>
+
+    <!-- Testa -->
+    <circle cx="66" cy="62" r="38" fill="#8B9AAF" stroke="#1a0a2e" stroke-width="3.5"/>
+
+    <!-- Maschera -->
+    <path d="M24,54 Q66,43 108,54 Q100,76 86,74 Q77,60 66,62 Q55,60 46,74 Q32,76 24,54Z"
+      fill="#2A2E3C" stroke="#1a0a2e" stroke-width="1.8" stroke-linejoin="round"/>
+
+    <!-- Occhio sinistro strizzato (concentrato) -->
+    <path d="M28,58 Q44,50 58,58" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/>
+    <path d="M30,62 Q44,57 58,62" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+
+    <!-- Occhio destro aperto (mira) -->
+    <circle cx="86" cy="58" r="14" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+    <circle cx="88" cy="59" r="9" fill="#8B5A2B"/>
+    <circle cx="88" cy="59" r="5.5" fill="#1a0a2e"/>
+    <circle cx="91.5" cy="55" r="3" fill="white"/>
+
+    <!-- Museruolo -->
+    <ellipse cx="66" cy="74" rx="19" ry="14" fill="#C8C8BC" stroke="#1a0a2e" stroke-width="2"/>
+    <ellipse cx="66" cy="71" rx="4.5" ry="3.5" fill="#2A2E3C"/>
+    <circle cx="64.2" cy="70.5" r="1.2" fill="#4A4E5C" opacity="0.6"/>
+    <circle cx="67.8" cy="70.5" r="1.2" fill="#4A4E5C" opacity="0.6"/>
+    <line x1="66" y1="74" x2="66" y2="78" stroke="#1a0a2e" stroke-width="2"/>
+    <path d="M57,78 Q66,86 75,78" fill="none" stroke="#1a0a2e" stroke-width="2.8" stroke-linecap="round"/>
+
+    <!-- Baffi -->
+    <line x1="52" y1="74" x2="24" y2="67" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="52" y1="78" x2="22" y2="78" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="80" y1="74" x2="108" y2="67" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="80" y1="78" x2="110" y2="78" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+
+    <!-- Braccio destro che lancia -->
+    <path d="M100,90 Q118,68 126,48" fill="none" stroke="#4C5568" stroke-width="12" stroke-linecap="round"/>
+    <path d="M100,90 Q118,68 126,48" fill="none" stroke="#1a0a2e" stroke-width="12" stroke-linecap="round" opacity="0.14"/>
+    <circle cx="128" cy="44" r="9.5" fill="#4C5568" stroke="#1a0a2e" stroke-width="3"/>
+    <!-- Braccio sinistro -->
+    <path d="M28,98 Q14,108 18,120 Q28,122 30,114 Q32,106 28,98Z"
+      fill="#4C5568" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+  </svg>
+  </div>
+  <span class="pose-label">Throw!</span>
+  </div>
+
+</div><!-- /poses-row procione -->
+</div><!-- /animal-block procione -->
+
+
+<!-- ═══════════════════ LEONE ═══════════════════ -->
+<div class="animal-block">
+<div class="animal-title">🦁 Leone — fixed</div>
+<div class="poses-row">
+
+  <!-- IDLE -->
+  <div class="pose-wrap">
+  <div class="card">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 152" width="118" height="138">
+    <ellipse cx="62" cy="148" rx="30" ry="5" fill="rgba(0,0,0,0.12)"/>
+
+    <!-- Coda col ciuffo -->
+    <path d="M86,96 C104,82 112,60 108,42 C106,34 98,34 98,46 C98,58 94,76 88,94Z"
+      fill="#F5B82E" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+    <!-- Ciuffo coda (pelo) -->
+    <circle cx="108" cy="38" r="12" fill="#C07818" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="108" cy="38" r="7" fill="#D99020"/>
+
+    <!-- Corpo -->
+    <circle cx="60" cy="106" r="35" fill="#F5B82E" stroke="#1a0a2e" stroke-width="3.5"/>
+    <!-- Pancia -->
+    <ellipse cx="60" cy="112" rx="21" ry="22" fill="#FDEAA0" stroke="#1a0a2e" stroke-width="2"/>
+
+    <!-- Zampe -->
+    <ellipse cx="42" cy="135" rx="14" ry="8" fill="#E8A020" stroke="#1a0a2e" stroke-width="3"/>
+    <ellipse cx="78" cy="135" rx="14" ry="8" fill="#E8A020" stroke="#1a0a2e" stroke-width="3"/>
+    <line x1="33" y1="139" x2="30" y2="145" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="42" y1="141" x2="42" y2="147" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="51" y1="139" x2="54" y2="145" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="69" y1="139" x2="66" y2="145" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="78" y1="141" x2="78" y2="147" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="87" y1="139" x2="90" y2="145" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- ═ CRINIERA (grande cerchio) ═ -->
+    <circle cx="60" cy="68" r="40" fill="#C07818" stroke="#1a0a2e" stroke-width="3.5"/>
+    <!-- Anello interno criniera (gradiente visivo) -->
+    <circle cx="60" cy="66" r="32" fill="#D99020" opacity="0.55"/>
+
+    <!-- ═ ORECCHIE (disegnate dopo la criniera, sopra di essa) ═ -->
+    <circle cx="36" cy="36" r="14" fill="#C07818" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="36" cy="36" r="8" fill="#F5B82E"/>
+    <circle cx="36" cy="36" r="4" fill="#D99020" opacity="0.6"/>
+
+    <circle cx="84" cy="36" r="14" fill="#C07818" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="84" cy="36" r="8" fill="#F5B82E"/>
+    <circle cx="84" cy="36" r="4" fill="#D99020" opacity="0.6"/>
+
+    <!-- ═ TESTA ═ -->
+    <circle cx="60" cy="64" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="3"/>
+
+    <!-- Occhi verdi grandi -->
+    <circle cx="46" cy="60" r="11" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+    <circle cx="46" cy="61" r="7" fill="#5A9A18"/>
+    <circle cx="46" cy="61" r="4.2" fill="#1a0a2e"/>
+    <circle cx="49" cy="57.5" r="2.5" fill="white"/>
+    <circle cx="44" cy="63.5" r="1" fill="white" opacity="0.7"/>
+
+    <circle cx="74" cy="60" r="11" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+    <circle cx="74" cy="61" r="7" fill="#5A9A18"/>
+    <circle cx="74" cy="61" r="4.2" fill="#1a0a2e"/>
+    <circle cx="77" cy="57.5" r="2.5" fill="white"/>
+    <circle cx="72" cy="63.5" r="1" fill="white" opacity="0.7"/>
+
+    <!-- Guancette lievi -->
+    <ellipse cx="30" cy="68" rx="9" ry="6" fill="#F87060" opacity="0.3"/>
+    <ellipse cx="90" cy="68" rx="9" ry="6" fill="#F87060" opacity="0.3"/>
+
+    <!-- Naso -->
+    <ellipse cx="60" cy="72" rx="6" ry="4.5" fill="#2A1A08"/>
+    <!-- Bocca semplice -->
+    <line x1="60" y1="76" x2="60" y2="80" stroke="#2A1A08" stroke-width="2.2"/>
+    <path d="M52,80 Q60,88 68,80" fill="none" stroke="#2A1A08" stroke-width="2.8" stroke-linecap="round"/>
+
+    <!-- Braccioline -->
+    <path d="M24,100 Q12,110 16,122 Q26,124 28,114 Q30,106 26,100Z"
+      fill="#E8A020" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M96,100 Q108,110 104,122 Q94,124 92,114 Q90,106 94,100Z"
+      fill="#E8A020" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+  </svg>
+  </div>
+  <span class="pose-label">Idle</span>
+  </div>
+
+  <!-- ROAR -->
+  <div class="pose-wrap">
+  <div class="card">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 152" width="118" height="138">
+    <!-- Linee d'azione -->
+    <line x1="10" y1="30" x2="26" y2="40" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+    <line x1="4" y1="52" x2="22" y2="56" stroke="#FFD700" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+    <line x1="118" y1="30" x2="102" y2="40" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+    <line x1="124" y1="52" x2="106" y2="56" stroke="#FFD700" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+
+    <ellipse cx="62" cy="148" rx="30" ry="5" fill="rgba(0,0,0,0.12)"/>
+
+    <!-- Coda su (ruggisce) -->
+    <path d="M88,92 C106,74 114,50 110,28 C108,18 100,18 100,32 C100,48 96,70 90,90Z"
+      fill="#F5B82E" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="110" cy="24" r="12" fill="#C07818" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="110" cy="24" r="7" fill="#D99020"/>
+
+    <!-- Corpo -->
+    <circle cx="60" cy="106" r="35" fill="#F5B82E" stroke="#1a0a2e" stroke-width="3.5"/>
+    <ellipse cx="60" cy="112" rx="21" ry="22" fill="#FDEAA0" stroke="#1a0a2e" stroke-width="2"/>
+
+    <!-- Zampe -->
+    <ellipse cx="42" cy="135" rx="14" ry="8" fill="#E8A020" stroke="#1a0a2e" stroke-width="3"/>
+    <ellipse cx="78" cy="135" rx="14" ry="8" fill="#E8A020" stroke="#1a0a2e" stroke-width="3"/>
+    <line x1="33" y1="139" x2="30" y2="145" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="42" y1="141" x2="42" y2="147" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="51" y1="139" x2="54" y2="145" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="69" y1="139" x2="66" y2="145" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="78" y1="141" x2="78" y2="147" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="87" y1="139" x2="90" y2="145" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Criniera -->
+    <circle cx="60" cy="68" r="40" fill="#C07818" stroke="#1a0a2e" stroke-width="3.5"/>
+    <circle cx="60" cy="66" r="32" fill="#D99020" opacity="0.55"/>
+
+    <!-- Orecchie -->
+    <circle cx="36" cy="36" r="14" fill="#C07818" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="36" cy="36" r="8" fill="#F5B82E"/>
+    <circle cx="84" cy="36" r="14" fill="#C07818" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="84" cy="36" r="8" fill="#F5B82E"/>
+
+    <!-- Testa -->
+    <circle cx="60" cy="64" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="3"/>
+
+    <!-- Occhi spalancati (ruggisce) -->
+    <circle cx="46" cy="58" r="12" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+    <circle cx="46" cy="59" r="8" fill="#5A9A18"/>
+    <circle cx="46" cy="59" r="4.8" fill="#1a0a2e"/>
+    <circle cx="50" cy="55" r="3" fill="white"/>
+
+    <circle cx="74" cy="58" r="12" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+    <circle cx="74" cy="59" r="8" fill="#5A9A18"/>
+    <circle cx="74" cy="59" r="4.8" fill="#1a0a2e"/>
+    <circle cx="78" cy="55" r="3" fill="white"/>
+
+    <!-- Naso -->
+    <ellipse cx="60" cy="70" rx="6" ry="4.5" fill="#2A1A08"/>
+    <!-- BOCCA APERTA (ruggisce) -->
+    <path d="M40,76 Q60,90 80,76" fill="#1a0a2e" stroke="#1a0a2e" stroke-width="2"/>
+    <path d="M40,76 Q60,90 80,76 Q60,88 40,76Z" fill="#8B1A1A"/>
+    <!-- Denti -->
+    <rect x="52" y="76" width="8" height="8" rx="2" fill="white" stroke="#1a0a2e" stroke-width="1.5"/>
+    <rect x="60" y="76" width="8" height="8" rx="2" fill="white" stroke="#1a0a2e" stroke-width="1.5"/>
+
+    <!-- Braccioline alzate (RUGGISCE) -->
+    <path d="M22,96 Q8,80 14,66 Q28,72 28,84 Q26,92 24,96Z"
+      fill="#E8A020" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M98,96 Q112,80 106,66 Q92,72 92,84 Q94,92 96,96Z"
+      fill="#E8A020" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+  </svg>
+  </div>
+  <span class="pose-label">ROAR!</span>
+  </div>
+
+</div><!-- /poses-row leone -->
+</div><!-- /animal-block leone -->
+
+
+<!-- ═══════════════════ GIRAFFA ═══════════════════ -->
+<div class="animal-block">
+<div class="animal-title">🦒 Giraffa</div>
+<div class="poses-row">
+
+  <!-- IDLE -->
+  <div class="pose-wrap">
+  <div class="card">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 175" width="118" height="161">
+    <ellipse cx="62" cy="171" rx="28" ry="5" fill="rgba(0,0,0,0.12)"/>
+
+    <!-- Collo (disegnato prima di corpo e testa che lo coprono alle estremità) -->
+    <path d="M50,92 Q50,74 52,70 Q56,66 62,66 Q68,66 72,70 Q74,74 74,92Z"
+      fill="#F0C035" stroke="#1a0a2e" stroke-width="3"/>
+    <!-- Macchie collo -->
+    <ellipse cx="55" cy="74" rx="5" ry="7" fill="#8B4A10" opacity="0.7" transform="rotate(10 55 74)"/>
+    <ellipse cx="70" cy="82" rx="5" ry="6" fill="#8B4A10" opacity="0.7" transform="rotate(-8 70 82)"/>
+
+    <!-- CORPO grande e rotondo -->
+    <circle cx="62" cy="122" r="36" fill="#F0C035" stroke="#1a0a2e" stroke-width="3.5"/>
+    <!-- Pancia più chiara -->
+    <ellipse cx="62" cy="128" rx="22" ry="23" fill="#FDEAA0" stroke="#1a0a2e" stroke-width="2"/>
+    <!-- Macchie corpo -->
+    <ellipse cx="44" cy="110" rx="9" ry="12" fill="#8B4A10" opacity="0.65" transform="rotate(-12 44 110)"/>
+    <ellipse cx="78" cy="106" rx="8" ry="10" fill="#8B4A10" opacity="0.65" transform="rotate(15 78 106)"/>
+    <ellipse cx="50" cy="132" rx="7" ry="9" fill="#8B4A10" opacity="0.6" transform="rotate(8 50 132)"/>
+    <ellipse cx="76" cy="128" rx="8" ry="7" fill="#8B4A10" opacity="0.6" transform="rotate(-10 76 128)"/>
+
+    <!-- Gambe (4 piccole) -->
+    <rect x="36" y="152" width="12" height="20" rx="5" fill="#E8A820" stroke="#1a0a2e" stroke-width="3"/>
+    <rect x="52" y="154" width="11" height="18" rx="5" fill="#E8A820" stroke="#1a0a2e" stroke-width="3"/>
+    <rect x="67" y="154" width="11" height="18" rx="5" fill="#E8A820" stroke="#1a0a2e" stroke-width="3"/>
+    <rect x="80" y="152" width="12" height="20" rx="5" fill="#E8A820" stroke="#1a0a2e" stroke-width="3"/>
+    <!-- Zoccoli scuri -->
+    <rect x="35" y="166" width="14" height="7" rx="3" fill="#4A2800" stroke="#1a0a2e" stroke-width="2"/>
+    <rect x="51" y="167" width="13" height="6" rx="3" fill="#4A2800" stroke="#1a0a2e" stroke-width="2"/>
+    <rect x="66" y="167" width="13" height="6" rx="3" fill="#4A2800" stroke="#1a0a2e" stroke-width="2"/>
+    <rect x="79" y="166" width="14" height="7" rx="3" fill="#4A2800" stroke="#1a0a2e" stroke-width="2"/>
+
+    <!-- ORECCHIE (prima della testa) -->
+    <ellipse cx="34" cy="54" rx="9" ry="14" fill="#F0C035" stroke="#1a0a2e" stroke-width="3" transform="rotate(-18 34 54)"/>
+    <ellipse cx="34" cy="54" rx="5" ry="8" fill="#FDDFA0" transform="rotate(-18 34 54)"/>
+    <ellipse cx="90" cy="54" rx="9" ry="14" fill="#F0C035" stroke="#1a0a2e" stroke-width="3" transform="rotate(18 90 54)"/>
+    <ellipse cx="90" cy="54" rx="5" ry="8" fill="#FDDFA0" transform="rotate(18 90 54)"/>
+
+    <!-- TESTA (copre la cima del collo) -->
+    <circle cx="62" cy="48" r="30" fill="#F0C035" stroke="#1a0a2e" stroke-width="3.5"/>
+    <!-- Macchia faccia -->
+    <ellipse cx="78" cy="42" rx="6" ry="8" fill="#8B4A10" opacity="0.5" transform="rotate(20 78 42)"/>
+
+    <!-- OSSICONI (sopra la testa) -->
+    <rect x="44" y="16" width="7" height="18" rx="3.5" fill="#C07818" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="47" cy="14" r="6" fill="#C07818" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="47" cy="14" r="3" fill="#D99028"/>
+    <rect x="77" y="16" width="7" height="18" rx="3.5" fill="#C07818" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="81" cy="14" r="6" fill="#C07818" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="81" cy="14" r="3" fill="#D99028"/>
+
+    <!-- OCCHI GRANDI con ciglia lunghe -->
+    <circle cx="46" cy="48" r="13" fill="white" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="46" cy="49" r="8.5" fill="#7B4A18"/>
+    <circle cx="46" cy="49" r="5" fill="#1a0a2e"/>
+    <circle cx="49.5" cy="45" r="3" fill="white"/>
+    <!-- ciglia occhio sinistro -->
+    <line x1="36" y1="37" x2="31" y2="31" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="43" y1="35" x2="41" y2="28" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="50" y1="35" x2="50" y2="28" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="57" y1="37" x2="59" y2="30" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+    <circle cx="78" cy="48" r="13" fill="white" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="78" cy="49" r="8.5" fill="#7B4A18"/>
+    <circle cx="78" cy="49" r="5" fill="#1a0a2e"/>
+    <circle cx="81.5" cy="45" r="3" fill="white"/>
+    <!-- ciglia occhio destro -->
+    <line x1="68" y1="37" x2="65" y2="30" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="75" y1="35" x2="73" y2="28" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="82" y1="35" x2="82" y2="28" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="89" y1="37" x2="93" y2="30" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Naso & bocca -->
+    <ellipse cx="62" cy="64" rx="10" ry="8" fill="#E8A820" stroke="#1a0a2e" stroke-width="2"/>
+    <circle cx="58" cy="62" r="3" fill="#2A1A08"/>
+    <circle cx="66" cy="62" r="3" fill="#2A1A08"/>
+    <path d="M54,68 Q62,75 70,68" fill="none" stroke="#1a0a2e" stroke-width="2.8" stroke-linecap="round"/>
+
+    <!-- Braccioline (molto piccole su corpo grande) -->
+    <path d="M24,114 Q12,124 16,136 Q26,136 28,128 Q28,120 26,114Z"
+      fill="#E8A820" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M100,114 Q112,124 108,136 Q98,136 96,128 Q96,120 98,114Z"
+      fill="#E8A820" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+  </svg>
+  </div>
+  <span class="pose-label">Idle</span>
+  </div>
+
+  <!-- HAPPY -->
+  <div class="pose-wrap">
+  <div class="card">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 175" width="118" height="161">
+    <!-- cuoricino -->
+    <path d="M62,6 C62,6 54,0 50,6 C46,12 54,18 62,26 C70,18 78,12 74,6 C70,0 62,6 62,6Z"
+      fill="#F43F5E" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+
+    <ellipse cx="62" cy="171" rx="28" ry="5" fill="rgba(0,0,0,0.12)"/>
+
+    <!-- Collo -->
+    <path d="M50,92 Q50,74 52,70 Q56,66 62,66 Q68,66 72,70 Q74,74 74,92Z"
+      fill="#F0C035" stroke="#1a0a2e" stroke-width="3"/>
+    <ellipse cx="55" cy="76" rx="5" ry="6" fill="#8B4A10" opacity="0.7" transform="rotate(10 55 76)"/>
+    <ellipse cx="70" cy="83" rx="5" ry="6" fill="#8B4A10" opacity="0.7" transform="rotate(-8 70 83)"/>
+
+    <!-- Corpo -->
+    <circle cx="62" cy="122" r="36" fill="#F0C035" stroke="#1a0a2e" stroke-width="3.5"/>
+    <ellipse cx="62" cy="128" rx="22" ry="23" fill="#FDEAA0" stroke="#1a0a2e" stroke-width="2"/>
+    <ellipse cx="44" cy="110" rx="9" ry="12" fill="#8B4A10" opacity="0.65" transform="rotate(-12 44 110)"/>
+    <ellipse cx="78" cy="106" rx="8" ry="10" fill="#8B4A10" opacity="0.65" transform="rotate(15 78 106)"/>
+    <ellipse cx="50" cy="132" rx="7" ry="9" fill="#8B4A10" opacity="0.6" transform="rotate(8 50 132)"/>
+    <ellipse cx="76" cy="128" rx="8" ry="7" fill="#8B4A10" opacity="0.6" transform="rotate(-10 76 128)"/>
+
+    <!-- Gambe -->
+    <rect x="36" y="152" width="12" height="20" rx="5" fill="#E8A820" stroke="#1a0a2e" stroke-width="3"/>
+    <rect x="52" y="154" width="11" height="18" rx="5" fill="#E8A820" stroke="#1a0a2e" stroke-width="3"/>
+    <rect x="67" y="154" width="11" height="18" rx="5" fill="#E8A820" stroke="#1a0a2e" stroke-width="3"/>
+    <rect x="80" y="152" width="12" height="20" rx="5" fill="#E8A820" stroke="#1a0a2e" stroke-width="3"/>
+    <rect x="35" y="166" width="14" height="7" rx="3" fill="#4A2800" stroke="#1a0a2e" stroke-width="2"/>
+    <rect x="51" y="167" width="13" height="6" rx="3" fill="#4A2800" stroke="#1a0a2e" stroke-width="2"/>
+    <rect x="66" y="167" width="13" height="6" rx="3" fill="#4A2800" stroke="#1a0a2e" stroke-width="2"/>
+    <rect x="79" y="166" width="14" height="7" rx="3" fill="#4A2800" stroke="#1a0a2e" stroke-width="2"/>
+
+    <!-- Orecchie -->
+    <ellipse cx="34" cy="54" rx="9" ry="14" fill="#F0C035" stroke="#1a0a2e" stroke-width="3" transform="rotate(-18 34 54)"/>
+    <ellipse cx="34" cy="54" rx="5" ry="8" fill="#FDDFA0" transform="rotate(-18 34 54)"/>
+    <ellipse cx="90" cy="54" rx="9" ry="14" fill="#F0C035" stroke="#1a0a2e" stroke-width="3" transform="rotate(18 90 54)"/>
+    <ellipse cx="90" cy="54" rx="5" ry="8" fill="#FDDFA0" transform="rotate(18 90 54)"/>
+
+    <!-- Testa -->
+    <circle cx="62" cy="48" r="30" fill="#F0C035" stroke="#1a0a2e" stroke-width="3.5"/>
+    <ellipse cx="78" cy="42" rx="6" ry="8" fill="#8B4A10" opacity="0.5" transform="rotate(20 78 42)"/>
+
+    <!-- Ossiconi -->
+    <rect x="44" y="18" width="7" height="18" rx="3.5" fill="#C07818" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="47" cy="16" r="6" fill="#C07818" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="47" cy="16" r="3" fill="#D99028"/>
+    <rect x="77" y="18" width="7" height="18" rx="3.5" fill="#C07818" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="81" cy="16" r="6" fill="#C07818" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="81" cy="16" r="3" fill="#D99028"/>
+
+    <!-- Occhi CHIUSI felice + ciglia -->
+    <path d="M30,46 Q44,36 58,46" fill="none" stroke="#1a0a2e" stroke-width="4.5" stroke-linecap="round"/>
+    <line x1="32" y1="44" x2="27" y2="37" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="42" y1="38" x2="40" y2="31" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="56" y1="43" x2="59" y2="36" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+    <path d="M66,46 Q80,36 94,46" fill="none" stroke="#1a0a2e" stroke-width="4.5" stroke-linecap="round"/>
+    <line x1="68" y1="43" x2="65" y2="36" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="82" y1="38" x2="82" y2="31" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="92" y1="44" x2="97" y2="37" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Guancette rosse -->
+    <ellipse cx="30" cy="56" rx="12" ry="8" fill="#F06050" opacity="0.55"/>
+    <ellipse cx="94" cy="56" rx="12" ry="8" fill="#F06050" opacity="0.55"/>
+
+    <!-- Bocca aperta felice -->
+    <ellipse cx="62" cy="64" rx="10" ry="8" fill="#E8A820" stroke="#1a0a2e" stroke-width="2"/>
+    <circle cx="58" cy="62" r="3" fill="#2A1A08"/>
+    <circle cx="66" cy="62" r="3" fill="#2A1A08"/>
+    <path d="M50,68 Q62,80 74,68" fill="#1a0a2e" stroke="#1a0a2e" stroke-width="2"/>
+    <path d="M50,68 Q62,79 74,68 Q62,77 50,68Z" fill="#D01050"/>
+    <ellipse cx="62" cy="76" rx="9" ry="6" fill="#F9A8D4"/>
+
+    <!-- Braccioline alzate -->
+    <path d="M22,110 Q8,96 14,84 Q28,88 28,100 Q26,106 24,110Z"
+      fill="#E8A820" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M102,110 Q116,96 110,84 Q96,88 96,100 Q98,106 100,110Z"
+      fill="#E8A820" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+  </svg>
+  </div>
+  <span class="pose-label">Happy</span>
+  </div>
+
+</div><!-- /poses-row giraffa -->
+</div><!-- /animal-block giraffa -->
+
+</body>
+</html>

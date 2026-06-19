@@ -4,8 +4,57 @@
    ===================================================== */
 
 const COIN_KEY = 'sf_coins';
+let _shopDisabledItems = [];
+try { const _c = sessionStorage.getItem('_sfDisabled'); if (_c) _shopDisabledItems = JSON.parse(_c); } catch {}
+async function _loadShopDisabled() {
+  try {
+    const _base = (typeof SF_API_BASE !== 'undefined' && SF_API_BASE) ? SF_API_BASE : '/api';
+    const api = _base + '/config';
+    const r = await fetch(api);
+    const cfg = await r.json();
+    _shopDisabledItems = JSON.parse(cfg.shop_disabled_items || '[]');
+    try { sessionStorage.setItem('_sfDisabled', JSON.stringify(_shopDisabledItems)); } catch {}
+  } catch { _shopDisabledItems = []; }
+}
 
 /* Ruolo — costanti globali usate da buyItem, renderShopPage, initCoins */
+/* ── Sistema slot dinamico compagni ──────────────────── */
+const _GND_SLOT_ORDER = ['cat','dog','rabbit','fox','raccoon','lion','dragon'];
+const _SLOT_BASE_RIGHT = 24;
+const _SLOT_WIDTH      = 112; // 92px + 20px gap
+
+function _companionSlotRight(id) {
+  try {
+    const ae = (typeof coinData !== 'undefined' ? coinData : null)?.activeEffects || {};
+    const vis = {
+      cat: ae.catVisible, dog: ae.dogVisible, rabbit: ae.rabbitVisible,
+      fox: ae.foxVisible, raccoon: ae.raccoonVisible,
+      lion: ae.lionVisible, dragon: ae.dragonVisible
+    };
+    const myIdx = _GND_SLOT_ORDER.indexOf(id);
+    if (myIdx < 0) return _SLOT_BASE_RIGHT;
+    let slot = 0;
+    for (let i = 0; i < myIdx; i++) if (vis[_GND_SLOT_ORDER[i]]) slot++;
+    return _SLOT_BASE_RIGHT + slot * _SLOT_WIDTH;
+  } catch { return _SLOT_BASE_RIGHT; }
+}
+
+function repositionAllCompanions() {
+  const pairs = [
+    ['dog',    () => { if(typeof _stopDogWalking==='function') _stopDogWalking(); if(typeof _dogGoHome==='function') _dogGoHome(900); }],
+    ['rabbit', () => { if(typeof _stopRabbit==='function') _stopRabbit(); if(typeof _goRabbitHome==='function') _goRabbitHome(900); }],
+    ['fox',    () => { if(typeof _stopFoxWalking==='function') _stopFoxWalking(); if(typeof _foxGoHome==='function') _foxGoHome(900); }],
+    ['raccoon',() => { if(typeof _stopRaccoonWalking==='function') _stopRaccoonWalking(); if(typeof _raccoonGoHome==='function') _raccoonGoHome(900); }],
+    ['lion',   () => { if(typeof _stopLionWalking==='function') _stopLionWalking(); if(typeof _lionGoHome==='function') _lionGoHome(900); }],
+    ['dragon', () => { if(typeof _stopDragonWalking==='function') _stopDragonWalking(); if(typeof _dragonGoHome==='function') _dragonGoHome(900); }],
+  ];
+  try {
+    const ae = coinData?.activeEffects || {};
+    const vis = { dog:ae.dogVisible, rabbit:ae.rabbitVisible, fox:ae.foxVisible, raccoon:ae.raccoonVisible, lion:ae.lionVisible, dragon:ae.dragonVisible };
+    pairs.forEach(([id, fn]) => { if (vis[id]) fn(); });
+  } catch {}
+}
+
 const _ROLE_ORDER = ['novizio','studente','applicato','determinato','studioso','esperto','maestro'];
 const _ROLE_MINS  = {novizio:0,studente:1,applicato:10,determinato:25,studioso:50,esperto:100,maestro:200};
 const _ROLE_META  = {
@@ -45,6 +94,7 @@ const SHOP_ITEMS = [
   { id:'rabbitBrown', name:'Pelo Marrone',     desc:'Un coniglietto marrone e soffice.', price:35, type:'rabbitcolor', req:'rabbit' },
   { id:'rabbitGrey',  name:'Pelo Grigio',      desc:'Un elegante coniglietto grigio cenere.', price:35, type:'rabbitcolor', req:'rabbit' },
   { id:'rabbitBlack', name:'Pelo Nero',        desc:'Un coniglietto nero misterioso.', price:40, type:'rabbitcolor', req:'rabbit' },
+  { id:'raccoon',   name:'Procione 🦝',        desc:'Un procione astuto con la coda a strisce che gironzola furtivo mentre studi!', price:280, type:'companion' },
   { id:'parrot',    name:'Pappagallo',         desc:'Un pappagallo colorato che vola e si appollaia sulla pagina!', price:220, type:'companion' },
   { id:'fox',       name:'Volpe',              desc:'Una volpe arancione con la grande coda soffice che gironzola mentre studi!', price:200, type:'companion' },
   { id:'owl',       name:'Gufo',               desc:'Un gufo saggio con grandi occhi gialli che si appollaia e vola occasionalmente.', price:190, type:'companion' },
@@ -53,6 +103,7 @@ const SHOP_ITEMS = [
   { id:'catHouse',    name:'Casetta Gatto',       desc:'Una casetta dove il gatto dorme al sicuro — appare solo quando riposa!',   price:80, type:'house', req:'cat'    },
   { id:'dogHouse',    name:'Casetta Cagnolino',   desc:'Una casetta accogliente per il cagnolino — visibile solo quando dorme.',   price:80, type:'house', req:'dog'    },
   { id:'rabbitHouse', name:'Casetta Coniglietto', desc:'Un rifugio caldo per il coniglietto — appare quando si riposa.',           price:70, type:'house', req:'rabbit' },
+  { id:'raccoonHouse', name:'Tana del Procione',  desc:'Un tronco cavo dove il procione si nasconde quando dorme.',                   price:80, type:'house', req:'raccoon' },
   { id:'parrotHouse', name:'Posatoi Pappagallo',  desc:'Un elegante posatoi dove il pappagallo riposa — sparisce in volo.',       price:70, type:'house', req:'parrot' },
   { id:'foxHouse',    name:'Casetta Volpe',        desc:'Una casetta arancione per la volpe — visibile solo quando dorme.',        price:80, type:'house', req:'fox'    },
   { id:'owlHouse',    name:'Posatoi Gufo',         desc:'Un ramo di legno dove il gufo si appollaia — sparisce quando vola.',      price:70, type:'house', req:'owl'    },
@@ -88,6 +139,7 @@ const SHOP_ITEMS = [
   { id:'ball',      name:'Pallina Rossa',     desc:'Una pallina rossa da gioco — il cane la inseguirà felice!',     price:40, type:'garden' },
   { id:'hole',      name:'Tana nel Prato',    desc:'Una tana scavata nel terreno — la volpe non vede l\'ora di esplorarla!', price:50, type:'garden' },
 
+  { id:'dragonHouse', name:'Tana del Drago 🐉',  desc:'Una grotta viola con stalattiti dove il drago riposa — solo per Maestri.',    price:0, type:'house', req:'dragon', roleRequired:'maestro' },
   /* ── Esclusivi di Ruolo (gratis, guadagnati studiando) ── */
   { id:'rabbitOrange', name:'Pelo Arancione ✨',    desc:'Una rara variante arancio solare del coniglietto — animazioni speciali esclusive!',          price:0, type:'rabbitcolor',  req:'rabbit',    roleRequired:'determinato' },
   { id:'dogPurple',    name:'Pelo Viola 💜',          desc:'Colore viola elettrico unico nel gioco — nessun altro cane sarà come il tuo.',                price:0, type:'dogcolor',     req:'dog',       roleRequired:'studioso' },
@@ -126,7 +178,7 @@ let coinData = {
   challengesCompleted: 0,
   achievements: [],
   shop: {},
-  activeEffects: { stars:false, bubbles:false, catVisible:false, activeSound:'', glow:false, pulsePro:false, cat4legs:false, dogVisible:false, activeDogColor:'', campfire:false, rabbitVisible:false, activeRabbitColor:'', parrotVisible:false, foxVisible:false, owlVisible:false, lionVisible:false, gardenActive:{}, catHouseVisible:false, dogHouseVisible:false, rabbitHouseVisible:false, parrotHouseVisible:false, foxHouseVisible:false, owlHouseVisible:false, lionHouseVisible:false },
+  activeEffects: { stars:false, bubbles:false, catVisible:false, activeSound:'', glow:false, pulsePro:false, cat4legs:false, dogVisible:false, activeDogColor:'', campfire:false, rabbitVisible:false, activeRabbitColor:'', parrotVisible:false, foxVisible:false, owlVisible:false, lionVisible:false, giraffeVisible:false, raccoonVisible:false, dragonVisible:false, gardenActive:{}, catHouseVisible:false, dogHouseVisible:false, rabbitHouseVisible:false, parrotHouseVisible:false, foxHouseVisible:false, owlHouseVisible:false, lionHouseVisible:false, giraffeHouseVisible:false, raccoonHouseVisible:false, dragonHouseVisible:false },
   challenge: null,
   challengeDate: '',
   challengeProgress: 0,
@@ -179,13 +231,28 @@ function loadCoinData() {
     coinData.shop          = coinData.shop || {};
     coinData.achievements  = coinData.achievements || [];
     coinData.activeEffects    = Object.assign(
-      { stars:false, bubbles:false, catVisible:false, activeSound:'', glow:false, pulsePro:false, cat4legs:false, dogVisible:false, activeDogColor:'', campfire:false, rabbitVisible:false, activeRabbitColor:'', parrotVisible:false, foxVisible:false, owlVisible:false, lionVisible:false, gardenActive:{}, catHouseVisible:false, dogHouseVisible:false, rabbitHouseVisible:false, parrotHouseVisible:false, foxHouseVisible:false, owlHouseVisible:false, lionHouseVisible:false },
+      { stars:false, bubbles:false, catVisible:false, activeSound:'', glow:false, pulsePro:false, cat4legs:false, dogVisible:false, activeDogColor:'', campfire:false, rabbitVisible:false, activeRabbitColor:'', parrotVisible:false, foxVisible:false, owlVisible:false, lionVisible:false, giraffeVisible:false, raccoonVisible:false, dragonVisible:false, gardenActive:{}, catHouseVisible:false, dogHouseVisible:false, rabbitHouseVisible:false, parrotHouseVisible:false, foxHouseVisible:false, owlHouseVisible:false, lionHouseVisible:false, giraffeHouseVisible:false, raccoonHouseVisible:false, dragonHouseVisible:false },
       coinData.activeEffects || {}
     );
     coinData.rewardedTaskIds  = coinData.rewardedTaskIds || [];
     coinData.taskCoinDate     = coinData.taskCoinDate    || '';
     coinData.taskCoinToday    = coinData.taskCoinToday   || 0;
   } catch {}
+  // Azzera item disabilitati dall'admin
+  if (_shopDisabledItems.length) {
+    const _ae = coinData.activeEffects;
+    const _DM = {
+      cat:'catVisible', dog:'dogVisible', rabbit:'rabbitVisible', fox:'foxVisible',
+      raccoon:'raccoonVisible', parrot:'parrotVisible', owl:'owlVisible',
+      lion:'lionVisible', dragon:'dragonVisible',
+      catHouse:'catHouseVisible', dogHouse:'dogHouseVisible', rabbitHouse:'rabbitHouseVisible',
+      foxHouse:'foxHouseVisible', raccoonHouse:'raccoonHouseVisible', parrotHouse:'parrotHouseVisible',
+      owlHouse:'owlHouseVisible', lionHouse:'lionHouseVisible', dragonHouse:'dragonHouseVisible',
+      stars:'stars', bubbles:'bubbles', campfire:'campfire', aurora:'aurora',
+      glow:'glow', pulsePro:'pulsePro', cat4legs:'cat4legs',
+    };
+    _shopDisabledItems.forEach(id => { const k = _DM[id]; if (k && _ae[k]) _ae[k] = false; });
+  }
 }
 
 function saveCoinData() {
@@ -422,6 +489,7 @@ function _activateShopEffect(id) {
     case 'cat':
       coinData.activeEffects.catVisible = true;
       if (typeof showCat === 'function') showCat();
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'cat4legs':
       coinData.activeEffects.cat4legs = true;
@@ -469,6 +537,7 @@ function _activateShopEffect(id) {
     case 'dog':
       coinData.activeEffects.dogVisible = true;
       if (typeof showDog === 'function') showDog();
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'dogGolden': case 'dogBlack': case 'dogWhite':
       coinData.activeEffects.activeDogColor = id;
@@ -481,38 +550,56 @@ function _activateShopEffect(id) {
     case 'rabbit':
       coinData.activeEffects.rabbitVisible = true;
       if (typeof showRabbit === 'function') showRabbit();
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'rabbitBrown': case 'rabbitGrey': case 'rabbitBlack':
       coinData.activeEffects.activeRabbitColor = id;
       if (typeof setRabbitColor === 'function') setRabbitColor(id);
       break;
+    case 'raccoon':
+      coinData.activeEffects.raccoonVisible = true;
+      if (typeof showRaccoon === 'function') showRaccoon();
+      setTimeout(repositionAllCompanions, 150);
+      break;
     case 'parrot':
       coinData.activeEffects.parrotVisible = true;
       if (typeof showParrot === 'function') showParrot();
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'fox':
       coinData.activeEffects.foxVisible = true;
       if (typeof showFox === 'function') showFox();
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'owl':
       coinData.activeEffects.owlVisible = true;
       if (typeof showOwl === 'function') showOwl();
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'catHouse':    coinData.activeEffects.catHouseVisible = true;    if (typeof showCatHouse    === 'function') showCatHouse();    break;
     case 'dogHouse':    coinData.activeEffects.dogHouseVisible = true;    if (typeof showDogHouse    === 'function') showDogHouse();    break;
     case 'rabbitHouse': coinData.activeEffects.rabbitHouseVisible = true;  if (typeof showRabbitHouse === 'function') showRabbitHouse(); break;
+    case 'raccoonHouse': coinData.activeEffects.raccoonHouseVisible = true; if (typeof showRaccoonHouse === 'function') showRaccoonHouse(); break;
     case 'parrotHouse': coinData.activeEffects.parrotHouseVisible = true;  if (typeof showParrotHouse === 'function') showParrotHouse(); break;
     case 'foxHouse':    coinData.activeEffects.foxHouseVisible = true;     if (typeof showFoxHouse    === 'function') showFoxHouse();    break;
     case 'owlHouse':    coinData.activeEffects.owlHouseVisible = true;     if (typeof showOwlHouse    === 'function') showOwlHouse();    break;
     case 'lion':
       coinData.activeEffects.lionVisible = true;
       if (typeof showLion === 'function') showLion();
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'lionHouse':   coinData.activeEffects.lionHouseVisible = true;    if (typeof showLionHouse   === 'function') showLionHouse();   break;
+    case 'giraffe':
+      coinData.activeEffects.giraffeVisible = true;
+      if (typeof showGiraffe === 'function') showGiraffe();
+      break;
+    case 'giraffeHouse': coinData.activeEffects.giraffeHouseVisible = true; if (typeof showGiraffeHouse === 'function') showGiraffeHouse(); break;
     case 'dragon':
       coinData.activeEffects.dragonVisible = true;
       if (typeof showDragon === 'function') showDragon();
+      setTimeout(repositionAllCompanions, 150);
       break;
+    case 'dragonHouse': coinData.activeEffects.dragonHouseVisible = true; if (typeof showDragonHouse === 'function') showDragonHouse(); break;
     case 'aurora':
       coinData.activeEffects.aurora = true;
       _showAurora();
@@ -550,6 +637,7 @@ function _toggleShopEffect(id) {
       coinData.activeEffects.catVisible = !coinData.activeEffects.catVisible;
       if (coinData.activeEffects.catVisible) { if (typeof showCat === 'function') showCat(); }
       else { if (typeof hideCat === 'function') hideCat(); }
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'cat4legs':
       coinData.activeEffects.cat4legs = !coinData.activeEffects.cat4legs;
@@ -607,6 +695,7 @@ function _toggleShopEffect(id) {
       coinData.activeEffects.dogVisible = !coinData.activeEffects.dogVisible;
       if (coinData.activeEffects.dogVisible) { if (typeof showDog === 'function') showDog(); }
       else { if (typeof hideDog === 'function') hideDog(); }
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'dogGolden': case 'dogBlack': case 'dogWhite':
       if (coinData.activeEffects.activeDogColor === id) {
@@ -626,6 +715,7 @@ function _toggleShopEffect(id) {
       coinData.activeEffects.rabbitVisible = !coinData.activeEffects.rabbitVisible;
       if (coinData.activeEffects.rabbitVisible) { if (typeof showRabbit === 'function') showRabbit(); }
       else { if (typeof hideRabbit === 'function') hideRabbit(); }
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'rabbitBrown': case 'rabbitGrey': case 'rabbitBlack':
       if (coinData.activeEffects.activeRabbitColor === id) {
@@ -636,20 +726,29 @@ function _toggleShopEffect(id) {
         if (typeof setRabbitColor === 'function') setRabbitColor(id);
       }
       break;
+    case 'raccoon':
+      coinData.activeEffects.raccoonVisible = !coinData.activeEffects.raccoonVisible;
+      if (coinData.activeEffects.raccoonVisible) { if (typeof showRaccoon === 'function') showRaccoon(); }
+      else { if (typeof hideRaccoon === 'function') hideRaccoon(); }
+      setTimeout(repositionAllCompanions, 150);
+      break;
     case 'parrot':
       coinData.activeEffects.parrotVisible = !coinData.activeEffects.parrotVisible;
       if (coinData.activeEffects.parrotVisible) { if (typeof showParrot === 'function') showParrot(); }
       else { if (typeof hideParrot === 'function') hideParrot(); }
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'fox':
       coinData.activeEffects.foxVisible = !coinData.activeEffects.foxVisible;
       if (coinData.activeEffects.foxVisible) { if (typeof showFox === 'function') showFox(); }
       else { if (typeof hideFox === 'function') hideFox(); }
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'owl':
       coinData.activeEffects.owlVisible = !coinData.activeEffects.owlVisible;
       if (coinData.activeEffects.owlVisible) { if (typeof showOwl === 'function') showOwl(); }
       else { if (typeof hideOwl === 'function') hideOwl(); }
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'catHouse':
       coinData.activeEffects.catHouseVisible = !coinData.activeEffects.catHouseVisible;
@@ -665,6 +764,11 @@ function _toggleShopEffect(id) {
       coinData.activeEffects.rabbitHouseVisible = !coinData.activeEffects.rabbitHouseVisible;
       if (coinData.activeEffects.rabbitHouseVisible) { if (typeof showRabbitHouse === 'function') showRabbitHouse(); }
       else { if (typeof hideRabbitHouse === 'function') hideRabbitHouse(); }
+      break;
+    case 'raccoonHouse':
+      coinData.activeEffects.raccoonHouseVisible = !coinData.activeEffects.raccoonHouseVisible;
+      if (coinData.activeEffects.raccoonHouseVisible) { if (typeof showRaccoonHouse === 'function') showRaccoonHouse(); }
+      else { if (typeof hideRaccoonHouse === 'function') hideRaccoonHouse(); }
       break;
     case 'parrotHouse':
       coinData.activeEffects.parrotHouseVisible = !coinData.activeEffects.parrotHouseVisible;
@@ -685,16 +789,33 @@ function _toggleShopEffect(id) {
       coinData.activeEffects.lionVisible = !coinData.activeEffects.lionVisible;
       if (coinData.activeEffects.lionVisible) { if (typeof showLion === 'function') showLion(); }
       else { if (typeof hideLion === 'function') hideLion(); }
+      setTimeout(repositionAllCompanions, 150);
       break;
     case 'lionHouse':
       coinData.activeEffects.lionHouseVisible = !coinData.activeEffects.lionHouseVisible;
       if (coinData.activeEffects.lionHouseVisible) { if (typeof showLionHouse === 'function') showLionHouse(); }
       else { if (typeof hideLionHouse === 'function') hideLionHouse(); }
       break;
+    case 'giraffe':
+      coinData.activeEffects.giraffeVisible = !coinData.activeEffects.giraffeVisible;
+      if (coinData.activeEffects.giraffeVisible) { if (typeof showGiraffe === 'function') showGiraffe(); }
+      else { if (typeof hideGiraffe === 'function') hideGiraffe(); }
+      break;
+    case 'giraffeHouse':
+      coinData.activeEffects.giraffeHouseVisible = !coinData.activeEffects.giraffeHouseVisible;
+      if (coinData.activeEffects.giraffeHouseVisible) { if (typeof showGiraffeHouse === 'function') showGiraffeHouse(); }
+      else { if (typeof hideGiraffeHouse === 'function') hideGiraffeHouse(); }
+      break;
     case 'dragon':
       coinData.activeEffects.dragonVisible = !coinData.activeEffects.dragonVisible;
       if (coinData.activeEffects.dragonVisible) { if (typeof showDragon === 'function') showDragon(); }
       else { if (typeof hideDragon === 'function') hideDragon(); }
+      setTimeout(repositionAllCompanions, 150);
+      break;
+    case 'dragonHouse':
+      coinData.activeEffects.dragonHouseVisible = !coinData.activeEffects.dragonHouseVisible;
+      if (coinData.activeEffects.dragonHouseVisible) { if (typeof showDragonHouse === 'function') showDragonHouse(); }
+      else { if (typeof hideDragonHouse === 'function') hideDragonHouse(); }
       break;
     case 'aurora':
       coinData.activeEffects.aurora = !coinData.activeEffects.aurora;
@@ -856,7 +977,12 @@ function restoreActiveEffects() {
   if (coinData.activeEffects.foxHouseVisible    && coinData.shop.foxHouse    && typeof showFoxHouse    === 'function') showFoxHouse();
   if (coinData.activeEffects.owlHouseVisible    && coinData.shop.owlHouse    && typeof showOwlHouse    === 'function') showOwlHouse();
   if (coinData.activeEffects.lionHouseVisible   && coinData.shop.lionHouse   && typeof showLionHouse   === 'function') showLionHouse();
-  if (coinData.activeEffects.dragonVisible      && coinData.shop.dragon      && typeof showDragon       === 'function') showDragon();
+  if (coinData.activeEffects.giraffeVisible     && coinData.shop.giraffe    && typeof showGiraffe     === 'function') showGiraffe();
+  if (coinData.activeEffects.giraffeHouseVisible && coinData.shop.giraffeHouse && typeof showGiraffeHouse === 'function') showGiraffeHouse();
+  if (coinData.activeEffects.raccoonVisible    && coinData.shop.raccoon    && typeof showRaccoon    === 'function') showRaccoon();
+  if (coinData.activeEffects.dragonVisible      && coinData.shop.dragon      && typeof showDragon     === 'function') showDragon();
+  if (coinData.activeEffects.raccoonHouseVisible && coinData.shop.raccoonHouse && typeof showRaccoonHouse === 'function') showRaccoonHouse();
+  if (coinData.activeEffects.dragonHouseVisible  && coinData.shop.dragonHouse  && typeof showDragonHouse  === 'function') showDragonHouse();
   if (coinData.activeEffects.aurora             && coinData.shop.aurora)     _showAurora();
   /* Ripristina oggetti giardino — solo quelli non esplicitamente disattivati */
   if (typeof GARDEN_CATALOG !== 'undefined' && typeof placeGardenItem === 'function') {
@@ -889,7 +1015,8 @@ function _hideAurora() {
 /* ══════════════════════════════════════
    RENDER SHOP PAGE
 ═══════════════════════════════════════ */
-function renderShopPage() {
+async function renderShopPage() {
+  await _loadShopDisabled();
   loadCoinData();
 
   /* Balance */
@@ -921,7 +1048,7 @@ function renderShopPage() {
         btnLabel = `${roleMeta.emoji} Ruolo ${roleMeta.name}`;
         btnClass = 'btn-buy disabled-buy';
       } else if (item.req && !reqMet) {
-        const reqLabels = { cat:'Richiede Gatto', dog:'Richiede Cagnolino', rabbit:'Richiede Coniglietto', parrot:'Richiede Pappagallo', fox:'Richiede Volpe', owl:'Richiede Gufo', lion:'Richiede Leone' };
+        const reqLabels = { cat:'Richiede Gatto', dog:'Richiede Cagnolino', rabbit:'Richiede Coniglietto', parrot:'Richiede Pappagallo', fox:'Richiede Volpe', owl:'Richiede Gufo', lion:'Richiede Leone', giraffe:'Richiede Giraffa', raccoon:'Richiede Procione', dragon:'Richiede Drago' };
         btnLabel = reqLabels[item.req] || ('Richiede ' + item.req);
         btnClass = 'btn-buy disabled-buy';
       } else if (item.type === 'garden') {
@@ -958,7 +1085,10 @@ function renderShopPage() {
       if (item.id === 'fox')            active = !!coinData.activeEffects.foxVisible;
       if (item.id === 'owl')            active = !!coinData.activeEffects.owlVisible;
       if (item.id === 'lion')           active = !!coinData.activeEffects.lionVisible;
+      if (item.id === 'raccoon')        active = !!coinData.activeEffects.raccoonVisible;
       if (item.id === 'dragon')         active = !!coinData.activeEffects.dragonVisible;
+      if (item.id === 'raccoonHouse')   active = !!coinData.activeEffects.raccoonHouseVisible;
+      if (item.id === 'dragonHouse')    active = !!coinData.activeEffects.dragonHouseVisible;
       if (item.id === 'aurora')         active = !!coinData.activeEffects.aurora;
       if (item.id === 'themeGold')      active = curTheme === 'gold';
       if (item.type === 'dogcolor')     active = coinData.activeEffects.activeDogColor === item.id;
@@ -969,6 +1099,8 @@ function renderShopPage() {
       if (item.id === 'foxHouse')    active = !!coinData.activeEffects.foxHouseVisible;
       if (item.id === 'owlHouse')    active = !!coinData.activeEffects.owlHouseVisible;
       if (item.id === 'lionHouse')   active = !!coinData.activeEffects.lionHouseVisible;
+      if (item.id === 'giraffe')      active = !!coinData.activeEffects.giraffeVisible;
+      if (item.id === 'giraffeHouse') active = !!coinData.activeEffects.giraffeHouseVisible;
       const _colorTypes = ['catcolor', 'dogcolor', 'rabbitcolor'];
       btnLabel = active ? 'Attivo' : (_colorTypes.includes(item.type) ? 'Applica' : 'Attiva');
       btnClass = 'btn-buy ' + (active ? 'btn-toggle-on' : 'btn-toggle-off');
@@ -1003,12 +1135,12 @@ function renderShopPage() {
     </div>`;
   }
 
-  const gardenItems    = SHOP_ITEMS.filter(i => i.type === 'garden');
-  const companionItems = SHOP_ITEMS.filter(i => i.type === 'companion');
-  const houseItems     = SHOP_ITEMS.filter(i => i.type === 'house' || i.type === 'ambient');
-  const colorItems     = SHOP_ITEMS.filter(i => ['catcolor','dogcolor','rabbitcolor'].includes(i.type));
-  const effectItems    = SHOP_ITEMS.filter(i => i.type === 'effect' || i.type === 'timer');
-  const soundItems     = SHOP_ITEMS.filter(i => i.type === 'sound' || i.type === 'theme');
+  const gardenItems    = SHOP_ITEMS.filter(i => i.type === 'garden' && !_shopDisabledItems.includes(i.id));
+  const companionItems = SHOP_ITEMS.filter(i => i.type === 'companion' && !_shopDisabledItems.includes(i.id));
+  const houseItems     = SHOP_ITEMS.filter(i => (i.type === 'house' || i.type === 'ambient') && !_shopDisabledItems.includes(i.id));
+  const colorItems     = SHOP_ITEMS.filter(i => ['catcolor','dogcolor','rabbitcolor'].includes(i.type) && !_shopDisabledItems.includes(i.id));
+  const effectItems    = SHOP_ITEMS.filter(i => (i.type === 'effect' || i.type === 'timer') && !_shopDisabledItems.includes(i.id));
+  const soundItems     = SHOP_ITEMS.filter(i => (i.type === 'sound' || i.type === 'theme') && !_shopDisabledItems.includes(i.id));
 
   const _fill = (id, items) => {
     const el = document.getElementById(id);
@@ -1024,7 +1156,7 @@ function renderShopPage() {
     _fill('shop-sounds-grid',     soundItems);
   } else if (grid) {
     /* Fallback vecchia struttura */
-    const mainItems = SHOP_ITEMS.filter(i => i.type !== 'garden');
+    const mainItems = SHOP_ITEMS.filter(i => i.type !== 'garden' && !_shopDisabledItems.includes(i.id));
     grid.innerHTML  = mainItems.map((item, idx) => _buildCard(item, idx)).join('');
   }
 
@@ -1145,3 +1277,40 @@ function renderDailyDeal() {
       </button>
     </div>`;
 }
+
+// Ogni pagina: aggiorna disabled list e nasconde animali attivi ma disabilitati
+(async function _enforceAdminDisabled() {
+  const _HIDE = {
+    cat:'hideCat', dog:'hideDog', rabbit:'hideRabbit', fox:'hideFox',
+    raccoon:'hideRaccoon', parrot:'hideParrot', owl:'hideOwl',
+    lion:'hideLion', dragon:'hideDragon',
+    catHouse:'hideCatHouse', dogHouse:'hideDogHouse', rabbitHouse:'hideRabbitHouse',
+    foxHouse:'hideFoxHouse', raccoonHouse:'hideRaccoonHouse', parrotHouse:'hideParrotHouse',
+    owlHouse:'hideOwlHouse', lionHouse:'hideLionHouse', dragonHouse:'hideDragonHouse',
+  };
+  const _DM = {
+    cat:'catVisible', dog:'dogVisible', rabbit:'rabbitVisible', fox:'foxVisible',
+    raccoon:'raccoonVisible', parrot:'parrotVisible', owl:'owlVisible',
+    lion:'lionVisible', dragon:'dragonVisible',
+    catHouse:'catHouseVisible', dogHouse:'dogHouseVisible', rabbitHouse:'rabbitHouseVisible',
+    foxHouse:'foxHouseVisible', raccoonHouse:'raccoonHouseVisible', parrotHouse:'parrotHouseVisible',
+    owlHouse:'owlHouseVisible', lionHouse:'lionHouseVisible', dragonHouse:'dragonHouseVisible',
+    stars:'stars', bubbles:'bubbles', campfire:'campfire', aurora:'aurora',
+    glow:'glow', pulsePro:'pulsePro', cat4legs:'cat4legs',
+  };
+  await _loadShopDisabled();
+  if (!_shopDisabledItems.length) return;
+  loadCoinData();
+  const ae = coinData.activeEffects;
+  let changed = false;
+  _shopDisabledItems.forEach(id => {
+    const k = _DM[id];
+    if (k && ae[k]) {
+      ae[k] = false;
+      changed = true;
+      const fn = _HIDE[id];
+      if (fn && typeof window[fn] === 'function') window[fn]();
+    }
+  });
+  if (changed) saveCoinData();
+})();

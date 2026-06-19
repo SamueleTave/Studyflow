@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Statistiche — StudyFlow</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/themes.css?v=3">
-  <link rel="stylesheet" href="css/base.css?v=3">
-  <link rel="stylesheet" href="css/sidebar.css?v=3">
-  <link rel="stylesheet" href="css/calendar.css?v=3">
-  <link rel="stylesheet" href="css/stats.css?v=3">
-  <link rel="stylesheet" href="css/shop.css?v=3">
+  <link rel="stylesheet" href="css/themes.css?v=4">
+  <link rel="stylesheet" href="css/base.css?v=4">
+  <link rel="stylesheet" href="css/sidebar.css?v=4">
+  <link rel="stylesheet" href="css/calendar.css?v=4">
+  <link rel="stylesheet" href="css/stats.css?v=4">
+  <link rel="stylesheet" href="css/shop.css?v=4">
 </head>
 <body>
 
@@ -147,6 +147,15 @@
       </div>
     </div>
 
+    <!-- CONFRONTO SETTIMANE -->
+    <div id="week-compare-bar" style="display:none;animation:fadeInUp 0.4s ease both;margin-bottom:4px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--card);border:1px solid var(--card-border);border-radius:16px">
+        <span id="week-compare-icon" style="font-size:1.1rem"></span>
+        <span id="week-compare-text" style="font-size:0.82rem;font-weight:600;color:var(--text)"></span>
+        <span id="week-compare-sub" style="font-size:0.75rem;color:var(--text-soft);margin-left:auto"></span>
+      </div>
+    </div>
+
     <!-- HEATMAP -->
     <div class="card heatmap-card" style="animation:fadeInUp 0.5s 0.15s ease both">
       <h3>Attività di studio — anno</h3>
@@ -160,7 +169,6 @@
       </div>
       <div class="heatmap-legend">
         <span style="color:var(--text-soft);font-size:0.68rem">Meno</span>
-        <div class="hm-cell hm-0"></div>
         <div class="hm-cell hm-1"></div>
         <div class="hm-cell hm-2"></div>
         <div class="hm-cell hm-3"></div>
@@ -287,7 +295,7 @@
 </div>
 
 <!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js?v=3"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js?v=4"></script>
 <!-- Feather icons -->
 <script>
   /* Guard login sincrono */
@@ -295,19 +303,22 @@
 </script>
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 
-<script src="js/config.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
   <script>window.SF_API_BASE = 'https://studyflow-backend-5zy6.onrender.com/api';</script>
-<script src="js/auth.js?v=3"></script>
-<script src="js/shared.js?v=3"></script>
-<script src="js/api.js?v=3"></script>
-<script src="js/coins.js?v=3"></script>
-<script src="js/cat.js?v=3"></script>
-<script src="js/companions.js?v=3"></script>
-<script src="js/rabbit.js?v=3"></script>
-<script src="js/parrot.js?v=3"></script>
-<script src="js/fox.js?v=3"></script>
-<script src="js/owl.js?v=3"></script>
-<script src="js/lion.js?v=3"></script>
+<script src="js/auth.js?v=4"></script>
+<script src="js/shared.js?v=4"></script>
+<script src="js/api.js?v=4"></script>
+<script src="js/coins.js?v=6"></script>
+<script src="js/cat.js?v=4"></script>
+<script src="js/companions.js?v=4"></script>
+<script src="js/rabbit.js?v=4"></script>
+<script src="js/parrot.js?v=4"></script>
+<script src="js/fox.js?v=4"></script>
+<script src="js/procione.js?v=4"></script>
+<script src="js/owl.js?v=4"></script>
+<script src="js/lion.js?v=4"></script>
+<script src="js/dragon.js?v=4"></script>
+<script src="js/giraffe.js?v=4"></script>
 <script>
   /* ── Init ── */
   initShared();
@@ -337,6 +348,7 @@
 
     const notice = document.getElementById('offline-notice');
     if (!online) { notice.classList.add('visible'); loadFromLocalStorage(); return; }
+    backendOk = true; // sync con il check già fatto sopra
 
     const ov = await loadStatsOverview();
     if (ov) {
@@ -348,6 +360,7 @@
       if (sp) sp.textContent = ov.streak;
     }
 
+    _renderWeekCompare();
     await loadHistory(7, document.querySelector('.rtab.active'));
     await loadSubjectData();
     await loadSessionsTable();
@@ -370,6 +383,7 @@
 
     const sessions = _getLocalSessions();
 
+    _renderWeekCompare();
     /* Grafico storico */
     _renderHistoryLocal(sessions, 7);
 
@@ -619,6 +633,45 @@
       return;
     }
     document.getElementById('export-link').href = getExportUrl();
+  }
+
+  /* ── Confronto settimane ── */
+  function _renderWeekCompare() {
+    const sessions = _getLocalSessions();
+    const today = new Date();
+    const dow = today.getDay() === 0 ? 6 : today.getDay() - 1; // Lun=0
+    const thisMonday = new Date(today); thisMonday.setDate(today.getDate() - dow); thisMonday.setHours(0,0,0,0);
+    const lastMonday = new Date(thisMonday); lastMonday.setDate(thisMonday.getDate() - 7);
+    const lastSunday = new Date(thisMonday); lastSunday.setDate(thisMonday.getDate() - 1);
+
+    let thisWeek = 0, lastWeek = 0;
+    sessions.forEach(s => {
+      const d = new Date(s.date);
+      if (d >= thisMonday && d <= today) thisWeek += s.duration || 0;
+      else if (d >= lastMonday && d <= lastSunday) lastWeek += s.duration || 0;
+    });
+
+    const bar  = document.getElementById('week-compare-bar');
+    const icon = document.getElementById('week-compare-icon');
+    const text = document.getElementById('week-compare-text');
+    const sub  = document.getElementById('week-compare-sub');
+    if (!bar) return;
+    if (thisWeek === 0 && lastWeek === 0) return;
+
+    const fmt = m => m >= 60 ? Math.round(m / 6) / 10 + 'h' : m + ' min';
+    if (lastWeek === 0) {
+      icon.textContent = '🚀';
+      text.textContent = 'Prima settimana con attività!';
+      sub.textContent  = 'Questa settimana: ' + fmt(thisWeek);
+    } else {
+      const delta = Math.round((thisWeek - lastWeek) / lastWeek * 100);
+      const up    = delta >= 0;
+      icon.textContent = up ? '📈' : '📉';
+      text.style.color = up ? 'var(--accent)' : '#ef4444';
+      text.textContent = (up ? '+' : '') + delta + '% rispetto alla scorsa settimana';
+      sub.textContent  = fmt(thisWeek) + ' questa sett. · ' + fmt(lastWeek) + ' la scorsa';
+    }
+    bar.style.display = '';
   }
 
   /* ── Heatmap ── */

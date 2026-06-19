@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Draghetto — Cute Fat Style</title>
+<style>
+  body {
+    margin: 0;
+    background: #6BAED6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  .showcase {
+    display: flex;
+    gap: 40px;
+    align-items: flex-end;
+    background: rgba(255,255,255,0.15);
+    border-radius: 24px;
+    padding: 40px 50px;
+    backdrop-filter: blur(8px);
+  }
+  .pose-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .pose-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: white;
+    opacity: 0.8;
+  }
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+</style>
+</head>
+<body>
+
+<div class="showcase">
+
+  <!-- IDLE -->
+  <div class="pose-wrap">
+    <div class="card">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" width="120" height="140">
+        <!-- Ombra -->
+        <ellipse cx="60" cy="136" rx="30" ry="5" fill="rgba(0,0,0,0.12)"/>
+
+        <!-- Codina -->
+        <path d="M82,95 C100,85 108,68 103,55 C99,45 90,48 90,58 C90,68 88,80 82,92Z"
+          fill="#7C3AED" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+        <polygon points="103,53 111,42 96,43" fill="#A78BFA" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+
+        <!-- Ala sinistra (dietro) -->
+        <path d="M34,75 C16,58 10,36 18,18 C24,8 35,12 34,28 C33,44 34,62 34,75Z"
+          fill="#6D28D9" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M34,75 C20,62 16,42 22,22" fill="none" stroke="#4C1D95" stroke-width="1.5" opacity="0.6"/>
+        <path d="M34,75 C26,62 24,46 28,28" fill="none" stroke="#4C1D95" stroke-width="1.2" opacity="0.5"/>
+
+        <!-- Ala destra (dietro) -->
+        <path d="M86,75 C104,58 110,36 102,18 C96,8 85,12 86,28 C87,44 86,62 86,75Z"
+          fill="#6D28D9" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M86,75 C100,62 104,42 98,22" fill="none" stroke="#4C1D95" stroke-width="1.5" opacity="0.6"/>
+
+        <!-- Corpo TONDO (palla!) -->
+        <circle cx="60" cy="96" r="34" fill="#7C3AED" stroke="#1a0a2e" stroke-width="3.5"/>
+        <!-- Pancia chiara -->
+        <ellipse cx="60" cy="100" rx="20" ry="22" fill="#C4B5FD" stroke="#1a0a2e" stroke-width="2"/>
+
+        <!-- Piedini minuscoli -->
+        <ellipse cx="42" cy="126" rx="13" ry="9" fill="#6D28D9" stroke="#1a0a2e" stroke-width="3"/>
+        <ellipse cx="78" cy="126" rx="13" ry="9" fill="#6D28D9" stroke="#1a0a2e" stroke-width="3"/>
+        <!-- Artigli -->
+        <line x1="35" y1="131" x2="32" y2="136" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="42" y1="133" x2="42" y2="138" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="49" y1="131" x2="52" y2="136" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="71" y1="131" x2="68" y2="136" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="78" y1="133" x2="78" y2="138" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="85" y1="131" x2="88" y2="136" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+        <!-- Testa GRANDE (oversized) -->
+        <circle cx="60" cy="54" r="36" fill="#7C3AED" stroke="#1a0a2e" stroke-width="3.5"/>
+
+        <!-- Cornini -->
+        <path d="M42,26 C36,14 34,6 38,2 C42,8 44,18 44,26Z"
+          fill="#5B21B6" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M78,26 C84,14 86,6 82,2 C78,8 76,18 76,26Z"
+          fill="#5B21B6" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+
+        <!-- Occhi GRANDI (caratteristica principale) -->
+        <!-- Occhio sinistro -->
+        <circle cx="43" cy="54" r="14" fill="white" stroke="#1a0a2e" stroke-width="3"/>
+        <circle cx="43" cy="55" r="9" fill="#0D9488"/>
+        <circle cx="43" cy="55" r="5.5" fill="#1a0a2e"/>
+        <circle cx="46" cy="51" r="3" fill="white"/>
+        <circle cx="41" cy="58" r="1.2" fill="white" opacity="0.7"/>
+        <!-- Occhio destro -->
+        <circle cx="77" cy="54" r="14" fill="white" stroke="#1a0a2e" stroke-width="3"/>
+        <circle cx="77" cy="55" r="9" fill="#0D9488"/>
+        <circle cx="77" cy="55" r="5.5" fill="#1a0a2e"/>
+        <circle cx="80" cy="51" r="3" fill="white"/>
+        <circle cx="75" cy="58" r="1.2" fill="white" opacity="0.7"/>
+
+        <!-- Guancette rosse -->
+        <circle cx="28" cy="64" r="8" fill="#F472B6" opacity="0.55"/>
+        <circle cx="92" cy="64" r="8" fill="#F472B6" opacity="0.55"/>
+
+        <!-- Narici -->
+        <ellipse cx="54" cy="70" rx="3.5" ry="2.5" fill="#4C1D95" opacity="0.7"/>
+        <ellipse cx="66" cy="70" rx="3.5" ry="2.5" fill="#4C1D95" opacity="0.7"/>
+
+        <!-- Bocca sorriso -->
+        <path d="M48,76 Q60,86 72,76" fill="none" stroke="#1a0a2e" stroke-width="3" stroke-linecap="round"/>
+        <!-- Dentino -->
+        <rect x="57" y="76" width="6" height="7" rx="2" fill="white" stroke="#1a0a2e" stroke-width="1.5"/>
+
+        <!-- Braccioline minuscole -->
+        <path d="M26,90 Q18,96 20,104 Q26,106 28,100 Q30,94 30,90Z"
+          fill="#6D28D9" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M94,90 Q102,96 100,104 Q94,106 92,100 Q90,94 90,90Z"
+          fill="#6D28D9" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="pose-label">Idle</span>
+  </div>
+
+  <!-- HAPPY (con cuoricino) -->
+  <div class="pose-wrap">
+    <div class="card">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="120" height="150">
+        <!-- Ombra -->
+        <ellipse cx="60" cy="146" rx="28" ry="5" fill="rgba(0,0,0,0.12)"/>
+
+        <!-- Cuoricino sopra -->
+        <path d="M60,8 C60,8 52,2 48,8 C44,14 52,20 60,28 C68,20 76,14 72,8 C68,2 60,8 60,8Z"
+          fill="#F43F5E" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+
+        <!-- Codina su (felice) -->
+        <path d="M84,92 C100,78 108,58 104,42 C102,34 95,34 94,44 C92,56 88,74 84,90Z"
+          fill="#7C3AED" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+        <polygon points="104,40 112,28 97,30" fill="#A78BFA" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+
+        <!-- Ali (alzate felici) -->
+        <path d="M32,72 C12,52 6,26 16,8 C22,-2 34,2 32,20 C30,38 32,58 32,72Z"
+          fill="#6D28D9" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M88,72 C108,52 114,26 104,8 C98,-2 86,2 88,20 C90,38 88,58 88,72Z"
+          fill="#6D28D9" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+
+        <!-- Corpo -->
+        <circle cx="60" cy="104" r="34" fill="#7C3AED" stroke="#1a0a2e" stroke-width="3.5"/>
+        <ellipse cx="60" cy="108" rx="20" ry="22" fill="#C4B5FD" stroke="#1a0a2e" stroke-width="2"/>
+
+        <!-- Piedini -->
+        <ellipse cx="42" cy="134" rx="13" ry="9" fill="#6D28D9" stroke="#1a0a2e" stroke-width="3"/>
+        <ellipse cx="78" cy="134" rx="13" ry="9" fill="#6D28D9" stroke="#1a0a2e" stroke-width="3"/>
+        <line x1="35" y1="139" x2="32" y2="144" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="42" y1="141" x2="42" y2="146" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="49" y1="139" x2="52" y2="144" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="71" y1="139" x2="68" y2="144" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="78" y1="141" x2="78" y2="146" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="85" y1="139" x2="88" y2="144" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+        <!-- Testa -->
+        <circle cx="60" cy="62" r="36" fill="#7C3AED" stroke="#1a0a2e" stroke-width="3.5"/>
+        <!-- Cornini -->
+        <path d="M42,34 C36,22 34,14 38,10 C42,16 44,26 44,34Z" fill="#5B21B6" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M78,34 C84,22 86,14 82,10 C78,16 76,26 76,34Z" fill="#5B21B6" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+
+        <!-- Occhi felici (chiusi a mezzaluna) -->
+        <path d="M30,60 Q43,48 56,60" fill="none" stroke="#1a0a2e" stroke-width="4" stroke-linecap="round"/>
+        <path d="M64,60 Q77,48 90,60" fill="none" stroke="#1a0a2e" stroke-width="4" stroke-linecap="round"/>
+
+        <!-- Guancette più rosse (felice) -->
+        <circle cx="26" cy="68" r="10" fill="#F472B6" opacity="0.65"/>
+        <circle cx="94" cy="68" r="10" fill="#F472B6" opacity="0.65"/>
+
+        <!-- Bocca aperta felice -->
+        <path d="M44,78 Q60,96 76,78" fill="#1a0a2e" stroke="#1a0a2e" stroke-width="2"/>
+        <path d="M44,78 Q60,94 76,78 Q60,86 44,78Z" fill="#E0115F"/>
+        <!-- Lingua -->
+        <ellipse cx="60" cy="89" rx="8" ry="6" fill="#F9A8D4"/>
+
+        <!-- Braccioline alzate (felice) -->
+        <path d="M24,84 Q14,72 18,62 Q26,64 28,74 Q28,80 28,84Z"
+          fill="#6D28D9" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M96,84 Q106,72 102,62 Q94,64 92,74 Q92,80 92,84Z"
+          fill="#6D28D9" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="pose-label">Happy</span>
+  </div>
+
+  <!-- FIRE (sputa fuoco) -->
+  <div class="pose-wrap">
+    <div class="card">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 140" width="160" height="140">
+        <!-- Ombra -->
+        <ellipse cx="70" cy="136" rx="32" ry="5" fill="rgba(0,0,0,0.12)"/>
+
+        <!-- FIAMMA (a destra) -->
+        <g transform="translate(108,56)">
+          <!-- Fumo -->
+          <circle cx="28" cy="-8" r="8" fill="#9CA3AF" opacity="0.3"/>
+          <circle cx="36" cy="-14" r="6" fill="#9CA3AF" opacity="0.2"/>
+          <!-- Fiamma esterna arancio -->
+          <path d="M0,0 C-6,10 -8,24 -4,34 C0,44 4,38 6,28 C8,18 8,8 0,0Z" fill="#F97316" stroke="#1a0a2e" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M0,0 C8,10 12,24 8,34 C4,44 0,38 -2,28" fill="#F97316" stroke="#1a0a2e" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M0,0 C16,14 20,28 14,36 C10,42 4,38 2,28" fill="#F97316" stroke="#1a0a2e" stroke-width="2" stroke-linejoin="round"/>
+          <!-- Fiamma gialla interna -->
+          <path d="M0,2 C-3,12 -4,22 -1,30 C1,36 4,32 4,24 C5,16 4,8 0,2Z" fill="#FCD34D"/>
+          <path d="M0,2 C4,12 6,22 4,30 C2,36 -1,32 -2,24" fill="#FCD34D"/>
+          <!-- Punta bianca -->
+          <ellipse cx="0" cy="6" rx="3" ry="5" fill="white" opacity="0.8"/>
+        </g>
+
+        <!-- Codina -->
+        <path d="M88,90 C106,80 112,62 107,48 C103,38 95,42 95,52 C95,64 90,78 88,88Z"
+          fill="#7C3AED" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+        <polygon points="107,46 116,34 101,36" fill="#A78BFA" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+
+        <!-- Ala sinistra -->
+        <path d="M34,72 C14,54 8,28 18,10 C24,0 36,4 34,22 C32,40 34,58 34,72Z"
+          fill="#6D28D9" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+        <!-- Ala destra (meno visibile perché sputa fuoco di lato) -->
+        <path d="M86,72 C100,60 106,40 100,22" fill="none" stroke="#4C1D95" stroke-width="2" opacity="0.5"/>
+
+        <!-- Corpo -->
+        <circle cx="64" cy="96" r="34" fill="#7C3AED" stroke="#1a0a2e" stroke-width="3.5"/>
+        <ellipse cx="64" cy="100" rx="20" ry="22" fill="#C4B5FD" stroke="#1a0a2e" stroke-width="2"/>
+
+        <!-- Piedini -->
+        <ellipse cx="46" cy="127" rx="13" ry="9" fill="#6D28D9" stroke="#1a0a2e" stroke-width="3"/>
+        <ellipse cx="82" cy="127" rx="13" ry="9" fill="#6D28D9" stroke="#1a0a2e" stroke-width="3"/>
+        <line x1="39" y1="132" x2="36" y2="137" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="46" y1="134" x2="46" y2="139" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="53" y1="132" x2="56" y2="137" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="75" y1="132" x2="72" y2="137" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="82" y1="134" x2="82" y2="139" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="89" y1="132" x2="92" y2="137" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+        <!-- Testa -->
+        <circle cx="64" cy="54" r="36" fill="#7C3AED" stroke="#1a0a2e" stroke-width="3.5"/>
+        <!-- Cornini -->
+        <path d="M46,26 C40,14 38,6 42,2 C46,8 48,18 48,26Z" fill="#5B21B6" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M82,26 C88,14 90,6 86,2 C82,8 80,18 80,26Z" fill="#5B21B6" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+
+        <!-- Occhio sinistro normale -->
+        <circle cx="47" cy="52" r="13" fill="white" stroke="#1a0a2e" stroke-width="3"/>
+        <circle cx="47" cy="53" r="8.5" fill="#0D9488"/>
+        <circle cx="47" cy="53" r="5" fill="#1a0a2e"/>
+        <circle cx="50" cy="49" r="2.8" fill="white"/>
+
+        <!-- Occhio destro strizzato (concentrato) -->
+        <path d="M64,50 Q77,42 90,50" fill="none" stroke="#1a0a2e" stroke-width="4" stroke-linecap="round"/>
+        <path d="M66,54 Q77,50 88,54" fill="none" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+
+        <!-- Guancetta sinistra -->
+        <circle cx="30" cy="62" r="9" fill="#F472B6" opacity="0.55"/>
+
+        <!-- Bocca aperta (sputa fuoco) -->
+        <path d="M52,72 Q64,80 98,68" fill="#1a0a2e" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M52,72 Q64,80 98,68 Q80,78 52,72Z" fill="#E0115F"/>
+
+        <!-- Braccino destro che punta -->
+        <path d="M92,86 Q104,78 110,68" fill="none" stroke="#6D28D9" stroke-width="9" stroke-linecap="round"/>
+        <circle cx="112" cy="65" r="7" fill="#6D28D9" stroke="#1a0a2e" stroke-width="3"/>
+        <!-- Braccino sinistro -->
+        <path d="M30,88 Q20,96 22,106 Q28,108 30,100 Q32,94 32,88Z"
+          fill="#6D28D9" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="pose-label">Fire!</span>
+  </div>
+
+  <!-- SLEEPING -->
+  <div class="pose-wrap">
+    <div class="card">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 130" width="120" height="130">
+        <!-- Zzz -->
+        <text x="84" y="18" font-size="11" font-weight="900" fill="#A78BFA" font-family="Arial" stroke="#1a0a2e" stroke-width="1" paint-order="stroke">Z</text>
+        <text x="91" y="10" font-size="9" font-weight="900" fill="#A78BFA" font-family="Arial" stroke="#1a0a2e" stroke-width="1" paint-order="stroke">Z</text>
+        <text x="97" y="4" font-size="7" font-weight="900" fill="#A78BFA" font-family="Arial" stroke="#1a0a2e" stroke-width="1" paint-order="stroke">Z</text>
+
+        <!-- Ombra -->
+        <ellipse cx="60" cy="126" rx="30" ry="5" fill="rgba(0,0,0,0.12)"/>
+
+        <!-- Codina arricciata (dorme) -->
+        <path d="M78,88 C94,82 104,68 100,56 C98,50 92,50 92,58 C92,66 88,78 80,86Z"
+          fill="#7C3AED" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+
+        <!-- Ali ripiegate -->
+        <path d="M30,70 C18,60 14,44 18,28 C22,46 28,60 30,70Z" fill="#6D28D9" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M90,70 C102,60 106,44 102,28 C98,46 92,60 90,70Z" fill="#6D28D9" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+
+        <!-- Corpo (inclinato di lato, dorme) -->
+        <circle cx="60" cy="94" r="34" fill="#7C3AED" stroke="#1a0a2e" stroke-width="3.5"/>
+        <ellipse cx="60" cy="98" rx="20" ry="22" fill="#C4B5FD" stroke="#1a0a2e" stroke-width="2"/>
+
+        <!-- Piedini -->
+        <ellipse cx="40" cy="124" rx="13" ry="8" fill="#6D28D9" stroke="#1a0a2e" stroke-width="3"/>
+        <ellipse cx="74" cy="126" rx="13" ry="8" fill="#6D28D9" stroke="#1a0a2e" stroke-width="3"/>
+
+        <!-- Testa (leggermente inclinata) -->
+        <circle cx="60" cy="52" r="36" fill="#7C3AED" stroke="#1a0a2e" stroke-width="3.5"/>
+        <!-- Cornini -->
+        <path d="M42,24 C36,12 34,4 38,0 C42,6 44,16 44,24Z" fill="#5B21B6" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M78,24 C84,12 86,4 82,0 C78,6 76,16 76,24Z" fill="#5B21B6" stroke="#1a0a2e" stroke-width="2.5" stroke-linejoin="round"/>
+
+        <!-- Occhi CHIUSI (dormiente) -->
+        <path d="M30,52 Q43,44 56,52" fill="none" stroke="#1a0a2e" stroke-width="4" stroke-linecap="round"/>
+        <path d="M64,52 Q77,44 90,52" fill="none" stroke="#1a0a2e" stroke-width="4" stroke-linecap="round"/>
+        <!-- Ciglia -->
+        <line x1="32" y1="50" x2="29" y2="44" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+        <line x1="54" y1="50" x2="57" y2="44" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+        <line x1="66" y1="50" x2="63" y2="44" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+        <line x1="88" y1="50" x2="91" y2="44" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+
+        <!-- Guancette -->
+        <circle cx="28" cy="62" r="9" fill="#F472B6" opacity="0.5"/>
+        <circle cx="92" cy="62" r="9" fill="#F472B6" opacity="0.5"/>
+
+        <!-- Bocca (sorrisino nel sonno) -->
+        <path d="M50,72 Q60,79 70,72" fill="none" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+
+        <!-- Braccioline appoggiate (dorme) -->
+        <path d="M28,90 Q18,94 20,104 Q26,108 30,100 Q32,95 30,90Z"
+          fill="#6D28D9" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M92,90 Q102,94 100,104 Q94,108 90,100 Q88,95 90,90Z"
+          fill="#6D28D9" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="pose-label">Sleep</span>
+  </div>
+
+</div>
+
+</body>
+</html>

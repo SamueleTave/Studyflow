@@ -803,7 +803,7 @@ function _showRoleLevelUpToast(role) {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + auth.token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ roleKey: role.key, roleName: role.name, perk: role.perk, unlock: unlockText })
-    }).catch(() => {});
+    }).then(() => { setTimeout(_fetchNotifications, 600); }).catch(() => {});
   }
 }
 

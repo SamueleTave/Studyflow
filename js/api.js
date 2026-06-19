@@ -75,19 +75,25 @@ async function apiDelete(path) {
 
 /* ── Sessioni ── */
 async function saveSession(duration, subject = "") {
+  const _today = new Date().toISOString().split('T')[0];
   /* Salva sempre in localStorage per le statistiche offline */
   try {
     const sess = JSON.parse(localStorage.getItem('sf_sessions') || '[]');
-    sess.push({ date: new Date().toISOString().split('T')[0], duration, subject: subject || '', ts: Date.now() });
+    sess.push({ date: _today, duration, subject: subject || '', ts: Date.now() });
     if (sess.length > 500) sess.splice(0, sess.length - 500);
     localStorage.setItem('sf_sessions', JSON.stringify(sess));
   } catch {}
-  if (!backendOk) return;
-  await apiPost("/sessions", {
-    date: new Date().toISOString().split("T")[0],
-    duration,
-    subject,
-  });
+  /* Salva sempre sul backend — anche se backendOk è false (cold start Render) */
+  try {
+    const auth = typeof getAuth === 'function' ? getAuth() : null;
+    const hdrs = { 'Content-Type': 'application/json' };
+    if (auth?.token) hdrs['Authorization'] = 'Bearer ' + auth.token;
+    fetch(API_BASE + '/sessions', {
+      method: 'POST',
+      headers: hdrs,
+      body: JSON.stringify({ date: _today, duration, subject: subject || '' }),
+    }).then(r => { if (r.ok) backendOk = true; }).catch(() => {});
+  } catch {}
 }
 
 /* ── Statistiche ── */

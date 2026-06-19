@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bug StudyFlow — Registro Completo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      padding: 32px 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      color: #64748b;
+      font-size: 0.85rem;
+      margin-bottom: 36px;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    .section-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #475569;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .bug-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .bug-card.critico  { border-left: 4px solid #ef4444; }
+    .bug-card.medio    { border-left: 4px solid #f59e0b; }
+    .bug-card.minore   { border-left: 4px solid #3b82f6; }
+    .bug-card.pending  { border-left: 4px solid #8b5cf6; opacity: 0.8; }
+    .bug-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .badge {
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .badge.critico  { background: rgba(239,68,68,0.18);  color: #f87171; }
+    .badge.medio    { background: rgba(245,158,11,0.18); color: #fbbf24; }
+    .badge.minore   { background: rgba(59,130,246,0.18); color: #60a5fa; }
+    .badge.pending  { background: rgba(139,92,246,0.18); color: #a78bfa; }
+    .badge.risolto  { background: rgba(16,185,129,0.18); color: #34d399; }
+    .bug-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+    .bug-file {
+      font-family: 'Courier New', monospace;
+      font-size: 0.72rem;
+      color: #94a3b8;
+      margin-top: 3px;
+    }
+    .bug-desc { font-size: 0.83rem; color: #94a3b8; margin-bottom: 10px; }
+    .bug-fix {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      color: #6ee7b7;
+    }
+    .bug-fix strong { color: #34d399; }
+    code {
+      font-family: 'Courier New', monospace;
+      background: rgba(255,255,255,0.07);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      color: #7dd3fc;
+    }
+    .status-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .status-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot.green  { background: #10b981; }
+    .dot.yellow { background: #f59e0b; }
+    .dot.red    { background: #ef4444; }
+    .dot.purple { background: #8b5cf6; }
+    .commit {
+      font-family: monospace;
+      font-size: 0.7rem;
+      color: #6366f1;
+      background: rgba(99,102,241,0.1);
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-left: auto;
+    }
+    .todo-list { list-style: none; }
+    .todo-list li {
+      padding: 10px 14px;
+      background: #1e293b;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 0.83rem;
+      border-left: 3px solid #8b5cf6;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .todo-list li span { color: #a78bfa; font-weight: 700; flex-shrink: 0; }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.3rem; }
+      .bug-card { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>🐛 Bug StudyFlow — Registro Completo</h1>
+<p class="subtitle">Aggiornato: 2026-06-19 — Sessione 12 &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
+
+<!-- STATO DEPLOY -->
+<div class="status-row">
+  <div class="status-chip"><div class="dot green"></div> Netlify: aggiornato (ultimo commit b60e8c5)</div>
+  <div class="status-chip"><div class="dot yellow"></div> Render: richiede Manual Deploy</div>
+  <div class="status-chip"><div class="dot green"></div> GitHub: pushato</div>
+</div>
+
+<!-- ===== SESSIONE 10 — BUG FIXATI ===== -->
+<div class="section">
+  <div class="section-title">✅ Sessione 10 (2026-06-19) — Bug fixati</div>
+
+  <div class="bug-card critico">
+    <div class="bug-header">
+      <span class="badge critico">Critico</span>
+      <div>
+        <div class="bug-title">C1 — renderShop() non esiste (si chiama renderShopPage)</div>
+        <div class="bug-file">js/auth.js · riga 133</div>
+      </div>
+      <span class="commit">ec75e34</span>
+    </div>
+    <p class="bug-desc">Quando l'admin aggiornava i dati di un utente e il client riceveva le correzioni (<code>_sfReinitAll()</code>), lo shop non si ri-renderizzava mai. La condizione <code>typeof renderShop === 'function'</code> era sempre <code>false</code>.</p>
+    <div class="bug-fix"><strong>Fix:</strong> rinominato <code>renderShop</code> → <code>renderShopPage</code> nella chiamata di auth.js.</div>
+  </div>
+
+  <div class="bug-card critico">
+    <div class="bug-header">
+      <span class="badge critico">Critico</span>
+      <div>
+        <div class="bug-title">C2 — stats.html chiama URL relativo /api/status su Netlify</div>
+        <div class="bug-file">stats.html · riga 334</div>
+      </div>
+      <span class="commit">ec75e34</span>
+    </div>
+    <p class="bug-desc"><code>fetch('/api/status')</code> su Netlify si risolveva in <code>netlify.app/api/status</code> (404). La variabile <code>backendOk</code> era sempre <code>false</code> → il pulsante "Esporta CSV" era sempre disabilitato.</p>
+    <div class="bug-fix"><strong>Fix:</strong> <code>fetch((window.SF_API_BASE||'/api') + '/status', ...)</code></div>
+  </div>
+
+  <div class="bug-card critico">
+    <div class="bug-header">
+      <span class="badge critico">Critico</span>
+      <div>
+        <div class="bug-title">C3 — Endpoint POST /api/notifications/role-up mancante</div>
+        <div class="bug-file">app.py · mancante</div>
+      </div>
+      <span class="commit">ec75e34</span>
+    </div>
+    <p class="bug-desc"><code>shared.js</code> chiama <code>POST /api/notifications/role-up</code> ad ogni level-up del ruolo. L'endpoint non esisteva → 404 silenzioso, nessuna notifica di avanzamento ruolo salvata sul server.</p>
+    <div class="bug-fix"><strong>Fix:</strong> aggiunto endpoint in app.py che salva la notifica nella tabella <code>notifications</code> con tipo <code>role_up</code> e emoji 🏅.</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">M1 — gardenIds hardcoded con sunflower (inesistente) e solo 10/20 item</div>
+        <div class="bug-file">index.html · riga 568</div>
+      </div>
+      <span class="commit">ec75e34</span>
+    </div>
+    <p class="bug-desc">Il badge "X oggetti giardino" usava una lista hardcoded con <code>sunflower</code> (mai esistito) e solo 10 dei 20 item reali. Il contatore era sempre sbagliato.</p>
+    <div class="bug-fix"><strong>Fix:</strong> <code>const gardenIds = Object.keys(GARDEN_CATALOG)</code> — usa la lista reale da garden.js.</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">M2 — Colore accent mai sincronizzato (chiave sbagliata)</div>
+        <div class="bug-file">js/auth.js · riga 11 &amp; js/shared.js · riga 1379</div>
+      </div>
+      <span class="commit">ec75e34</span>
+    </div>
+    <p class="bug-desc"><code>_SF_SYNC_KEYS</code> aveva <code>'sf_accent'</code> ma il localStorage usava <code>'sf_accent_color'</code>. Il colore personalizzato non veniva mai sincronizzato al server. Anche <code>syncData()</code> in shared.js era dead code (funzione mai definita).</p>
+    <div class="bug-fix"><strong>Fix:</strong> chiave corretta a <code>'sf_accent_color'</code> in auth.js. Rimossa la chiamata <code>syncData()</code> da shared.js.</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">M3 — Admin: 7 item ruolo-esclusivi mancanti dall'elenco oggetti</div>
+        <div class="bug-file">admin.html · _ADMIN_SHOP array</div>
+      </div>
+      <span class="commit">ec75e34</span>
+    </div>
+    <p class="bug-desc">rabbitOrange, dogPurple, starBalloon, catSilver, aurora, dragon, themeGold non erano presenti in <code>_ADMIN_SHOP</code>. L'admin non poteva sbloccarli manualmente.</p>
+    <div class="bug-fix"><strong>Fix:</strong> aggiunti tutti e 7 nel gruppo "Ruolo Esclusivi".</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">M4/M5/M6 — Version string inconsistenti su config.js e themes.css</div>
+        <div class="bug-file">login.html, admin.html</div>
+      </div>
+      <span class="commit">ec75e34</span>
+    </div>
+    <p class="bug-desc">login.html caricava <code>config.js?v=10</code>, admin.html caricava <code>config.js</code> senza versione. Entrambi caricavano <code>themes.css</code> senza <code>?v=3</code>. Rischio cache stale.</p>
+    <div class="bug-fix"><strong>Fix:</strong> uniformati tutti a <code>?v=3</code>.</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Admin — Dati salvati non persistono dopo il salvataggio</div>
+        <div class="bug-file">app.py (admin_set_user_data) + js/auth.js (loadFromServer)</div>
+      </div>
+      <span class="commit">8a865b7</span>
+    </div>
+    <p class="bug-desc"><code>sf_admin_flag = 'dirty'</code> non veniva mai scritto → <code>isFirstLoad</code> sempre <code>false</code> → per qualsiasi chiave già in localStorage, <code>loadFromServer()</code> saltava il reload. L'utente vedeva sempre i vecchi dati.</p>
+    <div class="bug-fix"><strong>Fix:</strong> dopo ogni <code>PUT /api/admin/users/&lt;id&gt;/data</code>, il backend scrive <code>sf_admin_flag='dirty'</code>. Il client lo legge, forza reload completo, poi lo cancella (si attiva una sola volta).</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Admin — Oggetti shop non si aggiornano dopo modifica</div>
+        <div class="bug-file">js/auth.js · merge sf_coins (riga ~102)</div>
+      </div>
+      <span class="commit">8a865b7</span>
+    </div>
+    <p class="bug-desc">Il merge di <code>sf_coins</code> usava <code>Object.assign({}, server.shop, local.shop)</code>: il local.shop dell'utente sovrascriveva sempre quello del server, anche dopo che l'admin aveva modificato gli oggetti.</p>
+    <div class="bug-fix"><strong>Fix:</strong> quando <code>server._adminTs !== local._adminTs</code>, il server.shop è autoritativo e sovrascrive il local.shop. Altrimenti si mantiene il merge normale.</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Admin — Ruolo override assoluto, non come minimo</div>
+        <div class="bug-file">js/coins.js · _shopCurrentRoleKey()</div>
+      </div>
+      <span class="commit">8a865b7</span>
+    </div>
+    <p class="bug-desc">Il ruolo forzato dall'admin bloccava l'avanzamento naturale. Se l'utente raggiungeva un ruolo superiore via sessioni, veniva bloccato dall'override.</p>
+    <div class="bug-fix"><strong>Fix:</strong> l'override è ora un MINIMO. Se le sessioni portano a un ruolo superiore, quello vince. <code>Math.min(autoIdx, ovIdx)</code> (array DESC → indice minore = ruolo più alto).</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Offerta del giorno — CSS assente nello shop</div>
+        <div class="bug-file">css/shop.css (mancante)</div>
+      </div>
+      <span class="commit">523caf9</span>
+    </div>
+    <p class="bug-desc"><code>shop.html</code> non caricava <code>timer.css</code> dove erano definiti gli stili della card offerta. La card appariva senza gradiente, testo piatto su sfondo bianco.</p>
+    <div class="bug-fix"><strong>Fix:</strong> duplicati gli stili <code>.daily-deal-card</code> in <code>shop.css</code>.</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Sidebar mobile — sidebar.style.position rompe il desktop</div>
+        <div class="bug-file">js/shared.js · _initMobileHamburger()</div>
+      </div>
+      <span class="commit">3022485</span>
+    </div>
+    <p class="bug-desc">L'aggiunta del pulsante ✕ interno impostava <code>sidebar.style.position = 'relative'</code> via JS. Questo inline style sovrascriveva <code>position: sticky</code> del desktop, rendendo la sidebar non-sticky e facendo scomparire i link in cima (Timer, Task, ecc.).</p>
+    <div class="bug-fix"><strong>Fix:</strong> rimossa la riga. La sidebar su mobile è già <code>position: fixed</code> via CSS, e su desktop <code>position: sticky</code> — entrambi creano già il containing block per i figli absolute. La riga era inutile e dannosa.</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Sidebar mobile — contenuto visibile dietro (schermo parziale)</div>
+        <div class="bug-file">css/sidebar.css · @media max-width 960px</div>
+      </div>
+      <span class="commit">fbfb25d</span>
+    </div>
+    <p class="bug-desc">La sidebar era 270px su schermi da 375px → ~105px di contenuto visibile a destra. L'overlay era troppo leggero (0.32 opacity) e semi-trasparente.</p>
+    <div class="bug-fix"><strong>Fix:</strong> su schermi ≤600px la sidebar è <code>width: 100vw</code> (schermo intero). Su 600-960px rimane 300px con overlay più scuro (0.48). Aggiunto pulsante ✕ interno.</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Mobile — La pagina inizia dal basso (iOS Safari 100vh)</div>
+        <div class="bug-file">css/base.css · body e .app</div>
+      </div>
+      <span class="commit">b60e8c5</span>
+    </div>
+    <p class="bug-desc">iOS Safari include la barra degli indirizzi nel calcolo di <code>100vh</code>. Con <code>min-height: 100vh</code>, il contenuto era più alto della schermata visibile. L'utente vedeva la parte in basso e doveva scorrere su.</p>
+    <div class="bug-fix"><strong>Fix:</strong> aggiunto <code>min-height: 100svh</code> (small viewport height — esclude la barra browser) come secondo valore in cascade su body e .app. Fallback a 100vh per browser vecchi.</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Mobile — La pagina salta ogni secondo (clock reflow)</div>
+        <div class="bug-file">css/base.css · .clock-time</div>
+      </div>
+      <span class="commit">b60e8c5</span>
+    </div>
+    <p class="bug-desc">Ogni secondo il testo dell'orologio cambiava (es. "59" → "00"). Le cifre avevano larghezze diverse → il container si ridimensionava → il layout intero si ricalcolava → la pagina saltava di qualche pixel.</p>
+    <div class="bug-fix"><strong>Fix:</strong> aggiunto <code>font-variant-numeric: tabular-nums</code> su <code>.clock-time</code>. Tutte le cifre ora hanno larghezza identica. Zero reflow.</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Mobile — Clock-bar overflow, bisogna allargare</div>
+        <div class="bug-file">css/base.css · @media max-width 600px</div>
+      </div>
+      <span class="commit">b60e8c5</span>
+    </div>
+    <p class="bug-desc">La clock-bar conteneva ~400px di elementi (orario + 2 pill + level pill + monete) su uno schermo da 375px → overflow orizzontale forzato → l'utente doveva pizzicare per rimpicciolire.</p>
+    <div class="bug-fix"><strong>Fix:</strong> su ≤600px: orario ridotto (1.7rem), le pill Streak e Livello spariscono (visibili nel menu sidebar), rimane solo il contatore monete. Aggiunto <code>max-width: 100vw; overflow-x: hidden</code> su tutti i figli diretti.</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge minore">Minore</span>
+      <div>
+        <div class="bug-title">Luna giardino con quadrato attorno</div>
+        <div class="bug-file">css/garden.css · .g-moon</div>
+      </div>
+      <span class="commit">72e1f4b</span>
+    </div>
+    <p class="bug-desc">L'elemento luna aveva un glow quadrato visibile intorno invece di circolare.</p>
+    <div class="bug-fix"><strong>Fix:</strong> aggiunto <code>border-radius: 50%; overflow: hidden</code> a <code>.g-moon</code>.</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge minore">Minore</span>
+      <div>
+        <div class="bug-title">Admin — Ruoli inventati (Leggenda, Diligente non esistono)</div>
+        <div class="bug-file">admin.html · _ROLE_DATA array</div>
+      </div>
+      <span class="commit">72e1f4b</span>
+    </div>
+    <p class="bug-desc">L'array dei ruoli in admin.html conteneva ruoli inventati non presenti in coins.js. L'admin vedeva ruoli sbagliati nella tabella utenti.</p>
+    <div class="bug-fix"><strong>Fix:</strong> rimappato su 7 ruoli reali da coins.js: novizio/studente/applicato/determinato/studioso/esperto/maestro con soglie sessioni corrette.</div>
+  </div>
+</div>
+
+<!-- ===== RISOLTI SESSIONE 11 ===== -->
+<div class="section">
+  <div class="section-title">✅ Risolti — sessione 11 (2026-06-19, in locale — da pushare)</div>
+  <ul class="todo-list" style="opacity:0.65">
+    <li><span>✓</span> <div><strong>CSS daily-deal duplicato</strong> — rimosso il blocco da timer.css, resta solo in shop.css. index.html carica entrambi i CSS quindi nessun impatto.</div></li>
+    <li><span>✓</span> <div><strong>Leaderboard.html dead code</strong> — ridotto da 218 righe a 6: solo il redirect a friends.html.</div></li>
+    <li><span>✓</span> <div><strong>Heatmap legenda</strong> — rimosso hm-0 dalla legenda. Ora 4 puntini visibili (hm-1→hm-4) = 4 livelli di attività reali.</div></li>
+    <li><span>✓</span> <div><strong>Badge notifiche</strong> — il badge si aggiorna subito dopo role-up (+600ms) e subito dopo _sfReinitAll (admin che modifica dati).</div></li>
+    <li><span>✓</span> <div><strong>Confronto settimane in stats.html</strong> — banner "+X% rispetto alla scorsa settimana" con icona 📈/📉, ore questa/scorsa settimana. Si calcola da sf_sessions localStorage.</div></li>
+    <li><span>✓</span> <div><strong>Meteo reale giardino</strong> — Open-Meteo API (no key). Geolocalizzazione con fallback Roma. Cache 30min in sf_weather_cache. Pioggia = 45 gocce CSS animate. Temporale (code≥95) = pioggia intensa + flash schermo + saetta SVG ogni 4-12s. Nuvoloso (clouds>70%) = overlay grigio.</div></li>
+    <li><span>✓</span> <div><strong>Sole bianco fixato</strong> — sunCore '#FFFFFF' rimosso da mattina0/mattina/mezzodì/pomeriggio. Ora giallo/dorato durante il giorno.</div></li>
+    <li><span>✓</span> <div><strong>Tramonto/luna dinamici</strong> — fase 17h "ora dorata" aggiunta. Gradienti a 3 stop (top/mid/bot). Arco sole ampio (15→225px). Sole affonda sotto orizzonte dopo le 18:30h. Luna sorge da destra (20:30h) e tramonta a sinistra (6h) con posizione dinamica. Sole e luna visibili insieme durante la transizione.</div></li>
+  </ul>
+</div>
+
+<!-- ===== RISOLTI SESSIONE 12 ===== -->
+<div class="section">
+  <div class="section-title">✅ Risolti — sessione 12 (2026-06-19)</div>
+  <ul class="todo-list" style="opacity:0.65">
+    <li><span>✓</span> <div><strong>Procione e drago non si rimpiccioliscono nel giardino</strong> — mancavano le funzioni <code>raccoonEnterGarden()</code>, <code>raccoonExitGarden()</code>, <code>dragonEnterGarden()</code>, <code>dragonExitGarden()</code> in procione.js e dragon.js. Aggiunto scale(0.45) + walk nel garden. Chiamate aggiunte in garden.js accanto agli altri animali.</div></li>
+    <li><span>✓</span> <div><strong>Admin visibilità shop</strong> — nuovo sistema: l'admin può attivare/disattivare ogni oggetto dello shop. Salvato in app_config (key: shop_disabled_items). Gli utenti non vedono gli oggetti disabilitati. Chi ha già un compagno attivo e viene disabilitato: viene disattivato da localStorage e nascosto visivamente al prossimo caricamento (con cache sessionStorage per evitare il flash).</div></li>
+    <li><span>✓</span> <div><strong>Shop non filtrava items disabilitati</strong> — <code>mainItems</code> non aveva il filtro <code>!_shopDisabledItems.includes(i.id)</code>. Il filtro era solo su companionItems/houseItems ecc. che però non vengono usati per renderizzare le card.</div></li>
+    <li><span>✓</span> <div><strong>CORS credentials blocca _loadShopDisabled</strong> — <code>fetch(api, { credentials:'include' })</code> richiede <code>Access-Control-Allow-Credentials: true</code> dal server Render, che non lo manda. La fetch falliva silenziosamente → lista disabled sempre vuota. Rimosso <code>credentials:'include'</code>.</div></li>
+    <li><span>✓</span> <div><strong>Stats minuti non aggiornati dopo sessione</strong> — race condition: <code>loadPage()</code> in stats.html faceva il proprio ping a Render (online=true), poi chiamava <code>loadStatsOverview()</code> → <code>apiGet()</code> che controlla <code>backendOk</code>. Ma <code>backendOk</code> viene settato da <code>checkBackend()</code> in api.js che gira in parallelo e potrebbe non aver ancora finito → <code>apiGet</code> restituiva null → stats vuote. Fix: <code>backendOk = true</code> dopo il ping online confermato.</div></li>
+    <li><span>✓</span> <div><strong>saveSession perde sessioni su Render cold start</strong> — <code>saveSession</code> salvava sul backend solo se <code>backendOk === true</code>. Se Render era in cold start al caricamento della pagina, <code>backendOk</code> restava false e le sessioni andavano solo in localStorage. Stats page mostra dati Render → sessione invisibile. Fix: <code>saveSession</code> ora manda sempre la richiesta al backend (fire-and-forget), indipendentemente da <code>backendOk</code>.</div></li>
+  </ul>
+</div>
+
+<!-- ===== DA FARE ===== -->
+<div class="section">
+  <div class="section-title">🔴 Da fare — prossima sessione</div>
+  <ul class="todo-list">
+    <li><span>1.</span> <div><strong>Push + Manual Deploy Render</strong> — fix sessione 12 in locale. Push su GitHub → Netlify aggiornato. Render: Manual Deploy non necessario (app.py non toccato).</div></li>
+    <li><span>2.</span> <div><strong>Card argomenti con Notebook + AI 🧠</strong> — nuova sezione in add-task.html o pagina dedicata. Ogni materia ha una card con: titolo materia, note personali (notebook), pulsante "Chiedi all'AI" per domande contestuali. L'AI risponde in base alla materia selezionata (es. spiegazioni, esempi, quiz). Da progettare UI e integrazione API (Claude o GPT).</div></li>
+  </ul>
+</div>
+
+<!-- VECCHIO DA FARE — SUPERATO
+<!-- -->
+<div class="section">
+  <div class="section-title">🔴 Da fare — prossima sessione</div>
+  <ul class="todo-list">
+    <li><span>1.</span> <div><strong>Push + Manual Deploy Render</strong> — tutti i fix sessione 11 sono in locale. Push su GitHub → Netlify si aggiorna automatico. Render: Manual Deploy non necessario (app.py non toccato in s11).</div></li>
+    <li><span>2.</span> <div><strong>Drago 🐉 compagno</strong> — design approvato (demo in images/animals/drago_demo.svg — viola/teal, alette membranose, cornini, fiammella). Da creare dragon.js con animazione volo sul timer. Da aggiungere initDragon() in index.html e nelle altre pagine che caricano i compagni.</div></li>
+  </ul>
+</div>
+
+--> 
+<!-- ===== ARCHITETTURA ===== -->
+<div class="section">
+  <div class="section-title">📐 Note architettura</div>
+  <div class="bug-card minore">
+    <div class="bug-title" style="margin-bottom:8px">Deploy flow (importante)</div>
+    <p class="bug-desc">
+      • <strong>Frontend:</strong> Netlify Drop manuale → caricare la cartella <code>/Users/samutave/Desktop/StudyFlow/StudyFlow/</code> (cartella INTERNA, non quella root)<br>
+      • <strong>Backend:</strong> ogni modifica a <code>app.py</code> → <code>cp StudyFlow/app.py app.py</code> → push → Manual Deploy su Render<br>
+      • <strong>File doppi:</strong> il repo ha <code>app.py</code> (root) e <code>StudyFlow/app.py</code>. Render usa <code>StudyFlow/</code>. Stesso per tutti i file JS/CSS/HTML.<br>
+      • <strong>SF_API_BASE:</strong> sempre hardcoded inline in ogni HTML: <code>&lt;script&gt;window.SF_API_BASE = 'https://studyflow-backend-5zy6.onrender.com/api';&lt;/script&gt;</code>
+    </p>
+  </div>
+  <div class="bug-card minore">
+    <div class="bug-title" style="margin-bottom:8px">Meccanismo sync admin → utente</div>
+    <p class="bug-desc">
+      1. Admin salva dato → backend scrive <code>sf_admin_flag='dirty'</code> nella user_data dell'utente<br>
+      2. Utente apre qualsiasi pagina → <code>loadFromServer()</code> legge il flag → <code>isFirstLoad=true</code> → ricarica TUTTO dal server<br>
+      3. Il flag viene cancellato dopo la lettura (si attiva una sola volta)<br>
+      4. Per sf_coins: se <code>server._adminTs ≠ local._adminTs</code> → server.shop è autoritativo (no merge con local)
+    </p>
+  </div>
+</div>
+
+<p style="color:#475569;font-size:0.72rem;text-align:center;margin-top:40px">
+  Generato automaticamente — Sessione 10 · 2026-06-19 · Claude Sonnet 4.6
+</p>
+
+</body>
+</html>

@@ -3,7 +3,7 @@
    States: sleeping | sitting | walking | happy
    ===================================================== */
 
-const LION_W      = 80;
+const LION_W      = 92;
 const LION_BOTTOM = 24;
 const LION_RIGHT  = 546;
 
@@ -18,101 +18,67 @@ let _lionInGarden  = false;
 
 const LION_SVG = `
 <div class="lion-dir-wrap">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="${LION_W}" height="${Math.round(LION_W*1.2)}" aria-label="Leone">
-
-    <!-- Coda con ciuffo -->
-    <path class="lion-tail" d="M68,80 C82,70 88,52 83,36"
-      fill="none" stroke="#D4851D" stroke-width="6.5" stroke-linecap="round"/>
-    <ellipse cx="82" cy="30" rx="9" ry="12" fill="#C47020" transform="rotate(22 82 30)"/>
-    <ellipse cx="82" cy="30" rx="5.5" ry="7.5" fill="#D4851D" transform="rotate(22 82 30)"/>
-
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 158" width="${LION_W}" height="${Math.round(LION_W*1.215)}" aria-label="Leone">
+    <ellipse cx="62" cy="154" rx="28" ry="5" fill="rgba(0,0,0,0.12)"/>
+    <!-- Coda -->
+    <path class="lion-tail" d="M88,98 C106,82 112,60 108,42 C106,34 98,34 98,46 C98,58 94,76 88,96Z" fill="#F5B82E" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="108" cy="38" r="12" fill="#C07818" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="108" cy="38" r="7" fill="#D99020"/>
     <!-- Corpo -->
-    <ellipse cx="50" cy="87" rx="27" ry="22" fill="#F5B842"/>
-
-    <!-- Pancia chiara -->
-    <ellipse cx="50" cy="92" rx="18" ry="13" fill="#FAD888" opacity="0.55"/>
-
+    <circle cx="60" cy="108" r="36" fill="#F5B82E" stroke="#1a0a2e" stroke-width="3.5"/>
+    <ellipse cx="60" cy="113" rx="21" ry="22" fill="#FDEAA0" stroke="#1a0a2e" stroke-width="2"/>
     <!-- Zampa sinistra -->
     <g class="lion-paw-l">
-      <ellipse cx="37" cy="108" rx="12" ry="7.5" fill="#E8A832"/>
-      <line x1="32" y1="108" x2="32" y2="113" stroke="#C07828" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="37" y1="110" x2="37" y2="115" stroke="#C07828" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="42" y1="108" x2="42" y2="113" stroke="#C07828" stroke-width="1.8" stroke-linecap="round"/>
+      <ellipse cx="42" cy="137" rx="14" ry="8" fill="#E8A020" stroke="#1a0a2e" stroke-width="3"/>
+      <line x1="33" y1="141" x2="30" y2="147" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="42" y1="143" x2="42" y2="149" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="51" y1="141" x2="54" y2="147" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
     </g>
-
     <!-- Zampa destra -->
     <g class="lion-paw-r">
-      <ellipse cx="63" cy="108" rx="12" ry="7.5" fill="#E8A832"/>
-      <line x1="58" y1="108" x2="58" y2="113" stroke="#C07828" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="63" y1="110" x2="63" y2="115" stroke="#C07828" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="68" y1="108" x2="68" y2="113" stroke="#C07828" stroke-width="1.8" stroke-linecap="round"/>
+      <ellipse cx="78" cy="137" rx="14" ry="8" fill="#E8A020" stroke="#1a0a2e" stroke-width="3"/>
+      <line x1="69" y1="141" x2="66" y2="147" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="78" y1="143" x2="78" y2="149" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="87" y1="141" x2="90" y2="147" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
     </g>
-
-    <!-- CRINIERA (dietro testa) -->
-    <circle cx="50" cy="46" r="31" fill="#C47020"/>
-    <circle cx="50" cy="46" r="28" fill="#D4851D"/>
-
-    <!-- Orecchie (davanti criniera, dietro testa) -->
-    <circle cx="28" cy="22" r="10" fill="#F5B842"/>
-    <circle cx="28" cy="22" r="6.5" fill="#FFCCB0"/>
-    <circle cx="72" cy="22" r="10" fill="#F5B842"/>
-    <circle cx="72" cy="22" r="6.5" fill="#FFCCB0"/>
-
-    <!-- TESTA -->
-    <circle cx="50" cy="46" r="23" fill="#F5B842"/>
-
-    <!-- Museruolo -->
-    <ellipse cx="50" cy="56" rx="15" ry="11" fill="#FAD888"/>
-
+    <!-- Criniera -->
+    <circle cx="60" cy="66" r="40" fill="#C07818" stroke="#1a0a2e" stroke-width="3.5"/>
+    <circle cx="60" cy="64" r="32" fill="#D99020" opacity="0.5"/>
+    <!-- Orecchie -->
+    <circle cx="36" cy="34" r="14" fill="#C07818" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="36" cy="34" r="8" fill="#F5B82E"/>
+    <circle cx="84" cy="34" r="14" fill="#C07818" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="84" cy="34" r="8" fill="#F5B82E"/>
+    <!-- Testa -->
+    <circle cx="60" cy="62" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="3"/>
     <!-- Occhi aperti -->
     <g class="lion-eye-open">
-      <circle cx="39" cy="41" r="6.5" fill="#1A0E00"/>
-      <circle cx="39" cy="41" r="5"   fill="#C47B20"/>
-      <circle cx="39" cy="41.5" r="2.8" fill="#080300"/>
-      <circle cx="40.5" cy="39.4" r="1.5" fill="white"/>
-      <circle cx="37.5" cy="43"   r="0.7" fill="rgba(255,255,255,0.5)"/>
-
-      <circle cx="61" cy="41" r="6.5" fill="#1A0E00"/>
-      <circle cx="61" cy="41" r="5"   fill="#C47B20"/>
-      <circle cx="61" cy="41.5" r="2.8" fill="#080300"/>
-      <circle cx="62.5" cy="39.4" r="1.5" fill="white"/>
-      <circle cx="59.5" cy="43"   r="0.7" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="48" cy="58" r="11" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+      <circle cx="48" cy="59" r="7" fill="#5A9A18"/><circle cx="48" cy="59" r="4.2" fill="#1a0a2e"/><circle cx="51" cy="55.5" r="2.5" fill="white"/>
+      <circle cx="72" cy="58" r="11" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+      <circle cx="72" cy="59" r="7" fill="#5A9A18"/><circle cx="72" cy="59" r="4.2" fill="#1a0a2e"/><circle cx="75" cy="55.5" r="2.5" fill="white"/>
     </g>
-
-    <!-- Occhi chiusi (dormendo) -->
+    <!-- Occhi chiusi -->
     <g class="lion-eye-closed" style="display:none">
-      <path d="M33,41 Q39,35 45,41" fill="none" stroke="#3A2800" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M55,41 Q61,35 67,41" fill="none" stroke="#3A2800" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M37,59 Q48,48 59,59" fill="none" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M61,59 Q72,48 83,59" fill="none" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round"/>
     </g>
-
-    <!-- Naso -->
-    <path d="M46,60 L54,60 L50,65Z" fill="#1A0A00"/>
-    <ellipse cx="48" cy="59" rx="1.8" ry="1.2" fill="rgba(255,255,255,0.4)"/>
-
-    <!-- Bocca -->
-    <path d="M44,65 Q50,71 56,65" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="1.5" stroke-linecap="round"/>
-
-    <!-- Baffi -->
-    <line x1="27" y1="57" x2="43" y2="58" stroke="rgba(0,0,0,0.22)" stroke-width="1.2" stroke-linecap="round"/>
-    <line x1="27" y1="61" x2="43" y2="60" stroke="rgba(0,0,0,0.22)" stroke-width="1.2" stroke-linecap="round"/>
-    <line x1="57" y1="58" x2="73" y2="57" stroke="rgba(0,0,0,0.22)" stroke-width="1.2" stroke-linecap="round"/>
-    <line x1="57" y1="60" x2="73" y2="61" stroke="rgba(0,0,0,0.22)" stroke-width="1.2" stroke-linecap="round"/>
-
-    <!-- Guance -->
-    <circle cx="31" cy="53" r="5.5" fill="#FF9AB3" opacity="0.36"/>
-    <circle cx="69" cy="53" r="5.5" fill="#FF9AB3" opacity="0.36"/>
-
-    <!-- ZZZ (dormendo) -->
+    <ellipse cx="28" cy="66" rx="8" ry="6" fill="#F87060" opacity="0.28"/>
+    <ellipse cx="92" cy="66" rx="8" ry="6" fill="#F87060" opacity="0.28"/>
+    <ellipse cx="60" cy="72" rx="6" ry="4.5" fill="#2A1A08"/>
+    <line x1="60" y1="76" x2="60" y2="80" stroke="#2A1A08" stroke-width="2.2"/>
+    <path d="M52,80 Q60,88 68,80" fill="none" stroke="#2A1A08" stroke-width="2.8" stroke-linecap="round"/>
+    <path d="M22,102 Q10,112 14,124 Q24,126 26,116 Q28,108 24,102Z" fill="#E8A020" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M98,102 Q110,112 106,124 Q96,126 94,116 Q92,108 96,102Z" fill="#E8A020" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <!-- ZZZ -->
     <g class="lion-zzz" style="display:none">
-      <text x="64" y="22" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="9">z</text>
-      <text x="70" y="14" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="11">z</text>
+      <text x="90" y="22" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="13">z</text>
+      <text x="102" y="8" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="17">z</text>
     </g>
-
-    <!-- Cuore (felice) -->
+    <!-- Cuore -->
     <g class="lion-heart" style="display:none">
-      <path d="M50,14 C50,14 42,7 37,12 C34,16 35,22 39,25 L50,34 L61,25 C65,22 66,16 63,12 C58,7 50,14 50,14Z" fill="#EC4899" opacity="0.9"/>
+      <path d="M60,16 C60,16 50,8 43,14 C39,19 41,26 46,29 L60,40 L74,29 C79,26 81,19 77,14 C70,8 60,16 60,16Z" fill="#EC4899" opacity="0.9"/>
     </g>
-
   </svg>
 </div>`;
 
@@ -125,7 +91,7 @@ function initLion() {
   _lionEl.className = 'lion-companion lion-hidden';
   _lionEl.innerHTML = LION_SVG;
   _lionEl.title     = 'Clicca il leone!';
-  _lionEl.style.cssText = `position:fixed;right:${LION_RIGHT}px;bottom:${LION_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
+  _lionEl.style.cssText = `position:fixed;right:${_companionSlotRight('lion')}px;bottom:${LION_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
   _lionEl.addEventListener('click', _onLionClick);
   (document.querySelector('.app') || document.body).appendChild(_lionEl);
 
@@ -208,7 +174,8 @@ function _onLionClick() {
    ══════════════════════════ */
 function showLion() {
   if (!_lionEl) initLion();
-  _lionEl.classList.remove('lion-hidden');
+  _lionEl.classList.remove('lion-hidden')
+  if (_lionHouseEl) _lionHouseEl.style.right = (_companionSlotRight('lion') - 8) + 'px';;
   _lionGoHome(0);
   setLionState('sitting');
   clearTimeout(_lionSleepTmr);
@@ -251,19 +218,19 @@ function _lionMoveTo(targetLeft, targetBottom, durationMs) {
 }
 
 function _lionGoHome(durationMs) {
-  const homeLeft = window.innerWidth - LION_W - LION_RIGHT;
+  const homeLeft = window.innerWidth - LION_W - _companionSlotRight('lion');
   if (durationMs > 0) {
     _lionMoveTo(homeLeft, LION_BOTTOM, durationMs);
     setTimeout(() => {
       if (!_lionEl) return;
       _lionEl.style.transition = 'none';
       _lionEl.style.left   = 'auto';
-      _lionEl.style.right  = LION_RIGHT + 'px';
+      _lionEl.style.right  = _companionSlotRight('lion') + 'px';
       _lionEl.style.bottom = LION_BOTTOM + 'px';
     }, durationMs + 80);
   } else {
     _lionEl.style.transition = 'none';
-    _lionEl.style.right  = LION_RIGHT + 'px';
+    _lionEl.style.right  = _companionSlotRight('lion') + 'px';
     _lionEl.style.left   = 'auto';
     _lionEl.style.bottom = LION_BOTTOM + 'px';
   }
@@ -309,6 +276,18 @@ function _stopLionWalking() {
 /* ══════════════════════════
    SYNC COL TIMER
    ══════════════════════════ */
+function setLionHappy() {
+  if (!_lionEl || _lionEl.classList.contains('lion-hidden')) return;
+  clearTimeout(_lionSleepTmr);
+  clearTimeout(_lionHappyTmr);
+  _stopLionWalking();
+  setLionState('happy');
+  _startLionWalking();
+  _lionHappyTmr = setTimeout(() => {
+    if (_lionState === 'happy') setLionState('walking');
+  }, 3000);
+}
+
 function syncLionToTimer(running, mode) {
   if (!_lionEl || _lionEl.classList.contains('lion-hidden')) return;
   if (_lionInGarden) return;

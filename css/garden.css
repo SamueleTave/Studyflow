@@ -118,6 +118,7 @@
   overflow: hidden;
   z-index: 1;
   animation: gardenMoonPulse 8s ease-in-out infinite;
+  transition: left 6s ease, top 6s ease;
 }
 [data-theme="night"] .g-moon { display: block; }
 

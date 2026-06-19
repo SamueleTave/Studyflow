@@ -3,7 +3,7 @@
    States: flying | perched | sleeping | happy
    ===================================================== */
 
-const PARROT_W      = 58;
+const PARROT_W      = 92;
 const PARROT_RIGHT  = 32;
 const PARROT_TOP    = 90;   // posizione di riposo (top dal bordo)
 
@@ -12,75 +12,71 @@ let _parrotHouseEl    = null;
 let _parrotState      = 'perched';
 let _parrotFlyIv      = null;
 let _parrotPerchedTmr = null;
+let _parrotTimerRunning = false;
 let _parrotInGarden   = false;
 
 const PARROT_SVG = `
 <div class="parrot-dir-wrap">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 112" width="${PARROT_W}" height="${Math.round(PARROT_W*1.12)}" aria-label="Pappagallo">
-
-  <!-- Coda (dietro corpo) -->
-  <path d="M42,83 Q35,97 39,105 Q43,109 45,94" fill="#1565C0"/>
-  <path d="M50,85 Q49,101 52,106 Q55,108 53,91" fill="#1976D2"/>
-  <path d="M58,83 Q65,97 61,105 Q57,109 55,94" fill="#1565C0"/>
-
-  <!-- Ali aperte (solo in volo) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 150" width="${PARROT_W}" height="${Math.round(PARROT_W*1.15)}" aria-label="Pappagallo">
+  <ellipse cx="65" cy="146" rx="26" ry="5" fill="rgba(0,0,0,0.12)"/>
+  <!-- Coda piume -->
+  <path d="M52,120 Q44,136 47,142 Q52,144 55,132 Q57,124 54,120Z" fill="#1565C0" stroke="#1a0a2e" stroke-width="2.2"/>
+  <path d="M65,124 Q63,140 66,144 Q70,144 69,130 Q68,122 65,124Z" fill="#1976D2" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M78,120 Q86,136 83,142 Q78,144 75,132 Q73,124 76,120Z" fill="#1565C0" stroke="#1a0a2e" stroke-width="2.2"/>
+  <!-- Ali (solo in volo) -->
   <g class="parrot-wings" style="display:none">
     <g class="parrot-wing-l">
-      <path d="M30,62 C20,60 6,56 0,50 C-2,44 4,38 14,43 C21,47 28,58 30,62Z" fill="#27AE60"/>
-      <path d="M30,62 C22,60 12,57 6,53 C4,49 8,45 16,49 C22,53 28,59 30,62Z" fill="#2ECC71" opacity="0.7"/>
+      <path d="M34,86 C18,80 4,72 -2,62 C-4,54 4,46 16,52 C26,57 32,76 34,86Z" fill="#27AE60" stroke="#1a0a2e" stroke-width="2.5"/>
+      <path d="M34,86 C20,81 8,74 2,66 C0,60 6,54 16,60 C24,65 30,78 34,86Z" fill="#2ECC71" opacity="0.6"/>
     </g>
     <g class="parrot-wing-r">
-      <path d="M70,62 C80,60 94,56 100,50 C102,44 96,38 86,43 C79,47 72,58 70,62Z" fill="#27AE60"/>
-      <path d="M70,62 C78,60 88,57 94,53 C96,49 92,45 84,49 C78,53 72,59 70,62Z" fill="#2ECC71" opacity="0.7"/>
+      <path d="M96,86 C112,80 126,72 132,62 C134,54 126,46 114,52 C104,57 98,76 96,86Z" fill="#27AE60" stroke="#1a0a2e" stroke-width="2.5"/>
+      <path d="M96,86 C110,81 122,74 128,66 C130,60 124,54 114,60 C106,65 100,78 96,86Z" fill="#2ECC71" opacity="0.6"/>
     </g>
   </g>
-
-  <!-- Corpo -->
-  <ellipse cx="50" cy="68" rx="20" ry="23" fill="#2ECC71"/>
-  <!-- Pancia più chiara -->
-  <ellipse cx="50" cy="73" rx="12" ry="14" fill="#A9DFBF" opacity="0.7"/>
-
+  <!-- Corpo tondo -->
+  <circle cx="65" cy="100" r="34" fill="#27AE60" stroke="#1a0a2e" stroke-width="3.5"/>
+  <ellipse cx="65" cy="106" rx="20" ry="20" fill="#A9DFBF" stroke="#1a0a2e" stroke-width="2"/>
+  <!-- Braccia piuma -->
   <!-- Zampe (nascoste in volo) -->
   <g class="parrot-feet">
-    <line x1="44" y1="89" x2="41" y2="99" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
-    <line x1="41" y1="99" x2="34" y2="102" stroke="#D4AC0D" stroke-width="1.8" stroke-linecap="round"/>
-    <line x1="41" y1="99" x2="41" y2="104" stroke="#D4AC0D" stroke-width="1.8" stroke-linecap="round"/>
-    <line x1="41" y1="99" x2="47" y2="103" stroke="#D4AC0D" stroke-width="1.8" stroke-linecap="round"/>
-    <line x1="56" y1="89" x2="59" y2="99" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
-    <line x1="59" y1="99" x2="53" y2="103" stroke="#D4AC0D" stroke-width="1.8" stroke-linecap="round"/>
-    <line x1="59" y1="99" x2="59" y2="104" stroke="#D4AC0D" stroke-width="1.8" stroke-linecap="round"/>
-    <line x1="59" y1="99" x2="65" y2="102" stroke="#D4AC0D" stroke-width="1.8" stroke-linecap="round"/>
+    <line x1="52" y1="130" x2="48" y2="142" stroke="#D4AC0D" stroke-width="2.8" stroke-linecap="round"/>
+    <line x1="48" y1="142" x2="40" y2="145" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="48" y1="142" x2="48" y2="148" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="48" y1="142" x2="56" y2="146" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="78" y1="130" x2="82" y2="142" stroke="#D4AC0D" stroke-width="2.8" stroke-linecap="round"/>
+    <line x1="82" y1="142" x2="74" y2="146" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="82" y1="142" x2="82" y2="148" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="82" y1="142" x2="90" y2="145" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
   </g>
-
-  <!-- Testa -->
-  <circle cx="50" cy="35" r="20" fill="#E74C3C"/>
-
+  <!-- Ciuffo testa -->
+  <path d="M56,26 Q54,14 58,8 Q62,4 60,14 Q59,20 58,26Z" fill="#E74C3C" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M65,24 Q65,10 68,4 Q72,0 70,12 Q68,18 67,24Z" fill="#E74C3C" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M74,26 Q76,14 72,8 Q68,4 70,14 Q71,20 72,26Z" fill="#E74C3C" stroke="#1a0a2e" stroke-width="2"/>
+  <!-- Testa rotonda rossa -->
+  <circle cx="65" cy="54" r="30" fill="#E74C3C" stroke="#1a0a2e" stroke-width="3.5"/>
   <!-- Maschera gialla -->
-  <ellipse cx="55" cy="41" rx="11" ry="9" fill="#F39C12"/>
-
-  <!-- Becco -->
-  <path d="M60,37 Q70,42 63,49 Q57,52 55,44 Q57,38 60,37Z" fill="#C0392B"/>
-  <path d="M60,37 Q68,41 63,47 Q58,49 56,43Z" fill="#E67E22"/>
-
+  <ellipse cx="72" cy="62" rx="16" ry="13" fill="#F39C12" stroke="#1a0a2e" stroke-width="2"/>
+  <!-- Becco curvo -->
+  <path d="M76,58 Q90,64 82,74 Q74,78 70,68 Q72,58 76,58Z" fill="#C0392B" stroke="#1a0a2e" stroke-width="2.2"/>
+  <path d="M76,58 Q88,63 82,71 Q76,74 72,66Z" fill="#E67E22"/>
   <!-- Occhio aperto -->
   <g class="parrot-eye-open">
-    <circle cx="56" cy="29" r="6.5" fill="white"/>
-    <circle cx="57" cy="29" r="4.5" fill="#1A1A2E"/>
-    <circle cx="58.8" cy="27.5" r="1.6" fill="white"/>
+    <circle cx="60" cy="44" r="10" fill="white" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="61" cy="44" r="6.5" fill="#1a0a2e"/><circle cx="63" cy="41" r="2.4" fill="white"/>
   </g>
   <!-- Occhio chiuso -->
   <g class="parrot-eye-closed" style="display:none">
-    <path d="M51,29 Q56,24 62,29" fill="none" stroke="#1A1A2E" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M50,44 Q60,35 70,44" fill="none" stroke="#1a0a2e" stroke-width="3" stroke-linecap="round"/>
   </g>
-
   <!-- ZZZ -->
   <g class="parrot-zzz" style="display:none">
-    <text x="68" y="22" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="9">z</text>
-    <text x="74" y="14" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="11">z</text>
+    <text x="82" y="22" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="12">z</text>
+    <text x="92" y="10" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="16">z</text>
   </g>
   <!-- Cuore -->
   <g class="parrot-heart" style="display:none">
-    <path d="M50,15 C50,15 42,8 37,13 C34,17 35,23 39,26 L50,35 L61,26 C65,23 66,17 63,13 C58,8 50,15 50,15Z" fill="#EC4899" opacity="0.9"/>
+    <path d="M65,22 C65,22 55,14 48,20 C44,25 46,32 51,35 L65,46 L79,35 C84,32 86,25 82,20 C75,14 65,22 65,22Z" fill="#EC4899" opacity="0.9"/>
   </g>
 </svg>
 </div>`;
@@ -168,7 +164,7 @@ function showParrot() {
   _parrotPerchedTmr = setTimeout(() => {
     if (_parrotState === 'perched') {
       setParrotState('sleeping');
-      _parrotPerchedTmr = setTimeout(() => _startParrot(), 8000 + Math.random() * 4000);
+      _parrotPerchedTmr = setTimeout(() => { if (_parrotTimerRunning) _startParrot(); }, 8000 + Math.random() * 4000);
     }
   }, 6000);
 }
@@ -351,7 +347,7 @@ function parrotExitGarden() {
     setTimeout(() => {
       if (_parrotInGarden) return;
       setParrotState('perched');
-      _parrotPerchedTmr = setTimeout(() => _startParrot(), 3000 + Math.random() * 2000);
+      _parrotPerchedTmr = setTimeout(() => { if (_parrotTimerRunning) _startParrot(); }, 3000 + Math.random() * 2000);
     }, 1200);
   }, 150);
 }
@@ -362,7 +358,8 @@ function parrotExitGarden() {
 function syncParrotToTimer(running, mode) {
   if (!_parrotEl || _parrotEl.classList.contains('parrot-hidden')) return;
   if (_parrotInGarden) return;
-  if (running && (!mode || mode === 'work')) {
+  _parrotTimerRunning = running && (!mode || mode === 'work');
+  if (_parrotTimerRunning) {
     _startParrot();
   } else {
     _stopParrot();
@@ -374,7 +371,7 @@ function syncParrotToTimer(running, mode) {
         if (_parrotInGarden) return;
         setParrotState('sleeping');
         _parrotPerchedTmr = setTimeout(() => {
-          if (!_parrotInGarden) _startParrot();
+          if (!_parrotInGarden && _parrotTimerRunning) _startParrot();
         }, 7000 + Math.random() * 4000);
       }, 3000 + Math.random() * 2000);
     }, 1100);
@@ -387,7 +384,7 @@ function _onParrotClick() {
   setTimeout(() => {
     if (_parrotState === 'happy') setParrotState('perched');
     _parrotPerchedTmr = setTimeout(() => {
-      if (!_parrotInGarden) _startParrot();
+      if (!_parrotInGarden && _parrotTimerRunning) _startParrot();
     }, 2000);
   }, 2200);
 }

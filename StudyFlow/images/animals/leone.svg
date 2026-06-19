@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 158" width="80" height="97" aria-label="Leone">
+    <ellipse cx="62" cy="154" rx="28" ry="5" fill="rgba(0,0,0,0.12)"/>
+    <!-- Coda -->
+    <path class="lion-tail" d="M88,98 C106,82 112,60 108,42 C106,34 98,34 98,46 C98,58 94,76 88,96Z" fill="#F5B82E" stroke="#1a0a2e" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="108" cy="38" r="12" fill="#C07818" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="108" cy="38" r="7" fill="#D99020"/>
+    <!-- Corpo -->
+    <circle cx="60" cy="108" r="36" fill="#F5B82E" stroke="#1a0a2e" stroke-width="3.5"/>
+    <ellipse cx="60" cy="113" rx="21" ry="22" fill="#FDEAA0" stroke="#1a0a2e" stroke-width="2"/>
+    <!-- Zampa sinistra -->
+    <g class="lion-paw-l">
+      <ellipse cx="42" cy="137" rx="14" ry="8" fill="#E8A020" stroke="#1a0a2e" stroke-width="3"/>
+      <line x1="33" y1="141" x2="30" y2="147" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="42" y1="143" x2="42" y2="149" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="51" y1="141" x2="54" y2="147" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+    <!-- Zampa destra -->
+    <g class="lion-paw-r">
+      <ellipse cx="78" cy="137" rx="14" ry="8" fill="#E8A020" stroke="#1a0a2e" stroke-width="3"/>
+      <line x1="69" y1="141" x2="66" y2="147" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="78" y1="143" x2="78" y2="149" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="87" y1="141" x2="90" y2="147" stroke="#1a0a2e" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+    <!-- Criniera -->
+    <circle cx="60" cy="66" r="40" fill="#C07818" stroke="#1a0a2e" stroke-width="3.5"/>
+    <circle cx="60" cy="64" r="32" fill="#D99020" opacity="0.5"/>
+    <!-- Orecchie -->
+    <circle cx="36" cy="34" r="14" fill="#C07818" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="36" cy="34" r="8" fill="#F5B82E"/>
+    <circle cx="84" cy="34" r="14" fill="#C07818" stroke="#1a0a2e" stroke-width="3"/>
+    <circle cx="84" cy="34" r="8" fill="#F5B82E"/>
+    <!-- Testa -->
+    <circle cx="60" cy="62" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="3"/>
+    <!-- Occhi aperti -->
+    <g class="lion-eye-open">
+      <circle cx="48" cy="58" r="11" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+      <circle cx="48" cy="59" r="7" fill="#5A9A18"/><circle cx="48" cy="59" r="4.2" fill="#1a0a2e"/><circle cx="51" cy="55.5" r="2.5" fill="white"/>
+      <circle cx="72" cy="58" r="11" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+      <circle cx="72" cy="59" r="7" fill="#5A9A18"/><circle cx="72" cy="59" r="4.2" fill="#1a0a2e"/><circle cx="75" cy="55.5" r="2.5" fill="white"/>
+    </g>
+    <!-- Occhi chiusi -->
+    <g class="lion-eye-closed" style="display:none">
+      <path d="M37,59 Q48,48 59,59" fill="none" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M61,59 Q72,48 83,59" fill="none" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+    <ellipse cx="28" cy="66" rx="8" ry="6" fill="#F87060" opacity="0.28"/>
+    <ellipse cx="92" cy="66" rx="8" ry="6" fill="#F87060" opacity="0.28"/>
+    <ellipse cx="60" cy="72" rx="6" ry="4.5" fill="#2A1A08"/>
+    <line x1="60" y1="76" x2="60" y2="80" stroke="#2A1A08" stroke-width="2.2"/>
+    <path d="M52,80 Q60,88 68,80" fill="none" stroke="#2A1A08" stroke-width="2.8" stroke-linecap="round"/>
+    <path d="M22,102 Q10,112 14,124 Q24,126 26,116 Q28,108 24,102Z" fill="#E8A020" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M98,102 Q110,112 106,124 Q96,126 94,116 Q92,108 96,102Z" fill="#E8A020" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+    <!-- ZZZ -->
+    <g class="lion-zzz" style="display:none">
+      <text x="90" y="22" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="13">z</text>
+      <text x="102" y="8" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="17">z</text>
+    </g>
+    <!-- Cuore -->
+    <g class="lion-heart" style="display:none">
+      <path d="M60,16 C60,16 50,8 43,14 C39,19 41,26 46,29 L60,40 L74,29 C79,26 81,19 77,14 C70,8 60,16 60,16Z" fill="#EC4899" opacity="0.9"/>
+    </g>
+  </svg>

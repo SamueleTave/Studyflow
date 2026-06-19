@@ -91,7 +91,9 @@ function toggleGarden() {
     if (typeof parrotEnterGarden === 'function') parrotEnterGarden();
     if (typeof foxEnterGarden    === 'function') foxEnterGarden();
     if (typeof owlEnterGarden    === 'function') owlEnterGarden();
-    if (typeof lionEnterGarden   === 'function') lionEnterGarden();
+    if (typeof lionEnterGarden    === 'function') lionEnterGarden();
+    if (typeof raccoonEnterGarden === 'function') raccoonEnterGarden();
+    if (typeof dragonEnterGarden  === 'function') dragonEnterGarden();
   } else {
     destroyGardenSky();
     _stopNightStars();
@@ -101,7 +103,9 @@ function toggleGarden() {
     if (typeof parrotExitGarden === 'function') parrotExitGarden();
     if (typeof foxExitGarden    === 'function') foxExitGarden();
     if (typeof owlExitGarden    === 'function') owlExitGarden();
-    if (typeof lionExitGarden   === 'function') lionExitGarden();
+    if (typeof lionExitGarden    === 'function') lionExitGarden();
+    if (typeof raccoonExitGarden  === 'function') raccoonExitGarden();
+    if (typeof dragonExitGarden   === 'function') dragonExitGarden();
   }
 }
 
@@ -1056,19 +1060,20 @@ function _gStarBalloon() {
    + Tema cielo per ruolo
 ══════════════════════════════════════════════ */
 
-/* Palettes cielo per fascia oraria */
+/* Palettes cielo per fascia oraria — mid = terzo stop gradiente opzionale */
 const _SKY_TIMES = [
-  { h:  0, top: '#080E1A', bot: '#162540',  sun: null,      night: true,  label: 'notte',    sunSize: 50, sunCore: null,      sunMid: null,      sunOuter: null,     glow1: null,                   glow2: null },
-  { h:  5, top: '#1A1040', bot: '#3D1B6E',  sun: null,      night: true,  label: 'alba0',    sunSize: 50, sunCore: null,      sunMid: null,      sunOuter: null,     glow1: null,                   glow2: null },
-  { h:  6, top: '#C2523C', bot: '#FF9A3C',  sun: '#FFB74D', night: false, label: 'alba',     sunSize: 58, sunCore: '#FFECB3', sunMid: '#FFB74D', sunOuter: '#E64A1988', glow1: 'rgba(255,152,0,0.20)',  glow2: 'rgba(255,112,67,0.35)' },
-  { h:  7, top: '#FF8A65', bot: '#FFCC80',  sun: '#FFF9C4', night: false, label: 'mattina0', sunSize: 54, sunCore: '#FFFFFF',  sunMid: '#FFF176', sunOuter: '#FFCC0255', glow1: 'rgba(255,235,59,0.18)', glow2: 'rgba(255,200,0,0.30)' },
-  { h:  8, top: '#42A5F5', bot: '#B3E5FC',  sun: '#FFF9C4', night: false, label: 'mattina',  sunSize: 50, sunCore: '#FFFFFF',  sunMid: '#FFFDE7', sunOuter: '#FFF17633', glow1: 'rgba(255,241,118,0.12)', glow2: 'rgba(253,216,53,0.22)' },
-  { h: 12, top: '#1E88E5', bot: '#B3E5FC',  sun: '#FFF176', night: false, label: 'mezzodì',  sunSize: 48, sunCore: '#FFFFFF',  sunMid: '#FFFDE7', sunOuter: '#FDD83533', glow1: 'rgba(255,255,255,0.15)', glow2: 'rgba(253,216,53,0.25)' },
-  { h: 16, top: '#1565C0', bot: '#90CAF9',  sun: '#FDD835', night: false, label: 'pomeri',   sunSize: 52, sunCore: '#FFFFFF',  sunMid: '#FFF176', sunOuter: '#FBC02D55', glow1: 'rgba(251,192,45,0.18)',  glow2: 'rgba(253,216,53,0.30)' },
-  { h: 18, top: '#B83200', bot: '#FF8C42',  sun: '#FF6B00', night: false, label: 'tramonto', sunSize: 68, sunCore: '#FFF3E0',  sunMid: '#FF8A00', sunOuter: '#E64A1966', glow1: 'rgba(255,107,0,0.32)',   glow2: 'rgba(229,74,25,0.50)' },
-  { h: 19, top: '#7B2600', bot: '#E65C00',  sun: '#FF4500', night: false, label: 'crepusc',  sunSize: 62, sunCore: '#FFCCBC',  sunMid: '#FF6D00', sunOuter: '#BF360C77', glow1: 'rgba(255,69,0,0.28)',    glow2: 'rgba(191,54,12,0.45)' },
-  { h: 20, top: '#4527A0', bot: '#7B1FA2',  sun: '#FF5722', night: false, label: 'sera',     sunSize: 52, sunCore: '#FFCCBC',  sunMid: '#FF7043', sunOuter: '#BF360C66', glow1: 'rgba(255,87,34,0.20)',   glow2: 'rgba(149,27,0,0.30)' },
-  { h: 21, top: '#1A237E', bot: '#283593',  sun: null,      night: true,  label: 'notte0',   sunSize: 50, sunCore: null,      sunMid: null,      sunOuter: null,     glow1: null,                   glow2: null },
+  { h:  0, top: '#080E1A', mid: null,      bot: '#162540',  night: true,  label: 'notte',    sunSize: 50, sunCore: null,       sunMid: null,      sunOuter: null,        glow1: null,                   glow2: null },
+  { h:  5, top: '#1A1040', mid: null,      bot: '#3D1B6E',  night: true,  label: 'alba0',    sunSize: 50, sunCore: null,       sunMid: null,      sunOuter: null,        glow1: null,                   glow2: null },
+  { h:  6, top: '#C2523C', mid: null,      bot: '#FF9A3C',  night: false, label: 'alba',     sunSize: 60, sunCore: '#FFECB3',  sunMid: '#FFB74D', sunOuter: '#E64A1988', glow1: 'rgba(255,152,0,0.22)', glow2: 'rgba(255,112,67,0.45)' },
+  { h:  7, top: '#FF8A65', mid: null,      bot: '#FFCC80',  night: false, label: 'mattina0', sunSize: 54, sunCore: '#FFF9C4',  sunMid: '#FFCA28', sunOuter: '#FFCC0255', glow1: 'rgba(255,235,59,0.22)', glow2: 'rgba(255,200,0,0.38)' },
+  { h:  8, top: '#42A5F5', mid: null,      bot: '#B3E5FC',  night: false, label: 'mattina',  sunSize: 50, sunCore: '#FFFDE7',  sunMid: '#FFE082', sunOuter: '#FFD60055', glow1: 'rgba(255,224,82,0.18)', glow2: 'rgba(253,216,53,0.32)' },
+  { h: 12, top: '#1E88E5', mid: null,      bot: '#B3E5FC',  night: false, label: 'mezzodì',  sunSize: 48, sunCore: '#FFFDE7',  sunMid: '#FFD600', sunOuter: '#FDD83566', glow1: 'rgba(255,214,0,0.18)',  glow2: 'rgba(253,216,53,0.35)' },
+  { h: 16, top: '#1565C0', mid: null,      bot: '#90CAF9',  night: false, label: 'pomeri',   sunSize: 52, sunCore: '#FFF8E1',  sunMid: '#FFCA28', sunOuter: '#FBC02D66', glow1: 'rgba(251,192,45,0.22)', glow2: 'rgba(253,216,53,0.38)' },
+  { h: 17, top: '#1B5E8F', mid: '#E65100', bot: '#FFA000',  night: false, label: 'dorata',   sunSize: 64, sunCore: '#FFF3E0',  sunMid: '#FF8F00', sunOuter: '#E65100AA', glow1: 'rgba(255,143,0,0.38)', glow2: 'rgba(230,81,0,0.58)' },
+  { h: 18, top: '#6A1B9A', mid: '#E91E63', bot: '#FF7043',  night: false, label: 'tramonto', sunSize: 74, sunCore: '#FFCCBC',  sunMid: '#FF6D00', sunOuter: '#BF360CCC', glow1: 'rgba(255,109,0,0.42)', glow2: 'rgba(191,54,12,0.68)' },
+  { h: 19, top: '#311B92', mid: '#AD1457', bot: '#C62828',  night: false, label: 'crepusc',  sunSize: 68, sunCore: '#FFAB91',  sunMid: '#FF5722', sunOuter: '#BF360CCC', glow1: 'rgba(255,87,34,0.38)', glow2: 'rgba(191,54,12,0.55)' },
+  { h: 20, top: '#0D0620', mid: '#2D1B6E', bot: '#4A148C',  night: true,  label: 'sera',     sunSize: 50, sunCore: null,       sunMid: null,      sunOuter: null,        glow1: null,                   glow2: null },
+  { h: 21, top: '#080E1A', mid: null,      bot: '#162540',  night: true,  label: 'notte0',   sunSize: 50, sunCore: null,       sunMid: null,      sunOuter: null,        glow1: null,                   glow2: null },
 ];
 
 /* Overlay ruolo sul cielo: tint addizionale */
@@ -1091,17 +1096,39 @@ function _getSkyPhase(hour) {
 }
 
 function _getSunPosition(hour, minute) {
-  // Sole visibile dalle 6 alle 21
-  // Arco orizzontale: da sx (6h) a dx (20h), con picco al centro (13h)
-  const totalHours = 14; // 6→20
-  const elapsed = Math.max(0, Math.min(totalHours, (hour + minute/60) - 6));
-  const t = elapsed / totalHours; // 0→1
-  // posizione X: da 5% a 90%
-  const x = 5 + t * 85;
-  // posizione Y: parabola — alta a metà giornata, bassa ai bordi
-  const arc = 1 - (2*t - 1) ** 2; // 0→1→0 (picco a t=0.5)
-  const yPct = 8 + (1 - arc) * 38; // px dal top: 8px a mezzogiorno, 46px alle 6/20
-  return { x, y: yPct };
+  const t = hour + minute / 60;
+  // Sole: alba 6h → affondata sotto l'orizzonte entro le 20h
+  if (t < 6 || t > 20.5) return { x: 50, y: 400 };
+  const elapsed = t - 6;
+  const pct     = elapsed / 14; // 0→1 su 14h (6→20)
+  const x       = 5 + pct * 84;
+  // Arco parabolico ampio: 20px al culmine (13h), 230px all'orizzonte (6h/20h)
+  const arc = 1 - (2 * pct - 1) ** 2;
+  let y = 20 + (1 - arc) * 210;
+  // Affondamento accelerato sotto l'orizzonte dopo le 18:30h
+  if (t > 18.5) {
+    const s = (t - 18.5) / 1.5; // 0→1 in 1.5h
+    y += s * s * 300;
+  }
+  return { x, y };
+}
+
+function _getMoonPosition(hour, minute) {
+  const t  = hour + minute / 60;
+  const mt = t < 6 ? t + 24 : t; // 0-5h → 24-29h per il confronto continuo
+  // Luna: sorge verso le 20:30h, tramonta verso le 6h del mattino
+  if (mt < 20.5 || mt > 30) return { x: 50, y: 400 };
+  const elapsed = mt - 20.5;
+  const pct     = elapsed / 9.5; // 0→1 su 9.5h (20:30→6h)
+  // X: da destra (86%) a sinistra (10%)
+  const x   = 86 - pct * 76;
+  const arc = 1 - (2 * pct - 1) ** 2;
+  let y = 20 + (1 - arc) * 180; // 20px al culmine, 200px ai bordi
+  // Salita da sotto all'inizio
+  if (pct < 0.14) { const r = pct / 0.14; y += (1 - r) * (1 - r) * 260; }
+  // Discesa sotto l'orizzonte alla fine
+  if (pct > 0.86) { const s = (pct - 0.86) / 0.14; y += s * s * 260; }
+  return { x, y };
 }
 
 function updateGardenSky() {
@@ -1115,8 +1142,10 @@ function updateGardenSky() {
   const h = now.getHours(), m = now.getMinutes();
   const phase = _getSkyPhase(h);
 
-  // Cielo
-  sky.style.background = `linear-gradient(180deg, ${phase.top} 0%, ${phase.bot} 100%)`;
+  // Cielo (3 stop se presente mid)
+  sky.style.background = phase.mid
+    ? `linear-gradient(180deg, ${phase.top} 0%, ${phase.mid} 48%, ${phase.bot} 100%)`
+    : `linear-gradient(180deg, ${phase.top} 0%, ${phase.bot} 100%)`;
 
   // Tint ruolo (disattivabile dalle impostazioni)
   let tintEl = sky.querySelector('.g-sky-role-tint');
@@ -1135,38 +1164,46 @@ function updateGardenSky() {
     tintEl.style.background = 'transparent';
   }
 
-  // Sole/Luna
-  if (phase.night) {
-    if (sun)  sun.style.display  = 'none';
-    if (moon) moon.style.display = 'block';
-    if (stars) stars.style.display = 'block';
-    _updateSunHaze(sky, null);
-  } else {
-    if (moon)  moon.style.display  = 'none';
-    if (stars) stars.style.display = 'none';
-    if (sun) {
-      sun.style.display = 'block';
-      const pos  = _getSunPosition(h, m);
-      const size = phase.sunSize || 50;
-      // Offset per centrare il sole sulla posizione calcolata
-      sun.style.left      = `calc(${pos.x}% - ${size/2}px)`;
-      sun.style.top       = pos.y + 'px';
-      sun.style.right     = 'auto';
-      sun.style.width     = size + 'px';
-      sun.style.height    = size + 'px';
+  // Sole e Luna — dinamici, possono coesistere durante la transizione tramonto/notte
+  const SKY_H   = sky.offsetHeight || 314;
+  const sunPos  = _getSunPosition(h, m);
+  const moonPos = _getMoonPosition(h, m);
 
+  if (sun) {
+    const sunVis = sunPos.y < SKY_H && !phase.night;
+    sun.style.display = sunVis ? 'block' : 'none';
+    if (sunVis) {
+      const size = phase.sunSize || 50;
+      sun.style.left   = `calc(${sunPos.x}% - ${size/2}px)`;
+      sun.style.top    = sunPos.y + 'px';
+      sun.style.right  = 'auto';
+      sun.style.width  = size + 'px';
+      sun.style.height = size + 'px';
       if (phase.sunCore) {
         sun.style.background = `radial-gradient(circle, ${phase.sunCore} 0%, ${phase.sunMid} 45%, ${phase.sunOuter || phase.sunMid+'44'} 100%)`;
         sun.style.boxShadow  = `0 0 0 ${Math.round(size*0.22)}px ${phase.glow1 || 'rgba(253,216,53,0.12)'}, 0 0 ${size*1.1}px ${phase.glow2 || 'rgba(253,216,53,0.4)'}`;
-      } else if (phase.sun) {
-        sun.style.background = `radial-gradient(circle, #FFFFFF 0%, ${phase.sun} 45%, ${phase.sun}44 100%)`;
-        sun.style.boxShadow  = `0 0 0 10px ${phase.sun}22, 0 0 40px ${phase.sun}55`;
       }
-
-      // Alone atmosferico al tramonto
-      _updateSunHaze(sky, phase, pos, size);
+      _updateSunHaze(sky, phase, sunPos, size);
+    } else {
+      _updateSunHaze(sky, null);
     }
   }
+
+  if (moon) {
+    const moonVis = moonPos.y < SKY_H;
+    moon.style.display = moonVis ? 'block' : 'none';
+    if (moonVis) {
+      const mSize = 44;
+      moon.style.position = 'absolute';
+      moon.style.left     = `calc(${moonPos.x}% - ${mSize/2}px)`;
+      moon.style.top      = moonPos.y + 'px';
+      moon.style.right    = 'auto';
+      moon.style.width    = mSize + 'px';
+      moon.style.height   = mSize + 'px';
+    }
+  }
+
+  if (stars) stars.style.display = phase.night ? 'block' : 'none';
 }
 
 function _updateSunHaze(sky, phase, pos, size) {
@@ -1191,10 +1228,149 @@ function _updateSunHaze(sky, phase, pos, size) {
 
 function initGardenSky() {
   updateGardenSky();
-  // Aggiorna ogni 30 secondi — il sole scivola fluidamente grazie alle transizioni CSS
   _skyUpdateInterval = setInterval(updateGardenSky, 30000);
+  _fetchGardenWeather();
+  setInterval(_fetchGardenWeather, 30 * 60 * 1000);
 }
 
 function destroyGardenSky() {
   if (_skyUpdateInterval) { clearInterval(_skyUpdateInterval); _skyUpdateInterval = null; }
+}
+
+/* ══════════════════════════════════════
+   METEO REALE — Open-Meteo (no API key)
+═══════════════════════════════════════ */
+const _WEATHER_KEY = 'sf_weather_cache';
+const _WEATHER_TTL = 30 * 60 * 1000;
+
+async function _fetchGardenWeather() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(_WEATHER_KEY) || 'null');
+    if (cached && (Date.now() - cached.ts) < _WEATHER_TTL) {
+      _applyGardenWeather(cached.data); return;
+    }
+  } catch {}
+
+  let lat = 41.9, lon = 12.5; // fallback Roma
+  try {
+    await new Promise(res => navigator.geolocation.getCurrentPosition(
+      p => { lat = p.coords.latitude; lon = p.coords.longitude; res(); },
+      () => res(), { timeout: 3000 }
+    ));
+  } catch {}
+
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(2)}&longitude=${lon.toFixed(2)}&current=weathercode,precipitation,cloudcover&timezone=auto`;
+    const r   = await fetch(url);
+    const d   = await r.json();
+    const data = { code: d.current?.weathercode || 0, precip: d.current?.precipitation || 0, clouds: d.current?.cloudcover || 0 };
+    try { localStorage.setItem(_WEATHER_KEY, JSON.stringify({ ts: Date.now(), data })); } catch {}
+    _applyGardenWeather(data);
+  } catch {}
+}
+
+function _applyGardenWeather(data) {
+  const sky = document.querySelector('.g-sky');
+  if (!sky) return;
+  sky.querySelectorAll('.g-weather-overlay, .g-rain-layer, .g-storm-layer').forEach(el => el.remove());
+  if (window._gStormInterval) { clearInterval(window._gStormInterval); window._gStormInterval = null; }
+
+  const isStorm    = data.code >= 95;
+  const isRaining  = !isStorm && (data.code >= 51 || data.precip > 0.1);
+  const isOvercast = !isStorm && !isRaining && data.clouds > 70;
+
+  if (!document.getElementById('g-rain-style')) {
+    const s = document.createElement('style');
+    s.id = 'g-rain-style';
+    s.textContent =
+      '@keyframes gRainFall{0%{transform:rotate(12deg) translateY(-10%);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:rotate(12deg) translateY(130%);opacity:0}}' +
+      '@keyframes gFlash{0%{opacity:0}8%{opacity:1}18%{opacity:0}26%{opacity:.7}36%{opacity:0}100%{opacity:0}}' +
+      '@keyframes gBoltIn{0%{opacity:0;transform:scaleY(0.4)}15%{opacity:1;transform:scaleY(1)}80%{opacity:1}100%{opacity:0}}';
+    document.head.appendChild(s);
+  }
+
+  if (isStorm) {
+    /* overlay molto scuro */
+    const dark = document.createElement('div');
+    dark.className = 'g-weather-overlay';
+    dark.style.cssText = 'position:absolute;inset:0;background:rgba(20,25,45,0.52);border-radius:inherit;pointer-events:none;z-index:2';
+    sky.appendChild(dark);
+
+    /* pioggia intensa */
+    const rain = document.createElement('div');
+    rain.className = 'g-rain-layer';
+    rain.style.cssText = 'position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none;z-index:3';
+    let drops = '';
+    for (let i = 0; i < 70; i++) {
+      const x   = (Math.random() * 120 - 10).toFixed(1);
+      const dur  = (0.38 + Math.random() * 0.38).toFixed(2);
+      const del  = (Math.random() * 1.5).toFixed(2);
+      const op   = (0.35 + Math.random() * 0.45).toFixed(2);
+      const h    = Math.round(10 + Math.random() * 12);
+      drops += `<div style="position:absolute;left:${x}%;top:-12%;width:1.5px;height:${h}px;background:rgba(190,215,255,${op});border-radius:1px;animation:gRainFall ${dur}s ${del}s linear infinite"></div>`;
+    }
+    rain.innerHTML = drops;
+    sky.appendChild(rain);
+
+    /* layer fulmini */
+    const stormLayer = document.createElement('div');
+    stormLayer.className = 'g-storm-layer';
+    stormLayer.style.cssText = 'position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none;z-index:4';
+    sky.appendChild(stormLayer);
+
+    function _spawnLightning() {
+      if (!stormLayer.isConnected) return;
+      /* flash schermo */
+      const flash = document.createElement('div');
+      flash.style.cssText = 'position:absolute;inset:0;background:rgba(220,230,255,0.55);animation:gFlash 0.7s ease forwards;pointer-events:none';
+      stormLayer.appendChild(flash);
+      setTimeout(() => flash.remove(), 700);
+
+      /* saetta SVG */
+      const x = 15 + Math.random() * 70;
+      const bolt = document.createElement('div');
+      bolt.style.cssText = `position:absolute;left:${x.toFixed(1)}%;top:0;width:18px;animation:gBoltIn 0.65s ease forwards;transform-origin:top center`;
+      bolt.innerHTML = `<svg viewBox="0 0 18 48" width="18" height="48" fill="none">
+        <polygon points="10,0 3,26 9,26 6,48 16,18 10,18" fill="#FFE44D" stroke="#FFF9C4" stroke-width="0.8" stroke-linejoin="round"/>
+      </svg>`;
+      stormLayer.appendChild(bolt);
+      setTimeout(() => bolt.remove(), 650);
+    }
+
+    /* primo fulmine subito, poi a intervalli casuali 4-12s */
+    setTimeout(_spawnLightning, 600 + Math.random() * 1200);
+    window._gStormInterval = setInterval(() => {
+      if (!stormLayer.isConnected) { clearInterval(window._gStormInterval); return; }
+      _spawnLightning();
+      /* doppio lampo occasionale */
+      if (Math.random() < 0.3) setTimeout(_spawnLightning, 300);
+    }, 4000 + Math.random() * 8000);
+
+  } else if (isRaining) {
+    const overlay = document.createElement('div');
+    overlay.className = 'g-weather-overlay';
+    overlay.style.cssText = 'position:absolute;inset:0;background:rgba(55,75,105,0.28);border-radius:inherit;pointer-events:none;z-index:2';
+    sky.appendChild(overlay);
+
+    const rain = document.createElement('div');
+    rain.className = 'g-rain-layer';
+    rain.style.cssText = 'position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none;z-index:3';
+    let drops = '';
+    for (let i = 0; i < 45; i++) {
+      const x   = (Math.random() * 110 - 5).toFixed(1);
+      const dur  = (0.55 + Math.random() * 0.55).toFixed(2);
+      const del  = (Math.random() * 2).toFixed(2);
+      const op   = (0.28 + Math.random() * 0.38).toFixed(2);
+      const h    = Math.round(7 + Math.random() * 9);
+      drops += `<div style="position:absolute;left:${x}%;top:-12%;width:1.5px;height:${h}px;background:rgba(190,215,255,${op});border-radius:1px;animation:gRainFall ${dur}s ${del}s linear infinite"></div>`;
+    }
+    rain.innerHTML = drops;
+    sky.appendChild(rain);
+
+  } else if (isOvercast) {
+    const overlay = document.createElement('div');
+    overlay.className = 'g-weather-overlay';
+    overlay.style.cssText = 'position:absolute;inset:0;background:rgba(110,120,140,0.22);border-radius:inherit;pointer-events:none;z-index:2';
+    sky.appendChild(overlay);
+  }
 }

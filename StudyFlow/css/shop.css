@@ -941,6 +941,17 @@ body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out inf
 .fox-companion.fox-walking  svg { animation: cat-hop 0.45s ease-in-out infinite; }
 .fox-companion.fox-happy    svg { animation: cat-bounce-happy 0.38s ease-in-out infinite alternate; }
 .fox-companion.fox-happy .fox-heart { animation: heart-pop 0.4s ease; }
+/* Fox paw swing */
+.fox-companion.fox-walking .fox-paw-l {
+  animation: paw-lift 0.45s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+.fox-companion.fox-walking .fox-paw-r {
+  animation: paw-lift 0.45s 0.225s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
 .fox-companion.fox-sleeping .fox-zzz { animation: zzz-float 2.4s ease-in-out infinite; }
 
 /* ══════════════════════════════════════
@@ -994,19 +1005,19 @@ body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out inf
 /* Tail */
 .lion-companion.lion-sleeping .lion-tail {
   animation: lion-tail-slow 4s ease-in-out infinite;
-  transform-origin: 68px 80px;
-  transform-box: view-box;
+  transform-origin: 0% 100%;
+  transform-box: fill-box;
 }
 .lion-companion.lion-sitting .lion-tail {
   animation: lion-tail-slow 3s ease-in-out infinite;
-  transform-origin: 68px 80px;
-  transform-box: view-box;
+  transform-origin: 0% 100%;
+  transform-box: fill-box;
 }
 .lion-companion.lion-walking .lion-tail,
 .lion-companion.lion-happy   .lion-tail {
   animation: lion-tail-fast 0.42s ease-in-out infinite;
-  transform-origin: 68px 80px;
-  transform-box: view-box;
+  transform-origin: 0% 100%;
+  transform-box: fill-box;
 }
 
 /* SVG body */
@@ -1039,3 +1050,45 @@ body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out inf
   0%,100% { transform: rotate(-14deg); }
   50%     { transform: rotate(18deg);  }
 }
+
+/* ── GIRAFFA ── */
+.giraffe-companion { transition: right 0.3s; }
+.giraffe-hidden { display: none !important; }
+.giraffe-companion.giraffe-walking  svg { animation: cat-hop 0.5s ease-in-out infinite; }
+.giraffe-companion.giraffe-happy    svg { animation: cat-hop 0.35s ease-in-out infinite; }
+.giraffe-companion.giraffe-walking .giraffe-paw-l {
+  transform-origin: 50% 0%; transform-box: fill-box;
+  animation: paw-swing-l 0.5s ease-in-out infinite;
+}
+.giraffe-companion.giraffe-walking .giraffe-paw-r {
+  transform-origin: 50% 0%; transform-box: fill-box;
+  animation: paw-swing-r 0.5s ease-in-out infinite;
+}
+
+/* ── PROCIONE ── */
+.raccoon-companion { cursor:pointer; filter:drop-shadow(0 4px 16px rgba(0,0,0,.18)); user-select:none; }
+.raccoon-hidden { opacity:0 !important; pointer-events:none !important; }
+.raccoon-dir-wrap { display:flex; flex-direction:column; align-items:center; }
+.raccoon-companion.raccoon-sleeping svg { animation: cat-breathe 3.5s ease-in-out infinite; }
+.raccoon-companion.raccoon-sitting  svg { animation: cat-breathe 4.2s ease-in-out infinite; }
+.raccoon-companion.raccoon-walking  svg { animation: cat-hop 0.45s ease-in-out infinite; }
+.raccoon-companion.raccoon-happy    svg { animation: cat-bounce-happy 0.38s ease-in-out infinite alternate; }
+.raccoon-companion.raccoon-walking .raccoon-paw-l { animation: paw-lift 0.45s ease-in-out infinite; transform-origin:center; transform-box:fill-box; }
+.raccoon-companion.raccoon-walking .raccoon-paw-r { animation: paw-lift 0.45s 0.225s ease-in-out infinite; transform-origin:center; transform-box:fill-box; }
+.raccoon-companion.raccoon-sleeping .raccoon-zzz  { animation: zzz-float 2.4s ease-in-out infinite; }
+.raccoon-companion.raccoon-happy .raccoon-heart   { animation: heart-pop 0.4s ease; }
+
+/* ── DRAGO ── */
+.dragon-companion { cursor:pointer; filter:drop-shadow(0 4px 20px rgba(124,58,237,.3)); user-select:none; }
+.dragon-hidden { opacity:0 !important; pointer-events:none !important; }
+.dragon-dir-wrap { display:flex; flex-direction:column; align-items:center; }
+.dragon-companion.dragon-sleeping svg { animation: cat-breathe 3.5s ease-in-out infinite; }
+.dragon-companion.dragon-sitting  svg { animation: cat-breathe 4.2s ease-in-out infinite; }
+.dragon-companion.dragon-walking  svg { animation: cat-hop 0.42s ease-in-out infinite; }
+.dragon-companion.dragon-happy    svg { animation: cat-bounce-happy 0.35s ease-in-out infinite alternate; }
+.dragon-companion.dragon-walking .dragon-paw-l { animation: paw-lift 0.42s ease-in-out infinite; transform-origin:center; transform-box:fill-box; }
+.dragon-companion.dragon-walking .dragon-paw-r { animation: paw-lift 0.42s 0.21s ease-in-out infinite; transform-origin:center; transform-box:fill-box; }
+.dragon-companion.dragon-sleeping .dragon-zzz  { animation: zzz-float 2.4s ease-in-out infinite; }
+.dragon-companion.dragon-happy .dragon-wing-l { animation: owl-wing-l-flap 0.4s ease-in-out infinite; transform-origin:34px 75px; transform-box:view-box; }
+.dragon-companion.dragon-happy .dragon-wing-r { animation: owl-wing-r-flap 0.4s ease-in-out infinite; transform-origin:86px 75px; transform-box:view-box; }
+.dragon-companion.dragon-happy .dragon-heart  { animation: heart-pop 0.4s ease; }

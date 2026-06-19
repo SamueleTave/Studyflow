@@ -137,7 +137,7 @@ function initDog() {
   _dogEl.innerHTML = DOG_SVG;
   _dogEl.title     = 'Clicca il cagnolino!';
   _dogEl.style.position = 'fixed';
-  _dogEl.style.right    = DOG_RIGHT_HOME + 'px';
+  _dogEl.style.right    = _companionSlotRight('dog') + 'px';
   _dogEl.style.bottom   = DOG_BOTTOM_HOME + 'px';
   _dogEl.style.left     = 'auto';
   _dogEl.style.zIndex   = '600';
@@ -167,7 +167,8 @@ function hideDogHouse() { if (_dogHouseEl) _dogHouseEl.classList.add('house-hidd
 
 function showDog() {
   if (!_dogEl) initDog();
-  _dogEl.classList.remove('dog-hidden');
+  _dogEl.classList.remove('dog-hidden')
+  if (_dogHouseEl) _dogHouseEl.style.right = (_companionSlotRight('dog') - 8) + 'px';;
   _dogGoHome(0);
   setDogState('sitting');
   clearTimeout(_dogSleepTmr);
@@ -237,19 +238,19 @@ function _dogMoveTo(targetLeft, targetBottom, durationMs) {
 }
 
 function _dogGoHome(durationMs) {
-  const homeLeft = window.innerWidth - DOG_W - DOG_RIGHT_HOME;
+  const homeLeft = window.innerWidth - DOG_W - _companionSlotRight('dog');
   if (durationMs > 0) {
     _dogMoveTo(homeLeft, DOG_BOTTOM_HOME, durationMs);
     setTimeout(() => {
       if (!_dogEl) return;
       _dogEl.style.transition = 'none';
       _dogEl.style.left       = 'auto';
-      _dogEl.style.right      = DOG_RIGHT_HOME + 'px';
+      _dogEl.style.right = _companionSlotRight('dog') + 'px';
       _dogEl.style.bottom     = DOG_BOTTOM_HOME + 'px';
     }, durationMs + 80);
   } else {
     _dogEl.style.transition = 'none';
-    _dogEl.style.right      = DOG_RIGHT_HOME + 'px';
+    _dogEl.style.right = _companionSlotRight('dog') + 'px';
     _dogEl.style.left       = 'auto';
     _dogEl.style.bottom     = DOG_BOTTOM_HOME + 'px';
   }

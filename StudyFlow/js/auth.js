@@ -126,12 +126,13 @@ async function loadFromServer() {
 }
 
 function _sfReinitAll() {
-  if (typeof initCoins       === 'function') initCoins();
-  if (typeof initWidgets     === 'function') initWidgets();
-  if (typeof updateLevelPill === 'function') updateLevelPill();
-  if (typeof initTheme       === 'function') initTheme();
-  if (typeof renderShopPage  === 'function') renderShopPage();
-  if (typeof renderDailyDeal === 'function') renderDailyDeal();
+  if (typeof initCoins            === 'function') initCoins();
+  if (typeof initWidgets          === 'function') initWidgets();
+  if (typeof updateLevelPill      === 'function') updateLevelPill();
+  if (typeof initTheme            === 'function') initTheme();
+  if (typeof renderShopPage       === 'function') renderShopPage();
+  if (typeof renderDailyDeal      === 'function') renderDailyDeal();
+  if (typeof _fetchNotifications  === 'function') _fetchNotifications();
 }
 
 /* ── Auto-sync debounced su ogni setItem sf_ ── */

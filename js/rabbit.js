@@ -91,7 +91,7 @@ function initRabbit() {
   _rabbitEl = document.createElement('div');
   _rabbitEl.className = 'rabbit-companion rabbit-hidden';
   _rabbitEl.innerHTML = RABBIT_SVG;
-  _rabbitEl.style.cssText = `position:fixed;right:${RABBIT_RIGHT}px;bottom:${RABBIT_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
+  _rabbitEl.style.cssText = `position:fixed;right:${_companionSlotRight('rabbit')}px;bottom:${RABBIT_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
   _rabbitEl.addEventListener('click', _onRabbitClick);
   (document.querySelector('.app') || document.body).appendChild(_rabbitEl);
 
@@ -143,7 +143,8 @@ function hideRabbitHouse() { if (_rabbitHouseEl) _rabbitHouseEl.classList.add('h
    ══════════════════════════ */
 function showRabbit() {
   if (!_rabbitEl) initRabbit();
-  _rabbitEl.classList.remove('rabbit-hidden');
+  _rabbitEl.classList.remove('rabbit-hidden')
+  if (_rabbitHouseEl) _rabbitHouseEl.style.right = (_companionSlotRight('rabbit') - 8) + 'px';;
   _goRabbitHome(0);
   setRabbitState('sitting');
   clearTimeout(_rabbitSleepTmr);
@@ -189,19 +190,19 @@ function _moveRabbitTo(targetLeft, targetBottom, durationMs) {
 }
 
 function _goRabbitHome(ms = 1200) {
-  const homeLeft = window.innerWidth - RABBIT_W - RABBIT_RIGHT;
+  const homeLeft = window.innerWidth - RABBIT_W - _companionSlotRight('rabbit');
   if (ms > 0) {
     _moveRabbitTo(homeLeft, RABBIT_BOTTOM, ms);
     setTimeout(() => {
       if (!_rabbitEl) return;
       _rabbitEl.style.transition = 'none';
       _rabbitEl.style.left   = 'auto';
-      _rabbitEl.style.right  = RABBIT_RIGHT + 'px';
+      _rabbitEl.style.right  = _companionSlotRight('rabbit') + 'px';
       _rabbitEl.style.bottom = RABBIT_BOTTOM + 'px';
     }, ms + 80);
   } else {
     _rabbitEl.style.transition = 'none';
-    _rabbitEl.style.right  = RABBIT_RIGHT + 'px';
+    _rabbitEl.style.right  = _companionSlotRight('rabbit') + 'px';
     _rabbitEl.style.left   = 'auto';
     _rabbitEl.style.bottom = RABBIT_BOTTOM + 'px';
   }

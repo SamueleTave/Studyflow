@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyFlow — Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/themes.css?v=3">
+  <link rel="stylesheet" href="css/themes.css?v=4">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scrollbar-gutter: stable; }
@@ -213,6 +213,21 @@
     .act-reset:hover { background: rgba(255,193,7,0.25); }
     .act-delete { background: rgba(239,68,68,0.09); color: #dc2626; border: 1px solid rgba(239,68,68,0.22); }
     .act-delete:hover { background: rgba(239,68,68,0.18); }
+
+
+    /* ── Shop Visibility ── */
+    .vis-grid { display: flex; flex-direction: column; gap: 16px; }
+    .vis-group-title { font-size: 0.72rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .vis-items { display: flex; flex-wrap: wrap; gap: 8px; }
+    .vis-toggle { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 10px; background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.35); cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: all 0.18s; user-select: none; }
+    .vis-toggle:hover { background: rgba(255,255,255,0.32); }
+    .vis-toggle.disabled { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); color: #ef4444; }
+    .vis-toggle.enabled  { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.3); }
+    .vis-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .vis-toggle.enabled  .vis-dot { background: #10b981; }
+    .vis-toggle.disabled .vis-dot { background: #ef4444; }
+    .vis-save-bar { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); }
+    .vis-status { font-size: 0.78rem; color: var(--text-soft); }
 
     /* ── Template annunci ── */
     .ann-tpl {
@@ -592,6 +607,24 @@
   </div>
 
   <!-- Segnalazioni -->
+
+  <!-- ══ VISIBILITÀ SHOP ══ -->
+  <div class="admin-card" style="margin-top:20px">
+    <div class="admin-card-head" style="border-bottom-color:rgba(99,102,241,0.25)">
+      <span class="admin-card-title">🛒 Visibilità Shop</span>
+      <span style="font-size:0.78rem;color:var(--text-soft)">Attiva/disattiva cosa vedono gli utenti nello shop</span>
+    </div>
+    <div style="padding:18px">
+      <div class="vis-grid" id="vis-grid">
+        <div style="text-align:center;color:var(--text-soft);font-size:0.85rem">⏳ Caricamento...</div>
+      </div>
+      <div class="vis-save-bar">
+        <button class="admin-btn" onclick="saveShopVisibility()" id="visSaveBtn">💾 Salva visibilità</button>
+        <span class="vis-status" id="vis-status"></span>
+      </div>
+    </div>
+  </div>
+
   <div class="admin-card">
     <div class="admin-card-head">
       <span class="admin-card-title">🛠️ Segnalazioni <span id="ticketBadge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:2px 7px;font-size:0.65rem;margin-left:6px;font-weight:700"></span></span>
@@ -633,7 +666,18 @@
 
 </div>
 
-<script src="js/config.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
+<script src="js/coins.js?v=6"></script>
+<script src="js/cat.js?v=4"></script>
+<script src="js/companions.js?v=4"></script>
+<script src="js/rabbit.js?v=4"></script>
+<script src="js/parrot.js?v=4"></script>
+<script src="js/fox.js?v=4"></script>
+<script src="js/procione.js?v=4"></script>
+<script src="js/owl.js?v=4"></script>
+<script src="js/lion.js?v=4"></script>
+<script src="js/dragon.js?v=4"></script>
+<script src="js/giraffe.js?v=4"></script>
 <script>window.SF_API_BASE = 'https://studyflow-backend-5zy6.onrender.com/api';</script>
 <script>
   /* ── Auth check ── */
@@ -799,6 +843,8 @@
     { id:'fox',         name:'🦊 Volpe',            group:'Compagni' },
     { id:'owl',         name:'🦉 Gufo',             group:'Compagni' },
     { id:'lion',        name:'🦁 Leone',            group:'Compagni' },
+    { id:'giraffe',     name:'🦒 Giraffa',           group:'Compagni' },
+    { id:'raccoon',     name:'🦝 Procione',          group:'Compagni' },
     { id:'campfire',    name:'🔥 Falò',             group:'Compagni' },
     { id:'cat4legs',    name:'🐱 Gatto Cartoon',    group:'Compagni extra' },
     { id:'catWhite',    name:'🤍 Gatto Bianco',     group:'Colori Gatto' },
@@ -817,6 +863,9 @@
     { id:'foxHouse',    name:'🏠 Casa Volpe',       group:'Casette' },
     { id:'owlHouse',    name:'🏠 Posatoi Gufo',     group:'Casette' },
     { id:'lionHouse',   name:'🏠 Grotta Leone',     group:'Casette' },
+    { id:'giraffeHouse', name:'🏠 Savana Giraffa',   group:'Casette' },
+    { id:'raccoonHouse', name:'🏠 Tana Procione',    group:'Casette' },
+    { id:'dragonHouse',  name:'🏠 Tana Drago',       group:'Casette' },
     { id:'stars',       name:'⭐ Stelle Cadenti',   group:'Effetti' },
     { id:'bubbles',     name:'🫧 Bolle',            group:'Effetti' },
     { id:'glow',        name:'✨ Timer Glow',       group:'Effetti' },
@@ -1309,8 +1358,116 @@
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+
+  /* ══ VISIBILITÀ SHOP ══ */
+  const _VIS_ITEMS = [
+    { id:'cat',        name:'🐱 Gatto',                group:'Compagni' },
+    { id:'dog',        name:'🐶 Cane',                 group:'Compagni' },
+    { id:'rabbit',     name:'🐰 Coniglietto',          group:'Compagni' },
+    { id:'parrot',     name:'🦜 Pappagallo',           group:'Compagni' },
+    { id:'fox',        name:'🦊 Volpe',                group:'Compagni' },
+    { id:'owl',        name:'🦉 Gufo',                 group:'Compagni' },
+    { id:'raccoon',    name:'🦝 Procione',             group:'Compagni' },
+    { id:'lion',       name:'🦁 Leone',                group:'Compagni' },
+    { id:'dragon',     name:'🐉 Drago',                group:'Compagni' },
+    { id:'cat4legs',   name:'🐱 Gatto Cartoon',        group:'Extra Gatto' },
+    { id:'catWhite',   name:'🤍 Gatto Bianco',         group:'Extra Gatto' },
+    { id:'catBlack',   name:'🖤 Gatto Nero',           group:'Extra Gatto' },
+    { id:'catGrey',    name:'🩶 Gatto Grigio',         group:'Extra Gatto' },
+    { id:'campfire',   name:'🔥 Falò',                 group:'Ambiente' },
+    { id:'stars',      name:'⭐ Stelle',               group:'Effetti' },
+    { id:'bubbles',    name:'🫧 Bolle',                group:'Effetti' },
+    { id:'glow',       name:'✨ Timer Glow',           group:'Effetti' },
+    { id:'pulsePro',   name:'💫 Pulse Pro',            group:'Effetti' },
+    { id:'soundCafe',  name:'☕ Cafe',                 group:'Suoni' },
+    { id:'soundOcean', name:'🌊 Mare',                 group:'Suoni' },
+    { id:'soundForest',name:'🌲 Foresta',              group:'Suoni' },
+    { id:'themeNight', name:'🌙 Tema Notte',           group:'Temi' },
+    { id:'themeSunset',name:'🌅 Tema Tramonto',        group:'Temi' },
+    { id:'themeGold',  name:'✨ Tema Oro',             group:'Temi' },
+    { id:'aurora',     name:'🌌 Aurora',               group:'Temi' },
+    { id:'catHouse',   name:'🏠 Casa Gatto',           group:'Casette' },
+    { id:'dogHouse',   name:'🏠 Casa Cane',            group:'Casette' },
+    { id:'rabbitHouse',name:'🏠 Casa Coniglio',        group:'Casette' },
+    { id:'parrotHouse',name:'🏠 Posatoi Pappag.',      group:'Casette' },
+    { id:'foxHouse',   name:'🏠 Casa Volpe',           group:'Casette' },
+    { id:'owlHouse',   name:'🏠 Posatoi Gufo',         group:'Casette' },
+    { id:'lionHouse',  name:'🏠 Grotta Leone',         group:'Casette' },
+    { id:'raccoonHouse',name:'🏠 Tana Procione',       group:'Casette' },
+    { id:'dragonHouse',name:'🏠 Tana Drago',           group:'Casette' },
+  ];
+  let _visDisabled = new Set();
+
+  async function loadShopVisibility() {
+    try {
+      const r = await apiFetch('/api/config');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const cfg = await r.json();
+      _visDisabled = new Set(JSON.parse(cfg.shop_disabled_items || '[]'));
+    } catch(e) {
+      console.warn('[ShopVis] load error:', e);
+      _visDisabled = new Set();
+    }
+    _renderVisGrid();
+  }
+
+  function _renderVisGrid() {
+    const groups = {};
+    _VIS_ITEMS.forEach(item => {
+      if (!groups[item.group]) groups[item.group] = [];
+      groups[item.group].push(item);
+    });
+    let html = '';
+    Object.entries(groups).forEach(([grp, items]) => {
+      html += `<div><div class="vis-group-title">${grp}</div><div class="vis-items">`;
+      items.forEach(item => {
+        const on = !_visDisabled.has(item.id);
+        html += `<div class="vis-toggle ${on?'enabled':'disabled'}" id="vis-${item.id}" onclick="_toggleVis('${item.id}')">
+          <span class="vis-dot"></span>${item.name}
+        </div>`;
+      });
+      html += '</div></div>';
+    });
+    document.getElementById('vis-grid').innerHTML = html;
+  }
+
+  function _toggleVis(id) {
+    if (_visDisabled.has(id)) _visDisabled.delete(id);
+    else _visDisabled.add(id);
+    const el = document.getElementById('vis-' + id);
+    if (!el) return;
+    el.classList.toggle('enabled',  !_visDisabled.has(id));
+    el.classList.toggle('disabled',  _visDisabled.has(id));
+  }
+
+  async function saveShopVisibility() {
+    const btn = document.getElementById('visSaveBtn');
+    const status = document.getElementById('vis-status');
+    btn.disabled = true; btn.textContent = '⏳ Salvataggio...';
+    try {
+      const r = await apiFetch('/api/admin/config', {
+        method: 'POST',
+        body: JSON.stringify({ key: 'shop_disabled_items', value: JSON.stringify([..._visDisabled]) })
+      });
+      if (!r.ok) {
+        let errMsg = 'HTTP ' + r.status;
+        try { const d = await r.json(); errMsg += ' — ' + (d.error || JSON.stringify(d)); } catch {}
+        throw new Error(errMsg);
+      }
+      status.textContent = '✅ Salvato! Gli utenti vedranno le modifiche al prossimo caricamento.';
+      status.style.color = '#10b981';
+      toast('Visibilità shop aggiornata ✅');
+    } catch (e) {
+      status.textContent = '❌ Errore: ' + e.message;
+      status.style.color = '#ef4444';
+    }
+    btn.disabled = false; btn.textContent = '💾 Salva visibilità';
+    setTimeout(() => { if (status) status.textContent = ''; }, 5000);
+  }
+
   loadUsers();
   loadTickets();
+  loadShopVisibility();
 </script>
 </body>
 </html>

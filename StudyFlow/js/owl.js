@@ -12,6 +12,7 @@ let _owlHouseEl    = null;
 let _owlState      = 'perched';
 let _owlFlyIv      = null;
 let _owlPerchedTmr = null;
+let _owlTimerRunning = false;
 let _owlBlinkTmr   = null;
 let _owlInGarden   = false;
 
@@ -165,7 +166,7 @@ function showOwl() {
   _owlPerchedTmr = setTimeout(() => {
     if (_owlState === 'perched') {
       setOwlState('sleeping');
-      _owlPerchedTmr = setTimeout(() => _startOwl(), 8000 + Math.random() * 4000);
+      _owlPerchedTmr = setTimeout(() => { if (_owlTimerRunning) _startOwl(); }, 8000 + Math.random() * 4000);
     }
   }, 6000);
 }
@@ -344,7 +345,7 @@ function owlExitGarden() {
     setTimeout(() => {
       if (_owlInGarden) return;
       setOwlState('perched');
-      _owlPerchedTmr = setTimeout(() => _startOwl(), 3000 + Math.random() * 2000);
+      _owlPerchedTmr = setTimeout(() => { if (_owlTimerRunning) _startOwl(); }, 3000 + Math.random() * 2000);
     }, 1200);
   }, 150);
 }
@@ -355,7 +356,8 @@ function owlExitGarden() {
 function syncOwlToTimer(running, mode) {
   if (!_owlEl || _owlEl.classList.contains('owl-hidden')) return;
   if (_owlInGarden) return;
-  if (running && (!mode || mode === 'work')) {
+  _owlTimerRunning = running && (!mode || mode === 'work');
+  if (_owlTimerRunning) {
     _startOwl();
   } else {
     _stopOwl();
@@ -367,7 +369,7 @@ function syncOwlToTimer(running, mode) {
         if (_owlInGarden) return;
         setOwlState('sleeping');
         _owlPerchedTmr = setTimeout(() => {
-          if (!_owlInGarden) _startOwl();
+          if (!_owlInGarden && _owlTimerRunning) _startOwl();
         }, 7000 + Math.random() * 4000);
       }, 3000 + Math.random() * 2000);
     }, 1100);
@@ -394,7 +396,7 @@ function _onOwlClick() {
   setTimeout(() => {
     if (_owlState === 'happy') setOwlState('perched');
     _owlPerchedTmr = setTimeout(() => {
-      if (!_owlInGarden) _startOwl();
+      if (!_owlInGarden && _owlTimerRunning) _startOwl();
     }, 2000);
   }, 2500);
 }
