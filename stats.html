@@ -307,7 +307,7 @@
   <script>window.SF_API_BASE = 'https://studyflow-backend-5zy6.onrender.com/api';</script>
 <script src="js/auth.js?v=4"></script>
 <script src="js/shared.js?v=4"></script>
-<script src="js/api.js?v=4"></script>
+<script src="js/api.js?v=5"></script>
 <script src="js/coins.js?v=6"></script>
 <script src="js/cat.js?v=4"></script>
 <script src="js/companions.js?v=4"></script>
@@ -352,12 +352,22 @@
 
     const ov = await loadStatsOverview();
     if (ov) {
+      /* today_minutes: prende il massimo tra backend e localStorage (race condition) */
+      const _localSess = (() => { try { return JSON.parse(localStorage.getItem('sf_sessions')||'[]'); } catch { return []; } })();
+      const _today = new Date().toISOString().split('T')[0];
+      const _localTodayMin = _localSess.filter(s => s.date === _today).reduce((a,s) => a + (s.duration||0), 0);
+      const _todayMin = _localTodayMin > 0 ? _localTodayMin : (ov.today_minutes || 0);
+
+      /* Streak: stessa fonte dell'admin edit → sf_stats.streak (per-utente, si aggiorna col calcolo) */
+      const _sfStats = (() => { try { return JSON.parse(localStorage.getItem('sf_stats')||'{}'); } catch { return {}; } })();
+      const _streak = _sfStats.streak ?? ov.streak ?? 0;
+
       document.getElementById('sc-hours').textContent    = ov.total_hours + 'h';
       document.getElementById('sc-sessions').textContent = ov.total_sessions;
-      document.getElementById('sc-streak').textContent   = ov.streak;
-      document.getElementById('sc-today').textContent    = ov.today_minutes + 'm';
+      document.getElementById('sc-streak').textContent   = _streak;
+      document.getElementById('sc-today').textContent    = _todayMin + 'm';
       const sp = document.getElementById('pill-streak');
-      if (sp) sp.textContent = ov.streak;
+      if (sp) sp.textContent = _streak;
     }
 
     _renderWeekCompare();
@@ -376,10 +386,10 @@
     const cd = typeof coinData !== 'undefined' ? coinData : {};
     document.getElementById('sc-sessions').textContent = cd.totalSessions || sf.sessions || 0;
     document.getElementById('sc-today').textContent    = (sf.minutes || 0) + 'm';
-    document.getElementById('sc-streak').textContent   = cd.bestStreak || sf.streak || 0;
+    document.getElementById('sc-streak').textContent   = sf.streak || cd.bestStreak || 0;
     document.getElementById('sc-hours').textContent    = (Math.round((cd.totalMinutes || 0) / 60 * 10) / 10) + 'h';
     const sp = document.getElementById('pill-streak');
-    if (sp) sp.textContent = cd.bestStreak || sf.streak || 0;
+    if (sp) sp.textContent = sf.streak || cd.bestStreak || 0;
 
     const sessions = _getLocalSessions();
 

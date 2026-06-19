@@ -440,17 +440,23 @@
   </ul>
 </div>
 
-<!-- VECCHIO DA FARE — SUPERATO
-<!-- -->
+<!-- ===== DA FARE ===== -->
 <div class="section">
   <div class="section-title">🔴 Da fare — prossima sessione</div>
   <ul class="todo-list">
-    <li><span>1.</span> <div><strong>Push + Manual Deploy Render</strong> — tutti i fix sessione 11 sono in locale. Push su GitHub → Netlify si aggiorna automatico. Render: Manual Deploy non necessario (app.py non toccato in s11).</div></li>
-    <li><span>2.</span> <div><strong>Drago 🐉 compagno</strong> — design approvato (demo in images/animals/drago_demo.svg — viola/teal, alette membranose, cornini, fiammella). Da creare dragon.js con animazione volo sul timer. Da aggiungere initDragon() in index.html e nelle altre pagine che caricano i compagni.</div></li>
+    <li><span>1.</span> <div><strong>Coniglio nuovo design 🐰</strong> — ridisegnare il coniglio con lo stile fat/cartoon uguale a procione e drago (animali_final.html come riferimento). Aggiornare rabbit.js con il nuovo SVG.</div></li>
+    <li><span>2.</span> <div><strong>Cane nuovo design 🐶</strong> — ridisegnare il cane con lo stile fat/cartoon. Aggiornare companions.js con il nuovo SVG.</div></li>
+    <li><span>3.</span> <div><strong>Card argomenti con Notebook + AI 🧠</strong> — ogni materia ha una card con: note personali (notebook testuale), pulsante "Chiedi all'AI" per domande contestuali (spiegazioni, quiz, esempi). Da decidere: pagina dedicata o sezione in tasks.html. Integrazione Claude API.</div></li>
+    <li><span>4.</span> <div><strong>Sistema livelli / XP visivo</strong> — barra XP in homepage, animazione level-up, storia del progresso. Collegare ai ruoli esistenti (novizio→maestro).</div></li>
+    <li><span>5.</span> <div><strong>Notifiche push / reminder sessione</strong> — Web Push API (service worker). Reminder personalizzabile: "Studia tra X minuti". Opt-in nella pagina impostazioni.</div></li>
+    <li><span>6.</span> <div><strong>Modalità focus profonda</strong> — blocco notifiche browser, schermo full-screen, timer Pomodoro esteso (es. 90min), musica ambientale auto-start.</div></li>
+    <li><span>7.</span> <div><strong>Shop: preview compagni prima dell'acquisto</strong> — mini-animazione SVG del compagno nella card shop prima di comprarlo. Attualmente la card mostra solo testo/emoji.</div></li>
+    <li><span>8.</span> <div><strong>Statistiche per materia avanzate</strong> — grafico torta ore per materia, trend settimanale per materia, record personale per materia. Collegato ai soggetti già esistenti.</div></li>
+    <li><span>9.</span> <div><strong>Sfide amici — classifica live</strong> — aggiornamento in tempo reale (polling 30s) della classifica durante la sfida attiva. Attualmente si aggiorna solo a fine sessione.</div></li>
+    <li><span>10.</span> <div><strong>Export PDF report studio</strong> — PDF mensile con: ore studiate, materie, streak, compagni attivi, grafico progress. Da app.py con reportlab o WeasyPrint.</div></li>
   </ul>
 </div>
 
---> 
 <!-- ===== ARCHITETTURA ===== -->
 <div class="section">
   <div class="section-title">📐 Note architettura</div>

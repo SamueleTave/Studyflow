@@ -45,7 +45,7 @@ function _updateStatusDot() {
 async function apiGet(path) {
   if (!backendOk) return null;
   try {
-    const r = await fetch(API_BASE + path, { headers: _authHeaders() });
+    const r = await fetch(API_BASE + path, { headers: _authHeaders(), cache: 'no-store' });
     return r.ok ? r.json() : null;
   } catch { return null; }
 }
