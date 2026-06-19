@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="css/themes.css?v=4">
   <link rel="stylesheet" href="css/base.css?v=4">
   <link rel="stylesheet" href="css/sidebar.css?v=4">
-  <link rel="stylesheet" href="css/tasks.css?v=4">
+  <link rel="stylesheet" href="css/tasks.css?v=5">
   <link rel="stylesheet" href="css/calendar.css?v=4">
   <link rel="stylesheet" href="css/shop.css?v=4">
 </head>
@@ -113,10 +113,14 @@
         <label class="form-label">Tipo</label>
         <div class="type-toggle">
           <button class="type-btn active" id="type-daily" onclick="selectType('daily')">
-            📋 Giornaliera
+            <span class="type-btn-icon">📋</span>
+            <span class="type-btn-label">Giornaliera</span>
+            <span class="type-btn-hint">Promemoria, commissioni, routine</span>
           </button>
           <button class="type-btn" id="type-study" onclick="selectType('study')">
-            📚 Studio
+            <span class="type-btn-icon">📚</span>
+            <span class="type-btn-label">Studio</span>
+            <span class="type-btn-hint">Compiti, materie, esercizi</span>
           </button>
         </div>
       </div>
@@ -268,7 +272,7 @@
 <script src="js/lion.js?v=4"></script>
 <script src="js/dragon.js?v=4"></script>
 <script src="js/giraffe.js?v=4"></script>
-<script src="js/tasks.js?v=4"></script>
+<script src="js/tasks.js?v=5"></script>
 <script>
   initShared();
   initCoins();
@@ -371,6 +375,15 @@
     if (s) {
       selectSubject(s.name, s.color);
       renderSubjectsMgmt();
+      renderSubjectPresets('subj-presets');
+    }
+  }
+
+  function quickAddSubjectPreset(name) {
+    const s = addSubject(name, SUBJ_PALETTE[subjects.length % SUBJ_PALETTE.length]);
+    if (s) {
+      renderSubjectsMgmt();
+      renderSubjectPresets('subj-presets');
     }
   }
 

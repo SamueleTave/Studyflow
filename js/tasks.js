@@ -8,6 +8,10 @@ const SUBJ_PALETTE = [
   '#E91E63','#9C27B0','#3F51B5','#2196F3','#009688',
   '#4CAF50','#FF9800','#FF5722','#795548','#607D8B'
 ];
+const SUBJ_PRESETS_LIST = [
+  'Matematica','Fisica','Chimica','Biologia','Informatica',
+  'Italiano','Storia','Inglese','Filosofia','Economia','Diritto','Arte'
+];
 
 const PRIORITY_ORDER = { alta: 0, media: 1, normale: 2, bassa: 3 };
 const PRIORITY_META  = {
@@ -49,52 +53,25 @@ function deleteSubject(id) {
   saveSubjects();
 }
 
-function updateSubjectColor(id, color) {
-  const s = subjects.find(x => x.id === id);
-  if (s) { s.color = color; saveSubjects(); }
-}
-
-/* ══════════════════════════════════════
-   MATERIE ITALIANE PRESET
-═══════════════════════════════════════ */
-const ITALIAN_SUBJECTS_PRESETS = [
-  { name: 'Matematica',  color: '#2196F3' },
-  { name: 'Italiano',    color: '#E91E63' },
-  { name: 'Storia',      color: '#FF9800' },
-  { name: 'Inglese',     color: '#4CAF50' },
-  { name: 'Scienze',     color: '#009688' },
-  { name: 'Latino',      color: '#9C27B0' },
-  { name: 'Filosofia',   color: '#607D8B' },
-  { name: 'Arte',        color: '#FF5722' },
-  { name: 'Fisica',      color: '#3F51B5' },
-  { name: 'Chimica',     color: '#795548' },
-  { name: 'Informatica', color: '#00BCD4' },
-  { name: 'Ed. Fisica',  color: '#8BC34A' },
-];
-
 function renderSubjectPresets(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const available = ITALIAN_SUBJECTS_PRESETS.filter(p => !findSubject(p.name));
+  const el    = document.getElementById(containerId);
   const label = document.getElementById('subj-presets-label');
+  if (!el) return;
+  const available = SUBJ_PRESETS_LIST.filter(n => !findSubject(n));
   if (!available.length) {
     if (label) label.style.display = 'none';
-    container.style.display = 'none';
+    el.innerHTML = '';
     return;
   }
   if (label) label.style.display = '';
-  container.style.display = '';
-  container.innerHTML = available.map(p =>
-    `<button class="subj-preset-pill" style="--c:${p.color}" onclick="addPresetSubject('${p.name.replace(/'/g,"\\'")}','${p.color}')">${p.name}</button>`
+  el.innerHTML = available.map(n =>
+    `<button class="preset-chip" onclick="quickAddSubjectPreset('${n}')">${n}</button>`
   ).join('');
 }
 
-function addPresetSubject(name, color) {
-  const s = addSubject(name, color);
-  if (!s) return;
-  renderSubjectPresets('subj-presets');
-  if (typeof renderSubjectsMgmt === 'function') renderSubjectsMgmt();
-  if (typeof selectSubject === 'function') selectSubject(s.name, s.color);
+function updateSubjectColor(id, color) {
+  const s = subjects.find(x => x.id === id);
+  if (s) { s.color = color; saveSubjects(); }
 }
 
 /* ===== FILTRO ===== */

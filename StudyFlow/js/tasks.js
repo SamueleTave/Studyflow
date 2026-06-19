@@ -8,6 +8,10 @@ const SUBJ_PALETTE = [
   '#E91E63','#9C27B0','#3F51B5','#2196F3','#009688',
   '#4CAF50','#FF9800','#FF5722','#795548','#607D8B'
 ];
+const SUBJ_PRESETS_LIST = [
+  'Matematica','Fisica','Chimica','Biologia','Informatica',
+  'Italiano','Storia','Inglese','Filosofia','Economia','Diritto','Arte'
+];
 
 const PRIORITY_ORDER = { alta: 0, media: 1, normale: 2, bassa: 3 };
 const PRIORITY_META  = {
@@ -47,6 +51,22 @@ function addSubject(name, color) {
 function deleteSubject(id) {
   subjects = subjects.filter(s => s.id !== id);
   saveSubjects();
+}
+
+function renderSubjectPresets(containerId) {
+  const el    = document.getElementById(containerId);
+  const label = document.getElementById('subj-presets-label');
+  if (!el) return;
+  const available = SUBJ_PRESETS_LIST.filter(n => !findSubject(n));
+  if (!available.length) {
+    if (label) label.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  if (label) label.style.display = '';
+  el.innerHTML = available.map(n =>
+    `<button class="preset-chip" onclick="quickAddSubjectPreset('${n}')">${n}</button>`
+  ).join('');
 }
 
 function updateSubjectColor(id, color) {
