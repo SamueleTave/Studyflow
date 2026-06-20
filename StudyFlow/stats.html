@@ -442,7 +442,17 @@
   }
 
   function _getLocalSessions() {
-    try { return JSON.parse(localStorage.getItem('sf_sessions') || '[]'); } catch { return []; }
+    try {
+      const raw = JSON.parse(localStorage.getItem('sf_sessions') || '[]');
+      if (!Array.isArray(raw)) return [];
+      return raw.map(s => {
+        if (!s || typeof s !== 'object') return null;
+        /* Normalizza vecchio formato (endedAt + no duration) → nuovo formato (date + duration) */
+        const date = s.date || (typeof s.endedAt === 'string' ? s.endedAt.slice(0,10) : '');
+        const duration = s.duration ?? s.durationMinutes ?? (s.durationSeconds ? Math.round(s.durationSeconds / 60) : 25);
+        return { date, duration, subject: s.subject || s.subjectName || '' };
+      }).filter(s => s && s.date);
+    } catch { return []; }
   }
 
   function _renderHistoryLocal(sessions, days) {
@@ -740,7 +750,7 @@
     }
   }
 
-  /* Avvio */
+  /* Avvio iniziale con dati locali; auth.js chiama loadPage() di nuovo dopo loadFromServer() */
   loadPage();
 </script>
 </body>

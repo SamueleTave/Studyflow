@@ -210,6 +210,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       /* Ricarica giardino con le posizioni aggiornate dal server */
       if (typeof initGarden === 'function') initGarden();
       _sfSyncSuppressed = false;
+      /* Re-renderizza stats con i dati corretti dal server */
+      if (typeof loadPage === 'function') loadPage();
     }
   }
 });
