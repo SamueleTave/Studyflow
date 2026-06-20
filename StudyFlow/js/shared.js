@@ -1109,7 +1109,7 @@ function _initNotifications() {
             '<button onclick="closeNotifications()" style="width:32px;height:32px;border-radius:10px;border:1px solid var(--card-border);background:rgba(255,255,255,0.5);cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center">×</button>' +
           '</div>' +
         '</div>' +
-        '<div id="notif-list" style="overflow-y:auto;flex:1;padding:14px 18px;display:flex;flex-direction:column;gap:8px">' +
+        '<div id="sf-notif-list" style="overflow-y:auto;flex:1;padding:14px 18px;display:flex;flex-direction:column;gap:8px">' +
           '<div style="text-align:center;color:var(--text-soft);font-size:0.85rem;padding:24px 0">Caricamento...</div>' +
         '</div>' +
       '</div>';
@@ -1128,15 +1128,21 @@ function _fetchNotifications() {
   fetch(api + '/notifications', { headers: { 'Authorization': 'Bearer ' + auth.token } })
     .then(function(r) { return r.ok ? r.json() : []; })
     .then(function(data) {
-      _notifsData = data;
-      var unread = data.filter(function(n) { return !n.is_read; }).length;
+      _notifsData = Array.isArray(data) ? data : [];
+      var unread = _notifsData.filter(function(n) { return !n.is_read; }).length;
       var badge = document.getElementById('notif-badge');
       if (badge) {
         badge.textContent = unread > 9 ? '9+' : String(unread);
         badge.style.display = unread ? 'inline-flex' : 'none';
       }
+      var overlay = document.getElementById('notif-modal-overlay');
+      if (overlay && overlay.style.display !== 'none') _renderNotifList();
     })
-    .catch(function() {});
+    .catch(function() {
+      _notifsData = [];
+      var el = document.getElementById('sf-notif-list');
+      if (el) el.innerHTML = '<div style="text-align:center;color:var(--text-soft);font-size:0.85rem;padding:30px 0">Errore nel caricamento 😕</div>';
+    });
 }
 
 function openNotifications() {
@@ -1152,7 +1158,7 @@ function closeNotifications() {
 }
 
 function _renderNotifList() {
-  var el = document.getElementById('notif-list');
+  var el = document.getElementById('sf-notif-list');
   if (!el) return;
   if (!_notifsData.length) {
     el.innerHTML = '<div style="text-align:center;color:var(--text-soft);font-size:0.85rem;padding:30px 0">Nessuna notifica 🎉</div>';
