@@ -717,6 +717,83 @@
   margin: 16px 0 8px;
 }
 
+/* ── Deck action row ── */
+.fc-deck-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+  align-self: flex-start;
+}
+
+/* ── Bottone AI ── */
+.fc-btn-ai {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  border: none;
+}
+.fc-btn-ai:hover { background: linear-gradient(135deg, #4f46e5, #7c3aed); transform: translateY(-1px); }
+
+/* ── AI Modal ── */
+.fc-ai-tabs { display:flex; gap:6px; margin-bottom:14px; }
+.fc-ai-tab {
+  flex:1; padding:8px 0; border-radius:10px; border:1.5px solid var(--card-border);
+  background:var(--card); color:var(--text-soft); font-size:0.9rem; cursor:pointer;
+  transition:all .2s;
+}
+.fc-ai-tab.active {
+  background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border-color:transparent;
+}
+
+.fc-ai-dropzone {
+  border: 2px dashed var(--card-border); border-radius:16px; padding:30px 20px;
+  text-align:center; background:var(--card); transition:all .2s; cursor:pointer;
+}
+.fc-ai-dropzone.drag { border-color:#6366f1; background:rgba(99,102,241,.07); }
+.fc-ai-drop-icon { font-size:2.2rem; margin-bottom:6px; }
+.fc-ai-drop-txt  { color:var(--text); font-size:0.95rem; margin-bottom:2px; }
+.fc-ai-drop-sub  { color:var(--text-soft); font-size:0.82rem; }
+.fc-ai-file-name { margin-top:8px; font-size:0.85rem; color:#6366f1; font-weight:500; }
+
+/* Spinner */
+.fc-ai-spinner {
+  width:36px; height:36px; border-radius:50%;
+  border:3px solid var(--card-border);
+  border-top-color:#6366f1;
+  animation:_fc-spin .7s linear infinite;
+  margin:0 auto;
+}
+@keyframes _fc-spin { to { transform:rotate(360deg); } }
+
+/* Preview cards */
+.fc-ai-preview-hdr {
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:0.92rem; color:var(--text-soft); margin-bottom:8px;
+}
+.fc-ai-select-all {
+  font-size:0.82rem; color:#6366f1; background:none; border:none;
+  cursor:pointer; padding:2px 6px; border-radius:6px;
+}
+.fc-ai-select-all:hover { background:rgba(99,102,241,.1); }
+
+.fc-ai-preview-list {
+  max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;
+  margin-bottom:14px; padding-right:4px;
+}
+.fc-ai-card-preview {
+  background:var(--card); border:1.5px solid var(--card-border);
+  border-radius:12px; padding:10px 12px;
+  transition:border-color .2s;
+}
+.fc-ai-card-preview:has(input:checked) { border-color:#6366f1; }
+.fc-ai-card-check {
+  display:flex; align-items:flex-start; gap:10px; cursor:pointer;
+}
+.fc-ai-card-check input[type=checkbox] { margin-top:3px; accent-color:#6366f1; }
+.fc-ai-card-texts { flex:1; }
+.fc-ai-card-front { font-size:0.9rem; font-weight:600; color:var(--text); }
+.fc-ai-card-back  { font-size:0.82rem; color:var(--text-soft); margin-top:3px; line-height:1.4; }
+
 /* ── Responsive ── */
 @media (max-width: 960px) {
   .fc-page { padding: 14px 16px; }

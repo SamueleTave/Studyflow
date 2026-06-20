@@ -146,9 +146,14 @@
           <div class="fc-empty-sub">Aggiungi la prima carta per iniziare a studiare!</div>
         </div>
       </div>
-      <button class="fc-btn" onclick="openCardModal(_currentDeckId)" style="margin-top:4px;align-self:flex-start">
-        <i data-feather="plus" class="nav-icon"></i> Aggiungi carta
-      </button>
+      <div class="fc-deck-actions">
+        <button class="fc-btn" onclick="openCardModal(_currentDeckId)">
+          <i data-feather="plus" class="nav-icon"></i> Aggiungi carta
+        </button>
+        <button class="fc-btn fc-btn-ai" onclick="openAiModal()">
+          <i data-feather="zap" class="nav-icon"></i> Genera con AI
+        </button>
+      </div>
     </div>
 
     <!-- ─── View 3: Sessione studio flip ─── -->
@@ -271,6 +276,69 @@
       <textarea class="fc-modal-textarea" id="card-back-input" placeholder="Scrivi la risposta o la definizione..."></textarea>
     </div>
     <button class="fc-modal-save-btn" onclick="saveCard()">Salva Carta</button>
+  </div>
+</div>
+
+<!-- ─── Modal Genera con AI ─── -->
+<div class="overlay" id="aiModal" onclick="overlayClick2(event,'aiModal')">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-hdr">
+      <span>⚡ Genera Flashcard con AI</span>
+      <button class="modal-close" onclick="closeModal('aiModal')">&#10005;</button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="fc-ai-tabs">
+      <button class="fc-ai-tab active" id="aiTabFile" onclick="_aiTab('file')">📎 Carica file</button>
+      <button class="fc-ai-tab" id="aiTabText" onclick="_aiTab('text')">📝 Incolla testo</button>
+    </div>
+
+    <!-- Upload area -->
+    <div id="aiPanelFile">
+      <div class="fc-ai-dropzone" id="aiDropzone"
+           ondragover="event.preventDefault();this.classList.add('drag')"
+           ondragleave="this.classList.remove('drag')"
+           ondrop="_aiDrop(event)">
+        <div class="fc-ai-drop-icon">📄</div>
+        <div class="fc-ai-drop-txt">Trascina un PDF o file di testo</div>
+        <div class="fc-ai-drop-sub">oppure</div>
+        <label class="fc-btn fc-btn-ai" style="cursor:pointer;margin-top:6px">
+          Scegli file
+          <input type="file" id="aiFileInput" accept=".pdf,.txt,.md" style="display:none" onchange="_aiFileChosen(this)">
+        </label>
+        <div class="fc-ai-file-name" id="aiFileName"></div>
+      </div>
+    </div>
+
+    <!-- Paste text area -->
+    <div id="aiPanelText" style="display:none">
+      <textarea class="fc-modal-textarea" id="aiTextInput" placeholder="Incolla qui i tuoi appunti o il testo da cui generare le flashcard..." style="min-height:140px"></textarea>
+    </div>
+
+    <!-- Loading -->
+    <div id="aiLoading" style="display:none;text-align:center;padding:24px 0">
+      <div class="fc-ai-spinner"></div>
+      <div style="margin-top:10px;color:var(--text-soft);font-size:0.92rem">Generazione in corso...</div>
+    </div>
+
+    <!-- Preview carte generate -->
+    <div id="aiPreview" style="display:none">
+      <div class="fc-ai-preview-hdr">
+        <span id="aiPreviewCount">0 carte generate</span>
+        <button class="fc-ai-select-all" onclick="_aiToggleAll()">Deseleziona tutto</button>
+      </div>
+      <div class="fc-ai-preview-list" id="aiPreviewList"></div>
+      <button class="fc-modal-save-btn" onclick="_aiSaveCards()">
+        <i data-feather="save" class="nav-icon"></i> Aggiungi al mazzo
+      </button>
+    </div>
+
+    <!-- Errore -->
+    <div id="aiError" style="display:none;color:#ef4444;padding:10px 0;font-size:0.9rem;text-align:center"></div>
+
+    <button class="fc-modal-save-btn" id="aiBtnGenerate" onclick="_aiGenerate()">
+      ⚡ Genera Flashcard
+    </button>
   </div>
 </div>
 
@@ -988,6 +1056,152 @@ function closeModal(id) {
 }
 function overlayClick2(e, id) {
   if (e.target === e.currentTarget) closeModal(id);
+}
+
+/* ══════════════════════════════════════════
+   AI GENERATION
+   ══════════════════════════════════════════ */
+let _aiFile    = null;
+let _aiCards   = [];
+let _aiAllSel  = true;
+
+function openAiModal() {
+  _aiFile  = null;
+  _aiCards = [];
+  _aiAllSel = true;
+  document.getElementById('aiFileName').textContent   = '';
+  document.getElementById('aiTextInput').value        = '';
+  document.getElementById('aiPreview').style.display  = 'none';
+  document.getElementById('aiLoading').style.display  = 'none';
+  document.getElementById('aiError').style.display    = 'none';
+  document.getElementById('aiBtnGenerate').style.display = '';
+  document.getElementById('aiFileInput').value        = '';
+  _aiTab('file');
+  openModal('aiModal');
+}
+
+function _aiTab(tab) {
+  document.getElementById('aiPanelFile').style.display = tab==='file' ? '' : 'none';
+  document.getElementById('aiPanelText').style.display = tab==='text' ? '' : 'none';
+  document.getElementById('aiTabFile').classList.toggle('active', tab==='file');
+  document.getElementById('aiTabText').classList.toggle('active', tab==='text');
+}
+
+function _aiFileChosen(input) {
+  _aiFile = input.files[0] || null;
+  document.getElementById('aiFileName').textContent = _aiFile ? _aiFile.name : '';
+}
+
+function _aiDrop(e) {
+  e.preventDefault();
+  document.getElementById('aiDropzone').classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (!f) return;
+  _aiFile = f;
+  document.getElementById('aiFileName').textContent = f.name;
+}
+
+async function _aiGenerate() {
+  const tab = document.getElementById('aiPanelText').style.display === 'none' ? 'file' : 'text';
+  const auth = getAuth();
+  if (!auth) return;
+
+  let body, headers = { 'Authorization': 'Bearer ' + auth.token };
+
+  if (tab === 'file') {
+    if (!_aiFile) { _aiShowErr('Seleziona un file prima di generare.'); return; }
+    const fd = new FormData();
+    fd.append('file', _aiFile);
+    body = fd;
+  } else {
+    const text = document.getElementById('aiTextInput').value.trim();
+    if (!text) { _aiShowErr('Incolla del testo prima di generare.'); return; }
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify({ text });
+  }
+
+  document.getElementById('aiLoading').style.display      = '';
+  document.getElementById('aiBtnGenerate').style.display  = 'none';
+  document.getElementById('aiPreview').style.display      = 'none';
+  document.getElementById('aiError').style.display        = 'none';
+
+  try {
+    const base = (window.SF_API_BASE || '/api').replace(/\/$/, '');
+    const res  = await fetch(base + '/generate-flashcards', { method:'POST', headers, body });
+    const json = await res.json();
+    if (!res.ok || json.error) throw new Error(json.error || 'Errore server');
+    _aiCards = json.cards || [];
+    _aiShowPreview();
+  } catch(err) {
+    _aiShowErr(err.message || 'Errore durante la generazione');
+    document.getElementById('aiBtnGenerate').style.display = '';
+  } finally {
+    document.getElementById('aiLoading').style.display = 'none';
+  }
+}
+
+function _aiShowPreview() {
+  _aiAllSel = true;
+  document.getElementById('aiPreviewCount').textContent = `${_aiCards.length} carte generate`;
+  const list = document.getElementById('aiPreviewList');
+  list.innerHTML = _aiCards.map((c, i) => `
+    <div class="fc-ai-card-preview" id="aip-${i}">
+      <label class="fc-ai-card-check">
+        <input type="checkbox" checked onchange="_aiCheckCard(${i}, this.checked)">
+        <div class="fc-ai-card-texts">
+          <div class="fc-ai-card-front">${_esc(c.front)}</div>
+          <div class="fc-ai-card-back">${_esc(c.back)}</div>
+        </div>
+      </label>
+    </div>
+  `).join('');
+  document.getElementById('aiPreview').style.display    = '';
+  document.getElementById('aiBtnGenerate').style.display = 'none';
+  if (typeof feather !== 'undefined') feather.replace({ width:15, height:15, 'stroke-width':2 });
+}
+
+function _aiCheckCard(i, checked) {
+  _aiCards[i]._skip = !checked;
+}
+
+function _aiToggleAll() {
+  _aiAllSel = !_aiAllSel;
+  document.getElementById('aiPreviewList').querySelectorAll('input[type=checkbox]').forEach((cb, i) => {
+    cb.checked = _aiAllSel;
+    _aiCards[i]._skip = !_aiAllSel;
+  });
+  document.getElementById('aiPreviewList').querySelectorAll('.fc-ai-select-all').forEach(b => {
+    b.textContent = _aiAllSel ? 'Deseleziona tutto' : 'Seleziona tutto';
+  });
+  const btn = document.querySelector('#aiPreview .fc-ai-select-all');
+  if (btn) btn.textContent = _aiAllSel ? 'Deseleziona tutto' : 'Seleziona tutto';
+}
+
+function _aiSaveCards() {
+  if (!_currentDeckId) return;
+  const toAdd = _aiCards.filter(c => !c._skip);
+  if (!toAdd.length) { _aiShowErr('Seleziona almeno una carta.'); return; }
+  const data = _fcLoad();
+  const deck = data.decks.find(d => d.id === _currentDeckId);
+  if (!deck) return;
+  toAdd.forEach(c => {
+    deck.cards.push({
+      id:      _fcUUID(),
+      front:   c.front,
+      back:    c.back,
+      created: Date.now(),
+      sr:      { interval:1, ef:2.5, reps:0, due: Date.now() }
+    });
+  });
+  _fcSave(data);
+  closeModal('aiModal');
+  renderDeck(_currentDeckId);
+}
+
+function _aiShowErr(msg) {
+  const el = document.getElementById('aiError');
+  el.textContent = msg;
+  el.style.display = '';
 }
 
 /* ── Init ── */

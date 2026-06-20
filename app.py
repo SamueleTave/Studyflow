@@ -1622,6 +1622,73 @@ def admin_notify_user(uid):
     return jsonify({"ok": True})
 
 # ──────────────────────────────────────────
+# FLASHCARD AI GENERATION
+# ──────────────────────────────────────────
+
+@app.route('/api/generate-flashcards', methods=['POST'])
+def generate_flashcards():
+    user = get_auth_user(required=True)
+
+    text = ''
+    if 'file' in request.files:
+        f = request.files['file']
+        name = (f.filename or '').lower()
+        if name.endswith('.pdf'):
+            try:
+                import pdfplumber
+                with pdfplumber.open(f) as pdf:
+                    text = '\n'.join(p.extract_text() or '' for p in pdf.pages)
+            except Exception as e:
+                return jsonify({'error': f'Errore lettura PDF: {e}'}), 400
+        else:
+            try:
+                text = f.read().decode('utf-8', errors='ignore')
+            except Exception:
+                return jsonify({'error': 'Impossibile leggere il file'}), 400
+    elif request.is_json:
+        text = (request.json or {}).get('text', '')
+
+    text = text.strip()
+    if not text:
+        return jsonify({'error': 'Nessun testo trovato nel documento'}), 400
+
+    text = text[:16000]
+
+    api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+    if not api_key:
+        return jsonify({'error': 'ANTHROPIC_API_KEY non configurata sul server'}), 500
+
+    try:
+        import anthropic
+        client = anthropic.Anthropic(api_key=api_key)
+        prompt = (
+            "Sei un assistente per lo studio universitario. "
+            "Analizza il testo seguente e genera flashcard di studio in italiano.\n"
+            "Crea tra 10 e 25 flashcard pertinenti e utili.\n"
+            "Ogni flashcard:\n"
+            '  "front": domanda chiara, termine o concetto chiave\n'
+            '  "back":  risposta precisa, definizione o spiegazione\n\n'
+            "Rispondi SOLO con un array JSON valido, senza markdown ne testo aggiuntivo:\n"
+            '[{"front": "...", "back": "..."}, ...]\n\n'
+            f"Testo:\n{text}"
+        )
+        response = client.messages.create(
+            model='claude-haiku-4-5-20251001',
+            max_tokens=4096,
+            messages=[{'role': 'user', 'content': prompt}]
+        )
+        raw = response.content[0].text.strip()
+        m = re.search(r'\[.*\]', raw, re.DOTALL)
+        if not m:
+            return jsonify({'error': 'Risposta AI non valida'}), 500
+        cards = json_lib.loads(m.group())
+        cards = [c for c in cards if isinstance(c, dict) and c.get('front') and c.get('back')]
+        return jsonify({'cards': cards, 'total': len(cards)})
+    except Exception as e:
+        return jsonify({'error': f'Errore generazione AI: {e}'}), 500
+
+
+# ──────────────────────────────────────────
 # RUN
 # ──────────────────────────────────────────
 
