@@ -17,7 +17,7 @@ let _platypusX = 0, _platypusY = 0, _platypusScale = 1;
 
 const PLATYPUS_SVG = `
 <div class="platypus-dir-wrap">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 160" width="${PLATYPUS_W}" height="${Math.round(PLATYPUS_W * 1.777)}" aria-label="Ornitorinco">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 160" width="${PLATYPUS_W}" height="${Math.round(PLATYPUS_W * 160/140)}" aria-label="Ornitorinco">
     <!-- Ombra -->
     <ellipse cx="68" cy="156" rx="29" ry="5" fill="rgba(0,0,0,0.12)"/>
 
@@ -227,12 +227,42 @@ function setPlatypusHappy() {
 }
 
 function _onPlatypusClick() {
-  if (typeof earnCoins === 'function') {
-    earnCoins(1);
-    if (typeof checkAchievements === 'function') checkAchievements();
-  }
-  setPlatypusHappy();
+  clearTimeout(_platypusHappyTmr); clearTimeout(_platypusSleepTmr); _stopPlatypusWalking();
+  setPlatypusState('happy'); _startPlatypusWalking();
+  if (typeof earnCoins === 'function') { earnCoins(1); if (typeof checkAchievements === 'function') checkAchievements(); }
+  if (typeof showAnimalBubble === 'function') showAnimalBubble(['Bek bek! 🦆','Sono un platipus!','Nuoto veloce!','Trovato un verme!','Studia bene! 🌟'][Math.floor(Math.random()*5)]);
   if (typeof checkAnimalMood === 'function') checkAnimalMood(false);
+  _platypusHappyTmr = setTimeout(() => {
+    if (_platypusState === 'happy') {
+      setRaccoonState && 0; // noop
+      _stopPlatypusWalking(); _platypusGoHome(0); setPlatypusState('sitting');
+      _platypusSleepTmr = setTimeout(() => { if (_platypusState === 'sitting') setPlatypusState('sleeping'); }, 5000);
+    }
+  }, 3000);
+}
+
+function syncPlatypusToTimer(running, mode) {
+  if (!_platypusEl || _platypusEl.classList.contains('platypus-hidden')) return;
+  if (_platypusInGarden) return;
+  if (running) {
+    if (mode && mode !== 'work') {
+      _stopPlatypusWalking(); _platypusGoHome(1000);
+      clearTimeout(_platypusSleepTmr);
+      _platypusSleepTmr = setTimeout(() => {
+        setPlatypusState('sitting');
+        _platypusSleepTmr = setTimeout(() => setPlatypusState('sleeping'), 2500);
+      }, 1100);
+    } else {
+      _startPlatypusWalking();
+    }
+  } else {
+    _stopPlatypusWalking(); _platypusGoHome(1200);
+    clearTimeout(_platypusSleepTmr);
+    _platypusSleepTmr = setTimeout(() => {
+      if (_platypusState !== 'happy') setPlatypusState('sitting');
+      _platypusSleepTmr = setTimeout(() => { if (_platypusState === 'sitting') setPlatypusState('sleeping'); }, 4000);
+    }, 1350);
+  }
 }
 
 /* Entrata/uscita giardino */

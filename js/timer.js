@@ -204,9 +204,10 @@ function toggleTimer() {
     if (typeof syncFoxToTimer    === 'function') syncFoxToTimer(false);
     if (typeof syncLionToTimer   === 'function') syncLionToTimer(false);
     if (typeof syncGiraffeToTimer === 'function') syncGiraffeToTimer(false);
-    if (typeof syncDragonToTimer === 'function') syncDragonToTimer(false);
-    if (typeof syncOwlToTimer    === 'function') syncOwlToTimer(false);
-    if (typeof syncHydroToTimer  === 'function') syncHydroToTimer(false, timerMode);
+    if (typeof syncDragonToTimer   === 'function') syncDragonToTimer(false);
+    if (typeof syncOwlToTimer      === 'function') syncOwlToTimer(false);
+    if (typeof syncPlatypusToTimer === 'function') syncPlatypusToTimer(false);
+    if (typeof syncHydroToTimer    === 'function') syncHydroToTimer(false, timerMode);
     if (typeof setPresenceStudying === 'function') setPresenceStudying(false);
     _saveTimer();
   } else {
@@ -221,8 +222,9 @@ function toggleTimer() {
     if (typeof syncLionToTimer   === 'function') syncLionToTimer(true, timerMode);
     if (typeof syncGiraffeToTimer === 'function') syncGiraffeToTimer(true, timerMode);
     if (typeof syncDragonToTimer === 'function') syncDragonToTimer(true, timerMode);
-    if (typeof syncOwlToTimer    === 'function') syncOwlToTimer(true, timerMode);
-    if (typeof syncHydroToTimer === 'function') syncHydroToTimer(true, timerMode);
+    if (typeof syncOwlToTimer      === 'function') syncOwlToTimer(true, timerMode);
+    if (typeof syncPlatypusToTimer === 'function') syncPlatypusToTimer(true, timerMode);
+    if (typeof syncHydroToTimer    === 'function') syncHydroToTimer(true, timerMode);
     if (typeof setPresenceStudying === 'function') setPresenceStudying(timerMode === 'work');
     timerIv = setInterval(() => {
       if (timeLeft > 0) {
@@ -328,8 +330,9 @@ function _onEnd(silent) {
     if (typeof setLionHappy   === 'function') setLionHappy();
     if (typeof setGiraffeHappy === 'function') setGiraffeHappy();
     if (typeof setRaccoonHappy === 'function') setRaccoonHappy();
-    if (typeof setDragonHappy === 'function') setDragonHappy();
-    if (typeof _onOwlClick    === 'function') _onOwlClick();
+    if (typeof setDragonHappy    === 'function') setDragonHappy();
+    if (typeof setPlatypusHappy  === 'function') setPlatypusHappy();
+    if (typeof _onOwlClick       === 'function') _onOwlClick();
     if (typeof gardenSessionGrowth  === 'function') gardenSessionGrowth();
     if (typeof syncCatToTimer    === 'function') setTimeout(() => syncCatToTimer(false), 2200);
     if (typeof syncDogToTimer    === 'function') setTimeout(() => syncDogToTimer(false), 2200);
@@ -339,7 +342,8 @@ function _onEnd(silent) {
     if (typeof syncFoxToTimer    === 'function') setTimeout(() => syncFoxToTimer(false), 2200);
     if (typeof syncLionToTimer   === 'function') setTimeout(() => syncLionToTimer(false), 2200);
     if (typeof syncGiraffeToTimer === 'function') setTimeout(() => syncGiraffeToTimer(false), 2200);
-    if (typeof syncDragonToTimer === 'function') setTimeout(() => syncDragonToTimer(false), 2200);
+    if (typeof syncDragonToTimer   === 'function') setTimeout(() => syncDragonToTimer(false), 2200);
+    if (typeof syncPlatypusToTimer === 'function') setTimeout(() => syncPlatypusToTimer(false), 2200);
     if (typeof syncOwlToTimer    === 'function') setTimeout(() => syncOwlToTimer(false), 2200);
     if (typeof resetHydrationCounter === 'function') resetHydrationCounter();
 
