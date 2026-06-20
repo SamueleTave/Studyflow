@@ -15,6 +15,7 @@ let _giraffeSleepTmr  = null;
 let _giraffeHappyTmr  = null;
 let _giraffePauseNext = false;
 let _giraffeInGarden  = false;
+let _giraffeX = 0, _giraffeY = 0;
 
 const GIRAFFE_SVG = `
 <div class="giraffe-dir-wrap">
@@ -115,7 +116,9 @@ function initGiraffe() {
   _giraffeEl.className = 'giraffe-companion giraffe-hidden';
   _giraffeEl.innerHTML = GIRAFFE_SVG;
   _giraffeEl.title     = 'Clicca la giraffa!';
-  _giraffeEl.style.cssText = `position:fixed;right:${GIRAFFE_RIGHT}px;bottom:${GIRAFFE_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
+  _giraffeX = window.innerWidth - GIRAFFE_W - GIRAFFE_RIGHT;
+  _giraffeY = GIRAFFE_BOTTOM;
+  _giraffeEl.style.cssText = `position:fixed;left:0;bottom:0;will-change:transform;transform:translate(${_giraffeX}px,${-_giraffeY}px);z-index:600;cursor:pointer;`;
   _giraffeEl.addEventListener('click', _onGiraffeClick);
   (document.querySelector('.app') || document.body).appendChild(_giraffeEl);
   _giraffeHouseEl = _createGiraffeSavana(GIRAFFE_RIGHT, GIRAFFE_BOTTOM);
@@ -170,10 +173,13 @@ function hideGiraffe() {
 
 function _giraffeGoHome(delay) {
   clearInterval(_giraffeWalkIv);
+  _giraffeWalkIv = null;
   setTimeout(() => {
     if (!_giraffeEl) return;
-    _giraffeEl.style.transition = 'right 1.2s ease';
-    _giraffeEl.style.right = GIRAFFE_RIGHT + 'px';
+    const homeX = window.innerWidth - GIRAFFE_W - GIRAFFE_RIGHT;
+    _giraffeX = homeX; _giraffeY = GIRAFFE_BOTTOM;
+    _giraffeEl.style.transition = 'transform 1.2s ease';
+    _giraffeEl.style.transform = `translate(${_giraffeX}px, ${-_giraffeY}px)`;
     setTimeout(() => { if (_giraffeEl) _giraffeEl.style.transition = ''; }, 1300);
   }, delay);
 }
@@ -187,13 +193,23 @@ function _startGiraffeWalking() {
   if (_giraffeWalkIv) return;
   setGiraffeState('walking');
   let dir = -1;
-  let pos = GIRAFFE_RIGHT;
-  const maxR = window.innerWidth - GIRAFFE_W - 20;
+  _giraffeX = _giraffeX || (window.innerWidth - GIRAFFE_W - GIRAFFE_RIGHT);
+  _giraffeY = GIRAFFE_BOTTOM;
+  const margin = 20;
+  const maxX = window.innerWidth - GIRAFFE_W - margin;
   _giraffeWalkIv = setInterval(() => {
-    pos += dir * 1.5;
-    if (pos > maxR) { pos = maxR; dir = -1; _giraffeEl.querySelector('.giraffe-dir-wrap').style.transform = ''; }
-    if (pos < 10)   { pos = 10;   dir =  1; _giraffeEl.querySelector('.giraffe-dir-wrap').style.transform = 'scaleX(-1)'; }
-    if (_giraffeEl) _giraffeEl.style.right = pos + 'px';
+    _giraffeX += dir * 1.5;
+    if (_giraffeX > maxX) {
+      _giraffeX = maxX; dir = -1;
+      const dw = _giraffeEl.querySelector('.giraffe-dir-wrap');
+      if (dw) dw.style.transform = '';
+    }
+    if (_giraffeX < margin) {
+      _giraffeX = margin; dir = 1;
+      const dw = _giraffeEl.querySelector('.giraffe-dir-wrap');
+      if (dw) dw.style.transform = 'scaleX(-1)';
+    }
+    if (_giraffeEl) _giraffeEl.style.transform = `translate(${_giraffeX}px, ${-_giraffeY}px)`;
   }, 16);
 }
 

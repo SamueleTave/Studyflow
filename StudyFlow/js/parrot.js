@@ -14,6 +14,7 @@ let _parrotFlyIv      = null;
 let _parrotPerchedTmr = null;
 let _parrotTimerRunning = false;
 let _parrotInGarden   = false;
+let _parrotX = 0, _parrotY = 0, _parrotScale = 1;
 
 const PARROT_SVG = `
 <div class="parrot-dir-wrap">
@@ -106,7 +107,9 @@ function initParrot() {
   _parrotEl = document.createElement('div');
   _parrotEl.className = 'parrot-companion parrot-hidden';
   _parrotEl.innerHTML = PARROT_SVG;
-  _parrotEl.style.cssText = `position:fixed;right:${PARROT_RIGHT}px;top:${PARROT_TOP}px;left:auto;z-index:600;cursor:pointer;`;
+  _parrotX = window.innerWidth - PARROT_W - PARROT_RIGHT;
+  _parrotY = PARROT_TOP;
+  _parrotEl.style.cssText = `position:fixed;left:0;top:0;will-change:transform;transform:translate(${_parrotX}px,${_parrotY}px);z-index:600;cursor:pointer;`;
   _parrotEl.addEventListener('click', _onParrotClick);
   (document.querySelector('.app') || document.body).appendChild(_parrotEl);
 
@@ -179,24 +182,21 @@ function hideParrot() {
 /* ══════════════════════════
    POSIZIONE
    ══════════════════════════ */
-function _getParrotLeft()  { return _parrotEl.getBoundingClientRect().left; }
-function _getParrotTop()   { return _parrotEl.getBoundingClientRect().top; }
+function _getParrotLeft() { return _parrotX; }
+function _getParrotTop()  { return _parrotY; }
 
 function _moveParrotTo(targetLeft, targetTop, durationMs) {
-  const curLeft = _getParrotLeft();
-  const curTop  = _getParrotTop();
-  const goLeft  = targetLeft < curLeft;
-
+  const goLeft = targetLeft < _parrotX;
   _parrotEl.style.transition = 'none';
-  _parrotEl.style.right = 'auto';
-  _parrotEl.style.left  = curLeft + 'px';
-  _parrotEl.style.top   = curTop  + 'px';
+  _parrotEl.style.transform = _parrotScale !== 1
+    ? `translate(${_parrotX}px, ${_parrotY}px) scale(${_parrotScale})`
+    : `translate(${_parrotX}px, ${_parrotY}px)`;
   void _parrotEl.offsetWidth;
-
-  _parrotEl.style.transition = `left ${durationMs}ms cubic-bezier(0.4,0,0.6,1), top ${durationMs}ms cubic-bezier(0.4,0,0.6,1)`;
-  _parrotEl.style.left = targetLeft + 'px';
-  _parrotEl.style.top  = targetTop  + 'px';
-
+  _parrotEl.style.transition = `transform ${durationMs}ms cubic-bezier(0.4,0,0.6,1)`;
+  _parrotEl.style.transform = _parrotScale !== 1
+    ? `translate(${targetLeft}px, ${targetTop}px) scale(${_parrotScale})`
+    : `translate(${targetLeft}px, ${targetTop}px)`;
+  _parrotX = targetLeft; _parrotY = targetTop;
   const dir = _parrotEl.querySelector('.parrot-dir-wrap');
   if (dir) {
     dir.style.transition = 'transform 0.18s ease';
@@ -208,18 +208,10 @@ function _goParrotHome(ms = 1000) {
   const homeLeft = window.innerWidth - PARROT_W - PARROT_RIGHT;
   if (ms > 0) {
     _moveParrotTo(homeLeft, PARROT_TOP, ms);
-    setTimeout(() => {
-      if (!_parrotEl) return;
-      _parrotEl.style.transition = 'none';
-      _parrotEl.style.left  = 'auto';
-      _parrotEl.style.right = PARROT_RIGHT + 'px';
-      _parrotEl.style.top   = PARROT_TOP + 'px';
-    }, ms + 80);
   } else {
+    _parrotX = homeLeft; _parrotY = PARROT_TOP;
     _parrotEl.style.transition = 'none';
-    _parrotEl.style.right = PARROT_RIGHT + 'px';
-    _parrotEl.style.left  = 'auto';
-    _parrotEl.style.top   = PARROT_TOP + 'px';
+    _parrotEl.style.transform = `translate(${_parrotX}px, ${_parrotY}px)`;
   }
 }
 
@@ -276,7 +268,8 @@ function parrotEnterGarden() {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     if (rect.height < 10) return;
-    _parrotEl.style.transform = 'scale(0.5)';
+    _parrotScale = 0.5;
+    _parrotEl.style.transform = `translate(${_parrotX}px, ${_parrotY}px) scale(0.5)`;
     _parrotEl.style.transformOrigin = 'right top';
     const targetLeft = rect.left + rect.width * 0.55 - PARROT_W / 2;
     const targetTop  = rect.top + 10;
@@ -338,7 +331,9 @@ function parrotExitGarden() {
   if (!_parrotEl || _parrotEl.classList.contains('parrot-hidden')) return;
   if (!_parrotInGarden) return;
   _parrotInGarden = false;
-  _parrotEl.style.transform = '';
+  _parrotScale = 1;
+  _parrotEl.style.transition = 'none';
+  _parrotEl.style.transform = `translate(${_parrotX}px, ${_parrotY}px)`;
   _parrotEl.style.transformOrigin = '';
   _stopParrot();
   setParrotState('flying');

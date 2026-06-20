@@ -617,3 +617,30 @@
   .addtask-page { padding: 14px; }
   .priority-grid { grid-template-columns: repeat(2, 1fr); }
 }
+@media (max-width: 600px) {
+  .tasks-page  { padding: 8px 10px; padding-top: 66px; }
+  .addtask-page { padding: 10px; padding-top: 66px; }
+  /* Header tasks: titolo + badge su riga, bottone sotto */
+  .tasks-topbar { gap: 8px; }
+  /* Filtri scrollabili su mobile */
+  .filter-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-btn { flex-shrink: 0; font-size: 0.75rem; padding: 7px 13px; min-height: 38px; }
+  /* Task item più touch-friendly */
+  .task-item { padding: 12px 10px; gap: 10px; }
+  .task-check { width: 28px; height: 28px; min-width: 28px; font-size: 0.9rem; }
+  .task-text  { font-size: 0.88rem; }
+  /* Form nuova task */
+  .form-card  { padding: 16px 14px; }
+  .save-task-btn { min-height: 48px; font-size: 0.95rem; }
+  /* Priority e type button */
+  .priority-pill { min-height: 42px; font-size: 0.78rem; }
+  .type-btn { padding: 14px 8px; }
+}

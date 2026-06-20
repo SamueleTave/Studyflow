@@ -313,3 +313,9 @@
   .cal-layout { grid-template-columns: 1fr; }
   .cal-full .cal-cell { min-height: 56px; }
 }
+@media (max-width: 600px) {
+  .calendar-page { padding: 8px 10px; padding-top: 66px; }
+  .cal-full .cal-cell { min-height: 46px; font-size: 0.75rem; }
+  .cal-event-chip { font-size: 0.58rem; padding: 1px 4px; }
+  .mini-cal { display: none; }
+}

@@ -15,6 +15,7 @@ let _sleepTmr    = null;
 let _happyTmr    = null;
 let _blinkTmr    = null;
 let _catInGarden = false;
+let _catX = 0, _catY = 0, _catScale = 1;
 
 /* ══════════════════════════
    SVG con CSS custom props per i colori
@@ -241,11 +242,9 @@ function initCat() {
   _catEl.className = 'cat-companion cat-hidden';
   _catEl.innerHTML = CAT_SVG;
   _catEl.title     = 'Clicca il gatto!';
-  _catEl.style.position = 'fixed';
-  _catEl.style.right  = CAT_RIGHT_HOME + 'px';
-  _catEl.style.bottom = CAT_BOTTOM_HOME + 'px';
-  _catEl.style.left   = 'auto';
-  _catEl.style.zIndex = '600';
+  _catX = window.innerWidth - CAT_W - CAT_RIGHT_HOME;
+  _catY = CAT_BOTTOM_HOME;
+  _catEl.style.cssText = `position:fixed;left:0;bottom:0;will-change:transform;transform:translate(${_catX}px,${-_catY}px);z-index:600;cursor:pointer;`;
   _catEl.addEventListener('click', _onCatClick);
   (document.querySelector('.app') || document.body).appendChild(_catEl);
 
@@ -346,36 +345,21 @@ function hideCat() {
 /* ══════════════════════════
    POSIZIONE
    ══════════════════════════ */
-function _getCurrentLeft() {
-  /* Usa la posizione visiva reale (non lo stile inline che è già il target) */
-  return _catEl.getBoundingClientRect().left;
-}
-
-function _getCurrentBottom() {
-  const rect = _catEl.getBoundingClientRect();
-  return window.innerHeight - rect.bottom;
-}
+function _getCurrentLeft()   { return _catX; }
+function _getCurrentBottom() { return _catY; }
 
 function _moveTo(targetLeft, targetBottom, durationMs) {
-  const curLeft   = _getCurrentLeft();
-  const curBottom = _getCurrentBottom();
-  const goLeft    = targetLeft < curLeft;
-
-  /* 1. Congela il gatto alla posizione visiva attuale senza transition */
+  const goLeft = targetLeft < _catX;
   _catEl.style.transition = 'none';
-  _catEl.style.right  = 'auto';
-  _catEl.style.left   = curLeft + 'px';
-  _catEl.style.bottom = curBottom + 'px';
-
-  /* 2. Force-reflow: il browser applica i valori precedenti prima di continuare */
+  _catEl.style.transform = _catScale !== 1
+    ? `translate(${_catX}px, ${-_catY}px) scale(${_catScale})`
+    : `translate(${_catX}px, ${-_catY}px)`;
   void _catEl.offsetWidth;
-
-  /* 3. Ora imposta la transizione e il target — il browser anima dal punto attuale */
-  _catEl.style.transition = `left ${durationMs}ms cubic-bezier(0.42,0,0.58,1), bottom ${Math.round(durationMs * 0.75)}ms ease-in-out`;
-  _catEl.style.left   = targetLeft + 'px';
-  _catEl.style.bottom = targetBottom + 'px';
-
-  /* Flip direzione */
+  _catEl.style.transition = `transform ${durationMs}ms cubic-bezier(0.42,0,0.58,1)`;
+  _catEl.style.transform = _catScale !== 1
+    ? `translate(${targetLeft}px, ${-targetBottom}px) scale(${_catScale})`
+    : `translate(${targetLeft}px, ${-targetBottom}px)`;
+  _catX = targetLeft; _catY = targetBottom;
   const dir = _catEl.querySelector('.cat-dir-wrap');
   if (dir) {
     dir.style.transition = 'transform 0.18s ease';
@@ -388,20 +372,10 @@ function _goHome(durationMs = 1200) {
   if (durationMs > 0) {
     _moveTo(homeLeft, CAT_BOTTOM_HOME, durationMs);
   } else {
+    _catX = homeLeft; _catY = CAT_BOTTOM_HOME;
     _catEl.style.transition = 'none';
-    _catEl.style.right  = CAT_RIGHT_HOME + 'px';
-    _catEl.style.left   = 'auto';
-    _catEl.style.bottom = CAT_BOTTOM_HOME + 'px';
-    return;
+    _catEl.style.transform = `translate(${_catX}px, ${-_catY}px)`;
   }
-  /* Dopo l'arrivo riancora a right per resistere al resize */
-  setTimeout(() => {
-    if (!_catEl) return;
-    _catEl.style.transition = 'none';
-    _catEl.style.left   = 'auto';
-    _catEl.style.right  = CAT_RIGHT_HOME + 'px';
-    _catEl.style.bottom = CAT_BOTTOM_HOME + 'px';
-  }, durationMs + 80);
 }
 
 /* ══════════════════════════
@@ -465,7 +439,8 @@ function catEnterGarden() {
     const rect = canvas.getBoundingClientRect();
     if (rect.height < 10) return;
     // Shrink in garden
-    _catEl.style.transform = 'scale(0.45)';
+    _catScale = 0.45;
+    _catEl.style.transform = `translate(${_catX}px, ${-_catY}px) scale(0.45)`;
     _catEl.style.transformOrigin = 'left bottom';
     // Walk around garden
     _startGardenWalkCat(rect);
@@ -503,7 +478,9 @@ function catExitGarden() {
   if (!_catEl || _catEl.classList.contains('cat-hidden')) return;
   if (!_catInGarden) return;
   _catInGarden = false;
-  _catEl.style.transform = '';
+  _catScale = 1;
+  _catEl.style.transition = 'none';
+  _catEl.style.transform = `translate(${_catX}px, ${-_catY}px)`;
   _catEl.style.transformOrigin = '';
   _stopWalking();
   clearTimeout(_sleepTmr);

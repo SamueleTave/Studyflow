@@ -15,6 +15,7 @@ let _dragonSleepTmr  = null;
 let _dragonHappyTmr  = null;
 let _dragonPauseNext = false;
 let _dragonInGarden  = false;
+let _dragonX = 0, _dragonY = 0, _dragonScale = 1;
 
 const DRAGON_SVG = `
 <div class="dragon-dir-wrap">
@@ -102,7 +103,9 @@ function initDragon() {
   _dragonEl.className = 'dragon-companion dragon-hidden';
   _dragonEl.innerHTML = DRAGON_SVG;
   _dragonEl.title     = 'Clicca il drago!';
-  _dragonEl.style.cssText = `position:fixed;right:${_companionSlotRight('dragon')}px;bottom:${DRAGON_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
+  _dragonX = window.innerWidth - DRAGON_W - _companionSlotRight('dragon');
+  _dragonY = DRAGON_BOTTOM;
+  _dragonEl.style.cssText = `position:fixed;left:0;bottom:0;will-change:transform;transform:translate(${_dragonX}px,${-_dragonY}px);z-index:600;cursor:pointer;`;
   _dragonEl.addEventListener('click', _onDragonClick);
   (document.querySelector('.app') || document.body).appendChild(_dragonEl);
   _dragonHouseEl = _createDragonCave(DRAGON_RIGHT, DRAGON_BOTTOM);
@@ -134,23 +137,33 @@ function _updateDragonHouseVisibility() {
 function showDragonHouse() { _updateDragonHouseVisibility(); }
 function hideDragonHouse() { if (_dragonHouseEl) _dragonHouseEl.classList.add('house-hidden'); }
 
-function _dragonGetLeft() {
-  if (_dragonEl.style.left && _dragonEl.style.left !== 'auto') return parseFloat(_dragonEl.style.left);
-  return window.innerWidth - DRAGON_W - parseFloat(_dragonEl.style.right || _companionSlotRight('dragon'));
-}
+function _dragonGetLeft() { return _dragonX; }
+
 function _dragonMoveTo(tL, tB, dur) {
-  const cL = _dragonGetLeft(); const goLeft = tL < cL;
-  _dragonEl.style.transition = 'none'; _dragonEl.style.right = 'auto'; _dragonEl.style.left = cL + 'px'; _dragonEl.style.bottom = (parseFloat(_dragonEl.style.bottom)||DRAGON_BOTTOM) + 'px';
+  const goLeft = tL < _dragonX;
+  _dragonEl.style.transition = 'none';
+  _dragonEl.style.transform = _dragonScale !== 1
+    ? `translate(${_dragonX}px, ${-_dragonY}px) scale(${_dragonScale})`
+    : `translate(${_dragonX}px, ${-_dragonY}px)`;
   void _dragonEl.offsetWidth;
-  _dragonEl.style.transition = `left ${dur}ms cubic-bezier(0.42,0,0.58,1), bottom ${Math.round(dur*0.75)}ms ease-in-out`;
-  _dragonEl.style.left = tL + 'px'; _dragonEl.style.bottom = tB + 'px';
+  _dragonEl.style.transition = `transform ${dur}ms cubic-bezier(0.42,0,0.58,1)`;
+  _dragonEl.style.transform = _dragonScale !== 1
+    ? `translate(${tL}px, ${-tB}px) scale(${_dragonScale})`
+    : `translate(${tL}px, ${-tB}px)`;
+  _dragonX = tL; _dragonY = tB;
   const dir = _dragonEl.querySelector('.dragon-dir-wrap');
   if (dir) { dir.style.transition = 'transform 0.18s ease'; dir.style.transform = `scaleX(${goLeft ? -1 : 1})`; }
 }
+
 function _dragonGoHome(dur) {
   const hL = window.innerWidth - DRAGON_W - _companionSlotRight('dragon');
-  if (dur > 0) { _dragonMoveTo(hL, DRAGON_BOTTOM, dur); setTimeout(() => { if (!_dragonEl) return; _dragonEl.style.transition = 'none'; _dragonEl.style.left = 'auto'; _dragonEl.style.right = _companionSlotRight('dragon') + 'px'; _dragonEl.style.bottom = DRAGON_BOTTOM + 'px'; }, dur + 80); }
-  else { _dragonEl.style.transition = 'none'; _dragonEl.style.right = _companionSlotRight('dragon') + 'px'; _dragonEl.style.left = 'auto'; _dragonEl.style.bottom = DRAGON_BOTTOM + 'px'; }
+  if (dur > 0) {
+    _dragonMoveTo(hL, DRAGON_BOTTOM, dur);
+  } else {
+    _dragonX = hL; _dragonY = DRAGON_BOTTOM;
+    _dragonEl.style.transition = 'none';
+    _dragonEl.style.transform = `translate(${_dragonX}px, ${-_dragonY}px)`;
+  }
 }
 function _stopDragonWalking() { clearInterval(_dragonWalkIv); clearTimeout(_dragonSleepTmr); _dragonWalkIv = null; }
 function _startDragonWalking() {
@@ -209,7 +222,8 @@ function dragonEnterGarden() {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     if (rect.height < 10) return;
-    _dragonEl.style.transform = 'scale(0.45)';
+    _dragonScale = 0.45;
+    _dragonEl.style.transform = `translate(${_dragonX}px, ${-_dragonY}px) scale(0.45)`;
     _dragonEl.style.transformOrigin = 'left bottom';
     _startGardenWalkDragon(rect);
   }, 900);
@@ -245,7 +259,9 @@ function dragonExitGarden() {
   if (!_dragonEl || _dragonEl.classList.contains('dragon-hidden')) return;
   if (!_dragonInGarden) return;
   _dragonInGarden = false;
-  _dragonEl.style.transform = '';
+  _dragonScale = 1;
+  _dragonEl.style.transition = 'none';
+  _dragonEl.style.transform = `translate(${_dragonX}px, ${-_dragonY}px)`;
   _dragonEl.style.transformOrigin = '';
   _stopDragonWalking();
   clearTimeout(_dragonSleepTmr);

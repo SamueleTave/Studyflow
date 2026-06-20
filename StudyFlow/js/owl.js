@@ -15,6 +15,7 @@ let _owlPerchedTmr = null;
 let _owlTimerRunning = false;
 let _owlBlinkTmr   = null;
 let _owlInGarden   = false;
+let _owlX = 0, _owlY = 0, _owlScale = 1;
 
 const OWL_SVG = `
 <div class="owl-dir-wrap">
@@ -110,7 +111,9 @@ function initOwl() {
   _owlEl.className = 'owl-companion owl-hidden';
   _owlEl.innerHTML = OWL_SVG;
   _owlEl.title     = 'Clicca il gufo!';
-  _owlEl.style.cssText = `position:fixed;right:${OWL_RIGHT}px;top:${OWL_TOP}px;left:auto;z-index:600;cursor:pointer;`;
+  _owlX = window.innerWidth - OWL_W - OWL_RIGHT;
+  _owlY = OWL_TOP;
+  _owlEl.style.cssText = `position:fixed;left:0;top:0;will-change:transform;transform:translate(${_owlX}px,${_owlY}px);z-index:600;cursor:pointer;`;
   _owlEl.addEventListener('click', _onOwlClick);
   (document.querySelector('.app') || document.body).appendChild(_owlEl);
 
@@ -181,24 +184,21 @@ function hideOwl() {
 /* ══════════════════════════
    POSIZIONE
    ══════════════════════════ */
-function _getOwlLeft() { return _owlEl.getBoundingClientRect().left; }
-function _getOwlTop()  { return _owlEl.getBoundingClientRect().top; }
+function _getOwlLeft() { return _owlX; }
+function _getOwlTop()  { return _owlY; }
 
 function _moveOwlTo(targetLeft, targetTop, durationMs) {
-  const curLeft = _getOwlLeft();
-  const curTop  = _getOwlTop();
-  const goLeft  = targetLeft < curLeft;
-
+  const goLeft = targetLeft < _owlX;
   _owlEl.style.transition = 'none';
-  _owlEl.style.right = 'auto';
-  _owlEl.style.left  = curLeft + 'px';
-  _owlEl.style.top   = curTop  + 'px';
+  _owlEl.style.transform = _owlScale !== 1
+    ? `translate(${_owlX}px, ${_owlY}px) scale(${_owlScale})`
+    : `translate(${_owlX}px, ${_owlY}px)`;
   void _owlEl.offsetWidth;
-
-  _owlEl.style.transition = `left ${durationMs}ms cubic-bezier(0.4,0,0.6,1), top ${durationMs}ms cubic-bezier(0.4,0,0.6,1)`;
-  _owlEl.style.left = targetLeft + 'px';
-  _owlEl.style.top  = targetTop  + 'px';
-
+  _owlEl.style.transition = `transform ${durationMs}ms cubic-bezier(0.4,0,0.6,1)`;
+  _owlEl.style.transform = _owlScale !== 1
+    ? `translate(${targetLeft}px, ${targetTop}px) scale(${_owlScale})`
+    : `translate(${targetLeft}px, ${targetTop}px)`;
+  _owlX = targetLeft; _owlY = targetTop;
   const dir = _owlEl.querySelector('.owl-dir-wrap');
   if (dir) {
     dir.style.transition = 'transform 0.18s ease';
@@ -210,18 +210,10 @@ function _goOwlHome(ms = 1000) {
   const homeLeft = window.innerWidth - OWL_W - OWL_RIGHT;
   if (ms > 0) {
     _moveOwlTo(homeLeft, OWL_TOP, ms);
-    setTimeout(() => {
-      if (!_owlEl) return;
-      _owlEl.style.transition = 'none';
-      _owlEl.style.left  = 'auto';
-      _owlEl.style.right = OWL_RIGHT + 'px';
-      _owlEl.style.top   = OWL_TOP + 'px';
-    }, ms + 80);
   } else {
+    _owlX = homeLeft; _owlY = OWL_TOP;
     _owlEl.style.transition = 'none';
-    _owlEl.style.right = OWL_RIGHT + 'px';
-    _owlEl.style.left  = 'auto';
-    _owlEl.style.top   = OWL_TOP + 'px';
+    _owlEl.style.transform = `translate(${_owlX}px, ${_owlY}px)`;
   }
 }
 
@@ -277,7 +269,8 @@ function owlEnterGarden() {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     if (rect.height < 10) return;
-    _owlEl.style.transform = 'scale(0.5)';
+    _owlScale = 0.5;
+    _owlEl.style.transform = `translate(${_owlX}px, ${_owlY}px) scale(0.5)`;
     _owlEl.style.transformOrigin = 'right top';
     const targetLeft = rect.left + rect.width * 0.7 - OWL_W / 2;
     const targetTop  = rect.top + 8;
@@ -336,7 +329,9 @@ function owlExitGarden() {
   if (!_owlEl || _owlEl.classList.contains('owl-hidden')) return;
   if (!_owlInGarden) return;
   _owlInGarden = false;
-  _owlEl.style.transform = '';
+  _owlScale = 1;
+  _owlEl.style.transition = 'none';
+  _owlEl.style.transform = `translate(${_owlX}px, ${_owlY}px)`;
   _owlEl.style.transformOrigin = '';
   _stopOwl();
   setOwlState('flying');

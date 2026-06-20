@@ -13,6 +13,7 @@ let _rabbitState    = 'sitting';
 let _rabbitWalkIv   = null;
 let _rabbitSleepTmr = null;
 let _rabbitInGarden = false;
+let _rabbitX = 0, _rabbitY = 0, _rabbitScale = 1;
 
 const RABBIT_SVG = `
 <div class="rabbit-dir-wrap">
@@ -91,7 +92,9 @@ function initRabbit() {
   _rabbitEl = document.createElement('div');
   _rabbitEl.className = 'rabbit-companion rabbit-hidden';
   _rabbitEl.innerHTML = RABBIT_SVG;
-  _rabbitEl.style.cssText = `position:fixed;right:${_companionSlotRight('rabbit')}px;bottom:${RABBIT_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
+  _rabbitX = window.innerWidth - RABBIT_W - _companionSlotRight('rabbit');
+  _rabbitY = RABBIT_BOTTOM;
+  _rabbitEl.style.cssText = `position:fixed;left:0;bottom:0;will-change:transform;transform:translate(${_rabbitX}px,${-_rabbitY}px);z-index:600;cursor:pointer;`;
   _rabbitEl.addEventListener('click', _onRabbitClick);
   (document.querySelector('.app') || document.body).appendChild(_rabbitEl);
 
@@ -161,27 +164,21 @@ function hideRabbit() {
 /* ══════════════════════════
    POSIZIONE
    ══════════════════════════ */
-function _getRabbitLeft() { return _rabbitEl.getBoundingClientRect().left; }
-function _getRabbitBottom() {
-  const r = _rabbitEl.getBoundingClientRect();
-  return window.innerHeight - r.bottom;
-}
+function _getRabbitLeft()   { return _rabbitX; }
+function _getRabbitBottom() { return _rabbitY; }
 
 function _moveRabbitTo(targetLeft, targetBottom, durationMs) {
-  const curLeft   = _getRabbitLeft();
-  const curBottom = _getRabbitBottom();
-  const goLeft    = targetLeft < curLeft;
-
+  const goLeft = targetLeft < _rabbitX;
   _rabbitEl.style.transition = 'none';
-  _rabbitEl.style.right  = 'auto';
-  _rabbitEl.style.left   = curLeft + 'px';
-  _rabbitEl.style.bottom = curBottom + 'px';
+  _rabbitEl.style.transform = _rabbitScale !== 1
+    ? `translate(${_rabbitX}px, ${-_rabbitY}px) scale(${_rabbitScale})`
+    : `translate(${_rabbitX}px, ${-_rabbitY}px)`;
   void _rabbitEl.offsetWidth;
-
-  _rabbitEl.style.transition = `left ${durationMs}ms cubic-bezier(0.42,0,0.58,1), bottom ${Math.round(durationMs*0.8)}ms ease-in-out`;
-  _rabbitEl.style.left   = targetLeft + 'px';
-  _rabbitEl.style.bottom = targetBottom + 'px';
-
+  _rabbitEl.style.transition = `transform ${durationMs}ms cubic-bezier(0.42,0,0.58,1)`;
+  _rabbitEl.style.transform = _rabbitScale !== 1
+    ? `translate(${targetLeft}px, ${-targetBottom}px) scale(${_rabbitScale})`
+    : `translate(${targetLeft}px, ${-targetBottom}px)`;
+  _rabbitX = targetLeft; _rabbitY = targetBottom;
   const dir = _rabbitEl.querySelector('.rabbit-dir-wrap');
   if (dir) {
     dir.style.transition = 'transform 0.15s ease';
@@ -193,18 +190,10 @@ function _goRabbitHome(ms = 1200) {
   const homeLeft = window.innerWidth - RABBIT_W - _companionSlotRight('rabbit');
   if (ms > 0) {
     _moveRabbitTo(homeLeft, RABBIT_BOTTOM, ms);
-    setTimeout(() => {
-      if (!_rabbitEl) return;
-      _rabbitEl.style.transition = 'none';
-      _rabbitEl.style.left   = 'auto';
-      _rabbitEl.style.right  = _companionSlotRight('rabbit') + 'px';
-      _rabbitEl.style.bottom = RABBIT_BOTTOM + 'px';
-    }, ms + 80);
   } else {
+    _rabbitX = homeLeft; _rabbitY = RABBIT_BOTTOM;
     _rabbitEl.style.transition = 'none';
-    _rabbitEl.style.right  = _companionSlotRight('rabbit') + 'px';
-    _rabbitEl.style.left   = 'auto';
-    _rabbitEl.style.bottom = RABBIT_BOTTOM + 'px';
+    _rabbitEl.style.transform = `translate(${_rabbitX}px, ${-_rabbitY}px)`;
   }
 }
 
@@ -255,7 +244,8 @@ function rabbitEnterGarden() {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     if (rect.height < 10) return;
-    _rabbitEl.style.transform = 'scale(0.45)';
+    _rabbitScale = 0.45;
+    _rabbitEl.style.transform = `translate(${_rabbitX}px, ${-_rabbitY}px) scale(0.45)`;
     _rabbitEl.style.transformOrigin = 'left bottom';
     _startGardenWalkRabbit(rect);
   }, 900);
@@ -317,7 +307,9 @@ function rabbitExitGarden() {
   if (!_rabbitEl || _rabbitEl.classList.contains('rabbit-hidden')) return;
   if (!_rabbitInGarden) return;
   _rabbitInGarden = false;
-  _rabbitEl.style.transform = '';
+  _rabbitScale = 1;
+  _rabbitEl.style.transition = 'none';
+  _rabbitEl.style.transform = `translate(${_rabbitX}px, ${-_rabbitY}px)`;
   _rabbitEl.style.transformOrigin = '';
   _stopRabbit();
   setRabbitState('hopping');

@@ -15,6 +15,7 @@ let _raccoonSleepTmr  = null;
 let _raccoonHappyTmr  = null;
 let _raccoonPauseNext = false;
 let _raccoonInGarden  = false;
+let _raccoonX = 0, _raccoonY = 0, _raccoonScale = 1;
 
 const RACCOON_SVG = `
 <div class="raccoon-dir-wrap">
@@ -98,7 +99,9 @@ function initRaccoon() {
   _raccoonEl.className = 'raccoon-companion raccoon-hidden';
   _raccoonEl.innerHTML = RACCOON_SVG;
   _raccoonEl.title     = 'Clicca il procione!';
-  _raccoonEl.style.cssText = `position:fixed;right:${_companionSlotRight('raccoon')}px;bottom:${RACCOON_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
+  _raccoonX = window.innerWidth - RACCOON_W - _companionSlotRight('raccoon');
+  _raccoonY = RACCOON_BOTTOM;
+  _raccoonEl.style.cssText = `position:fixed;left:0;bottom:0;will-change:transform;transform:translate(${_raccoonX}px,${-_raccoonY}px);z-index:600;cursor:pointer;`;
   _raccoonEl.addEventListener('click', _onRaccoonClick);
   (document.querySelector('.app') || document.body).appendChild(_raccoonEl);
   _raccoonHouseEl = _createRaccoonHouse(RACCOON_RIGHT, RACCOON_BOTTOM);
@@ -130,43 +133,33 @@ function _updateRaccoonHouseVisibility() {
 function showRaccoonHouse() { _updateRaccoonHouseVisibility(); }
 function hideRaccoonHouse() { if (_raccoonHouseEl) _raccoonHouseEl.classList.add('house-hidden'); }
 
-function _raccoonGetLeft() {
-  if (_raccoonEl.style.left && _raccoonEl.style.left !== 'auto') return parseFloat(_raccoonEl.style.left);
-  return window.innerWidth - RACCOON_W - parseFloat(_raccoonEl.style.right || _companionSlotRight('raccoon'));
-}
-function _raccoonGetBottom() {
-  return parseFloat(_raccoonEl.style.bottom || RACCOON_BOTTOM);
-}
+function _raccoonGetLeft()   { return _raccoonX; }
+function _raccoonGetBottom() { return _raccoonY; }
+
 function _raccoonMoveTo(targetLeft, targetBottom, durationMs) {
-  const curLeft = _raccoonGetLeft();
-  const goLeft  = targetLeft < curLeft;
+  const goLeft = targetLeft < _raccoonX;
   _raccoonEl.style.transition = 'none';
-  _raccoonEl.style.right = 'auto';
-  _raccoonEl.style.left = curLeft + 'px';
-  _raccoonEl.style.bottom = _raccoonGetBottom() + 'px';
+  _raccoonEl.style.transform = _raccoonScale !== 1
+    ? `translate(${_raccoonX}px, ${-_raccoonY}px) scale(${_raccoonScale})`
+    : `translate(${_raccoonX}px, ${-_raccoonY}px)`;
   void _raccoonEl.offsetWidth;
-  _raccoonEl.style.transition = `left ${durationMs}ms cubic-bezier(0.42,0,0.58,1), bottom ${Math.round(durationMs*0.75)}ms ease-in-out`;
-  _raccoonEl.style.left = targetLeft + 'px';
-  _raccoonEl.style.bottom = targetBottom + 'px';
+  _raccoonEl.style.transition = `transform ${durationMs}ms cubic-bezier(0.42,0,0.58,1)`;
+  _raccoonEl.style.transform = _raccoonScale !== 1
+    ? `translate(${targetLeft}px, ${-targetBottom}px) scale(${_raccoonScale})`
+    : `translate(${targetLeft}px, ${-targetBottom}px)`;
+  _raccoonX = targetLeft; _raccoonY = targetBottom;
   const dir = _raccoonEl.querySelector('.raccoon-dir-wrap');
   if (dir) { dir.style.transition = 'transform 0.18s ease'; dir.style.transform = `scaleX(${goLeft ? -1 : 1})`; }
 }
+
 function _raccoonGoHome(durationMs) {
   const homeLeft = window.innerWidth - RACCOON_W - _companionSlotRight('raccoon');
   if (durationMs > 0) {
     _raccoonMoveTo(homeLeft, RACCOON_BOTTOM, durationMs);
-    setTimeout(() => {
-      if (!_raccoonEl) return;
-      _raccoonEl.style.transition = 'none';
-      _raccoonEl.style.left = 'auto';
-      _raccoonEl.style.right = _companionSlotRight('raccoon') + 'px';
-      _raccoonEl.style.bottom = RACCOON_BOTTOM + 'px';
-    }, durationMs + 80);
   } else {
+    _raccoonX = homeLeft; _raccoonY = RACCOON_BOTTOM;
     _raccoonEl.style.transition = 'none';
-    _raccoonEl.style.right = _companionSlotRight('raccoon') + 'px';
-    _raccoonEl.style.left = 'auto';
-    _raccoonEl.style.bottom = RACCOON_BOTTOM + 'px';
+    _raccoonEl.style.transform = `translate(${_raccoonX}px, ${-_raccoonY}px)`;
   }
 }
 function _stopRaccoonWalking() { clearInterval(_raccoonWalkIv); clearTimeout(_raccoonSleepTmr); _raccoonWalkIv = null; }
@@ -236,7 +229,8 @@ function raccoonEnterGarden() {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     if (rect.height < 10) return;
-    _raccoonEl.style.transform = 'scale(0.45)';
+    _raccoonScale = 0.45;
+    _raccoonEl.style.transform = `translate(${_raccoonX}px, ${-_raccoonY}px) scale(0.45)`;
     _raccoonEl.style.transformOrigin = 'left bottom';
     _startGardenWalkRaccoon(rect);
   }, 900);
@@ -272,7 +266,9 @@ function raccoonExitGarden() {
   if (!_raccoonEl || _raccoonEl.classList.contains('raccoon-hidden')) return;
   if (!_raccoonInGarden) return;
   _raccoonInGarden = false;
-  _raccoonEl.style.transform = '';
+  _raccoonScale = 1;
+  _raccoonEl.style.transition = 'none';
+  _raccoonEl.style.transform = `translate(${_raccoonX}px, ${-_raccoonY}px)`;
   _raccoonEl.style.transformOrigin = '';
   _stopRaccoonWalking();
   clearTimeout(_raccoonSleepTmr);

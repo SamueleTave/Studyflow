@@ -25,6 +25,7 @@ let _dogSleepTmr  = null;
 let _dogHappyTmr  = null;
 let _dogPauseNext = false;
 let _dogInGarden  = false;
+let _dogX = 0, _dogY = 0, _dogScale = 1;
 
 /* ─── SVG cagnolino di profilo (guarda a destra) ─── */
 const DOG_SVG = `
@@ -136,11 +137,9 @@ function initDog() {
   _dogEl.className = 'dog-companion dog-hidden';
   _dogEl.innerHTML = DOG_SVG;
   _dogEl.title     = 'Clicca il cagnolino!';
-  _dogEl.style.position = 'fixed';
-  _dogEl.style.right    = _companionSlotRight('dog') + 'px';
-  _dogEl.style.bottom   = DOG_BOTTOM_HOME + 'px';
-  _dogEl.style.left     = 'auto';
-  _dogEl.style.zIndex   = '600';
+  _dogX = window.innerWidth - DOG_W - _companionSlotRight('dog');
+  _dogY = DOG_BOTTOM_HOME;
+  _dogEl.style.cssText = `position:fixed;left:0;bottom:0;will-change:transform;transform:translate(${_dogX}px,${-_dogY}px);z-index:600;cursor:pointer;`;
   _dogEl.addEventListener('click', _onDogClick);
   (document.querySelector('.app') || document.body).appendChild(_dogEl);
 
@@ -207,29 +206,21 @@ function setDogState(state) {
 /* ──────────────────────────
    POSIZIONE
    ────────────────────────── */
-function _dogGetLeft() {
-  return _dogEl.getBoundingClientRect().left;
-}
-function _dogGetBottom() {
-  const r = _dogEl.getBoundingClientRect();
-  return window.innerHeight - r.bottom;
-}
+function _dogGetLeft()   { return _dogX; }
+function _dogGetBottom() { return _dogY; }
 
 function _dogMoveTo(targetLeft, targetBottom, durationMs) {
-  const curLeft   = _dogGetLeft();
-  const curBottom = _dogGetBottom();
-  const goLeft    = targetLeft < curLeft;
-
+  const goLeft = targetLeft < _dogX;
   _dogEl.style.transition = 'none';
-  _dogEl.style.right      = 'auto';
-  _dogEl.style.left       = curLeft + 'px';
-  _dogEl.style.bottom     = curBottom + 'px';
+  _dogEl.style.transform = _dogScale !== 1
+    ? `translate(${_dogX}px, ${-_dogY}px) scale(${_dogScale})`
+    : `translate(${_dogX}px, ${-_dogY}px)`;
   void _dogEl.offsetWidth;
-
-  _dogEl.style.transition = `left ${durationMs}ms cubic-bezier(0.42,0,0.58,1), bottom ${Math.round(durationMs*0.75)}ms ease-in-out`;
-  _dogEl.style.left   = targetLeft + 'px';
-  _dogEl.style.bottom = targetBottom + 'px';
-
+  _dogEl.style.transition = `transform ${durationMs}ms cubic-bezier(0.42,0,0.58,1)`;
+  _dogEl.style.transform = _dogScale !== 1
+    ? `translate(${targetLeft}px, ${-targetBottom}px) scale(${_dogScale})`
+    : `translate(${targetLeft}px, ${-targetBottom}px)`;
+  _dogX = targetLeft; _dogY = targetBottom;
   const dir = _dogEl.querySelector('.dog-dir-wrap');
   if (dir) {
     dir.style.transition = 'transform 0.18s ease';
@@ -241,18 +232,10 @@ function _dogGoHome(durationMs) {
   const homeLeft = window.innerWidth - DOG_W - _companionSlotRight('dog');
   if (durationMs > 0) {
     _dogMoveTo(homeLeft, DOG_BOTTOM_HOME, durationMs);
-    setTimeout(() => {
-      if (!_dogEl) return;
-      _dogEl.style.transition = 'none';
-      _dogEl.style.left       = 'auto';
-      _dogEl.style.right = _companionSlotRight('dog') + 'px';
-      _dogEl.style.bottom     = DOG_BOTTOM_HOME + 'px';
-    }, durationMs + 80);
   } else {
+    _dogX = homeLeft; _dogY = DOG_BOTTOM_HOME;
     _dogEl.style.transition = 'none';
-    _dogEl.style.right = _companionSlotRight('dog') + 'px';
-    _dogEl.style.left       = 'auto';
-    _dogEl.style.bottom     = DOG_BOTTOM_HOME + 'px';
+    _dogEl.style.transform = `translate(${_dogX}px, ${-_dogY}px)`;
   }
 }
 
@@ -311,7 +294,8 @@ function dogEnterGarden() {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     if (rect.height < 10) return;
-    _dogEl.style.transform = 'scale(0.45)';
+    _dogScale = 0.45;
+    _dogEl.style.transform = `translate(${_dogX}px, ${-_dogY}px) scale(0.45)`;
     _dogEl.style.transformOrigin = 'left bottom';
     _startGardenWalkDog(rect);
   }, 900);
@@ -373,7 +357,9 @@ function dogExitGarden() {
   if (!_dogEl || _dogEl.classList.contains('dog-hidden')) return;
   if (!_dogInGarden) return;
   _dogInGarden = false;
-  _dogEl.style.transform = '';
+  _dogScale = 1;
+  _dogEl.style.transition = 'none';
+  _dogEl.style.transform = `translate(${_dogX}px, ${-_dogY}px)`;
   _dogEl.style.transformOrigin = '';
   _stopDogWalking();
   clearTimeout(_dogSleepTmr);

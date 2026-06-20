@@ -15,6 +15,7 @@ let _foxSleepTmr  = null;
 let _foxHappyTmr  = null;
 let _foxPauseNext = false;
 let _foxInGarden  = false;
+let _foxX = 0, _foxY = 0, _foxScale = 1;
 
 const FOX_SVG = `
 <div class="fox-dir-wrap">
@@ -109,7 +110,9 @@ function initFox() {
   _foxEl.className = 'fox-companion fox-hidden';
   _foxEl.innerHTML = FOX_SVG;
   _foxEl.title     = 'Clicca la volpe!';
-  _foxEl.style.cssText = `position:fixed;right:${_companionSlotRight('fox')}px;bottom:${FOX_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
+  _foxX = window.innerWidth - FOX_W - _companionSlotRight('fox');
+  _foxY = FOX_BOTTOM;
+  _foxEl.style.cssText = `position:fixed;left:0;bottom:0;will-change:transform;transform:translate(${_foxX}px,${-_foxY}px);z-index:600;cursor:pointer;`;
   _foxEl.addEventListener('click', _onFoxClick);
   (document.querySelector('.app') || document.body).appendChild(_foxEl);
 
@@ -173,24 +176,21 @@ function hideFox() {
 /* ══════════════════════════
    POSIZIONE
    ══════════════════════════ */
-function _foxGetLeft()   { return _foxEl.getBoundingClientRect().left; }
-function _foxGetBottom() { const r = _foxEl.getBoundingClientRect(); return window.innerHeight - r.bottom; }
+function _foxGetLeft()   { return _foxX; }
+function _foxGetBottom() { return _foxY; }
 
 function _foxMoveTo(targetLeft, targetBottom, durationMs) {
-  const curLeft   = _foxGetLeft();
-  const curBottom = _foxGetBottom();
-  const goLeft    = targetLeft < curLeft;
-
+  const goLeft = targetLeft < _foxX;
   _foxEl.style.transition = 'none';
-  _foxEl.style.right      = 'auto';
-  _foxEl.style.left       = curLeft + 'px';
-  _foxEl.style.bottom     = curBottom + 'px';
+  _foxEl.style.transform = _foxScale !== 1
+    ? `translate(${_foxX}px, ${-_foxY}px) scale(${_foxScale})`
+    : `translate(${_foxX}px, ${-_foxY}px)`;
   void _foxEl.offsetWidth;
-
-  _foxEl.style.transition = `left ${durationMs}ms cubic-bezier(0.42,0,0.58,1), bottom ${Math.round(durationMs*0.75)}ms ease-in-out`;
-  _foxEl.style.left   = targetLeft + 'px';
-  _foxEl.style.bottom = targetBottom + 'px';
-
+  _foxEl.style.transition = `transform ${durationMs}ms cubic-bezier(0.42,0,0.58,1)`;
+  _foxEl.style.transform = _foxScale !== 1
+    ? `translate(${targetLeft}px, ${-targetBottom}px) scale(${_foxScale})`
+    : `translate(${targetLeft}px, ${-targetBottom}px)`;
+  _foxX = targetLeft; _foxY = targetBottom;
   const dir = _foxEl.querySelector('.fox-dir-wrap');
   if (dir) {
     dir.style.transition = 'transform 0.18s ease';
@@ -202,18 +202,10 @@ function _foxGoHome(durationMs) {
   const homeLeft = window.innerWidth - FOX_W - _companionSlotRight('fox');
   if (durationMs > 0) {
     _foxMoveTo(homeLeft, FOX_BOTTOM, durationMs);
-    setTimeout(() => {
-      if (!_foxEl) return;
-      _foxEl.style.transition = 'none';
-      _foxEl.style.left   = 'auto';
-      _foxEl.style.right  = _companionSlotRight('fox') + 'px';
-      _foxEl.style.bottom = FOX_BOTTOM + 'px';
-    }, durationMs + 80);
   } else {
+    _foxX = homeLeft; _foxY = FOX_BOTTOM;
     _foxEl.style.transition = 'none';
-    _foxEl.style.right  = _companionSlotRight('fox') + 'px';
-    _foxEl.style.left   = 'auto';
-    _foxEl.style.bottom = FOX_BOTTOM + 'px';
+    _foxEl.style.transform = `translate(${_foxX}px, ${-_foxY}px)`;
   }
 }
 
@@ -268,7 +260,8 @@ function foxEnterGarden() {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     if (rect.height < 10) return;
-    _foxEl.style.transform = 'scale(0.45)';
+    _foxScale = 0.45;
+    _foxEl.style.transform = `translate(${_foxX}px, ${-_foxY}px) scale(0.45)`;
     _foxEl.style.transformOrigin = 'left bottom';
     _startGardenWalkFox(rect);
   }, 900);
@@ -330,7 +323,9 @@ function foxExitGarden() {
   if (!_foxEl || _foxEl.classList.contains('fox-hidden')) return;
   if (!_foxInGarden) return;
   _foxInGarden = false;
-  _foxEl.style.transform = '';
+  _foxScale = 1;
+  _foxEl.style.transition = 'none';
+  _foxEl.style.transform = `translate(${_foxX}px, ${-_foxY}px)`;
   _foxEl.style.transformOrigin = '';
   _stopFoxWalking();
   setFoxState('walking');

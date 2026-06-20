@@ -572,6 +572,15 @@ body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out inf
   .shop-grid  { grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); }
   .achiev-grid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
 }
+@media (max-width:600px) {
+  .shop-page   { padding:8px 10px; padding-top:66px; }
+  .shop-grid   { grid-template-columns:repeat(2,1fr); gap:10px; }
+  .achiev-grid { grid-template-columns:repeat(2,1fr); gap:10px; }
+  .shop-card   { padding:14px 10px; }
+  .shop-tabs   { overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none; }
+  .shop-tabs::-webkit-scrollbar { display:none; }
+  .shop-tab    { flex-shrink:0; font-size:0.78rem; padding:8px 14px; min-height:40px; }
+}
 
 /* ── Gatto 4 zampe SVG — animazione camminata ── */
 

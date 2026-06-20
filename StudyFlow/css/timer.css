@@ -1071,6 +1071,31 @@
   .timer-grid { grid-template-columns: 1fr; }
   .timer-page { padding: 12px; }
 }
+@media (max-width: 600px) {
+  .timer-page { padding: 8px 10px 20px; padding-top: 66px; }
+  .timer-grid { gap: 12px; }
+  .ring-wrap  { width: 200px; height: 200px; margin: 0 auto; }
+  .timer-display { font-size: 3rem; }
+  .timer-card  { padding: 18px 14px; }
+  /* Bottoni modalità timer — riga singola scrollabile */
+  .mode-row {
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .mode-row::-webkit-scrollbar { display: none; }
+  .mode-btn { flex-shrink: 0; font-size: 0.75rem; padding: 7px 14px; }
+  /* Azioni timer */
+  .timer-actions { gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .start-btn { min-width: 120px; padding: 14px 28px; font-size: 1rem; }
+  /* Mini task list */
+  .mini-tasks { max-height: 200px; }
+  /* Widgets colonna destra: mostra in riga compatta */
+  .widgets-col { display: none; }
+}
 
 /* ══════════════════════════════════
    TIMER STYLE VARIANTS  (data-ts su #ring-wrap)

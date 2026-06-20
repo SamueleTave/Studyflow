@@ -15,6 +15,7 @@ let _lionSleepTmr  = null;
 let _lionHappyTmr  = null;
 let _lionPauseNext = false;
 let _lionInGarden  = false;
+let _lionX = 0, _lionY = 0, _lionScale = 1;
 
 const LION_SVG = `
 <div class="lion-dir-wrap">
@@ -91,7 +92,9 @@ function initLion() {
   _lionEl.className = 'lion-companion lion-hidden';
   _lionEl.innerHTML = LION_SVG;
   _lionEl.title     = 'Clicca il leone!';
-  _lionEl.style.cssText = `position:fixed;right:${_companionSlotRight('lion')}px;bottom:${LION_BOTTOM}px;left:auto;z-index:600;cursor:pointer;`;
+  _lionX = window.innerWidth - LION_W - _companionSlotRight('lion');
+  _lionY = LION_BOTTOM;
+  _lionEl.style.cssText = `position:fixed;left:0;bottom:0;will-change:transform;transform:translate(${_lionX}px,${-_lionY}px);z-index:600;cursor:pointer;`;
   _lionEl.addEventListener('click', _onLionClick);
   (document.querySelector('.app') || document.body).appendChild(_lionEl);
 
@@ -192,24 +195,21 @@ function hideLion() {
 /* ══════════════════════════
    POSIZIONE
    ══════════════════════════ */
-function _lionGetLeft()   { return _lionEl.getBoundingClientRect().left; }
-function _lionGetBottom() { const r = _lionEl.getBoundingClientRect(); return window.innerHeight - r.bottom; }
+function _lionGetLeft()   { return _lionX; }
+function _lionGetBottom() { return _lionY; }
 
 function _lionMoveTo(targetLeft, targetBottom, durationMs) {
-  const curLeft   = _lionGetLeft();
-  const curBottom = _lionGetBottom();
-  const goLeft    = targetLeft < curLeft;
-
+  const goLeft = targetLeft < _lionX;
   _lionEl.style.transition = 'none';
-  _lionEl.style.right      = 'auto';
-  _lionEl.style.left       = curLeft + 'px';
-  _lionEl.style.bottom     = curBottom + 'px';
+  _lionEl.style.transform = _lionScale !== 1
+    ? `translate(${_lionX}px, ${-_lionY}px) scale(${_lionScale})`
+    : `translate(${_lionX}px, ${-_lionY}px)`;
   void _lionEl.offsetWidth;
-
-  _lionEl.style.transition = `left ${durationMs}ms cubic-bezier(0.42,0,0.58,1), bottom ${Math.round(durationMs*0.75)}ms ease-in-out`;
-  _lionEl.style.left   = targetLeft + 'px';
-  _lionEl.style.bottom = targetBottom + 'px';
-
+  _lionEl.style.transition = `transform ${durationMs}ms cubic-bezier(0.42,0,0.58,1)`;
+  _lionEl.style.transform = _lionScale !== 1
+    ? `translate(${targetLeft}px, ${-targetBottom}px) scale(${_lionScale})`
+    : `translate(${targetLeft}px, ${-targetBottom}px)`;
+  _lionX = targetLeft; _lionY = targetBottom;
   const dir = _lionEl.querySelector('.lion-dir-wrap');
   if (dir) {
     dir.style.transition = 'transform 0.18s ease';
@@ -221,18 +221,10 @@ function _lionGoHome(durationMs) {
   const homeLeft = window.innerWidth - LION_W - _companionSlotRight('lion');
   if (durationMs > 0) {
     _lionMoveTo(homeLeft, LION_BOTTOM, durationMs);
-    setTimeout(() => {
-      if (!_lionEl) return;
-      _lionEl.style.transition = 'none';
-      _lionEl.style.left   = 'auto';
-      _lionEl.style.right  = _companionSlotRight('lion') + 'px';
-      _lionEl.style.bottom = LION_BOTTOM + 'px';
-    }, durationMs + 80);
   } else {
+    _lionX = homeLeft; _lionY = LION_BOTTOM;
     _lionEl.style.transition = 'none';
-    _lionEl.style.right  = _companionSlotRight('lion') + 'px';
-    _lionEl.style.left   = 'auto';
-    _lionEl.style.bottom = LION_BOTTOM + 'px';
+    _lionEl.style.transform = `translate(${_lionX}px, ${-_lionY}px)`;
   }
 }
 
@@ -326,7 +318,8 @@ function lionEnterGarden() {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     if (rect.height < 10) return;
-    _lionEl.style.transform = 'scale(0.45)';
+    _lionScale = 0.45;
+    _lionEl.style.transform = `translate(${_lionX}px, ${-_lionY}px) scale(0.45)`;
     _lionEl.style.transformOrigin = 'left bottom';
     _startGardenWalkLion(rect);
   }, 900);
@@ -363,7 +356,9 @@ function lionExitGarden() {
   if (!_lionEl || _lionEl.classList.contains('lion-hidden')) return;
   if (!_lionInGarden) return;
   _lionInGarden = false;
-  _lionEl.style.transform = '';
+  _lionScale = 1;
+  _lionEl.style.transition = 'none';
+  _lionEl.style.transform = `translate(${_lionX}px, ${-_lionY}px)`;
   _lionEl.style.transformOrigin = '';
   _stopLionWalking();
   clearTimeout(_lionSleepTmr);
