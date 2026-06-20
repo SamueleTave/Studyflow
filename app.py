@@ -1635,9 +1635,9 @@ def generate_flashcards():
         name = (f.filename or '').lower()
         if name.endswith('.pdf'):
             try:
-                import pdfplumber
-                with pdfplumber.open(f) as pdf:
-                    text = '\n'.join(p.extract_text() or '' for p in pdf.pages)
+                import pypdf, io
+                reader = pypdf.PdfReader(io.BytesIO(f.read()))
+                text = '\n'.join(p.extract_text() or '' for p in reader.pages)
             except Exception as e:
                 return jsonify({'error': f'Errore lettura PDF: {e}'}), 400
         else:
