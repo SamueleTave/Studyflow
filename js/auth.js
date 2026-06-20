@@ -9,7 +9,7 @@ const _SF_SYNC_KEYS = [
   'sf_sessions','sf_events','sf_daily_deal','sf_moods',
   'sf_cfg','sf_tasks','sf_theme','sf_subjects','sf_notes','sf_friends',
   'sf_checkins','sf_work_label','sf_accent_color','sf_cs','sf_td','sf_ts','sf_work_dur',
-  'sf_countdown','sf_flash','sf_spotify','sf_role_override'
+  'sf_countdown','sf_flash','sf_spotify','sf_role_override','sf_flashcards'
 ];
 
 /* ── Lettura auth ── */

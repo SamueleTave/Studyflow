@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="ocean">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Flashcard — StudyFlow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/themes.css?v=4">
+  <link rel="stylesheet" href="css/base.css?v=6">
+  <link rel="stylesheet" href="css/sidebar.css?v=6">
+  <link rel="stylesheet" href="css/calendar.css?v=6">
+  <link rel="stylesheet" href="css/shop.css?v=6">
+  <link rel="stylesheet" href="css/flashcards.css?v=1">
+</head>
+<body>
+
+<div class="orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<button class="focus-exit-btn" onclick="toggleFocus()">Esci dal Focus</button>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <span class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </span>
+      <span class="logo-text">StudyFlow</span>
+    </a>
+
+    <span class="nav-section-label">Pagine</span>
+    <a href="index.html"       class="nav-link" data-page="home">
+      <i data-feather="clock"        class="nav-icon"></i><span class="nav-label">Timer</span>
+    </a>
+    <a href="tasks.html"       class="nav-link" data-page="tasks">
+      <i data-feather="check-square" class="nav-icon"></i><span class="nav-label">Task</span>
+    </a>
+    <a href="add-task.html"    class="nav-link" data-page="add-task">
+      <i data-feather="plus-circle"  class="nav-icon"></i><span class="nav-label">Nuova Task</span>
+    </a>
+    <a href="calendar.html"    class="nav-link" data-page="calendar">
+      <i data-feather="calendar"     class="nav-icon"></i><span class="nav-label">Calendario</span>
+    </a>
+    <a href="stats.html"       class="nav-link" data-page="stats">
+      <i data-feather="bar-chart-2"  class="nav-icon"></i><span class="nav-label">Statistiche</span>
+    </a>
+    <a href="flashcards.html"  class="nav-link active" data-page="flashcards">
+      <i data-feather="layers"       class="nav-icon"></i><span class="nav-label">Flashcard</span>
+    </a>
+    <a href="shop.html"        class="nav-link" data-page="shop">
+      <i data-feather="shopping-bag" class="nav-icon"></i><span class="nav-label">Shop</span>
+    </a>
+    <a href="friends.html"     class="nav-link" data-page="friends">
+      <i data-feather="users"        class="nav-icon"></i><span class="nav-label">Amici</span>
+    </a>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-coin">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="#F59E0B"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>
+        <span class="js-coin-count">0</span> monete
+      </div>
+      <button class="nav-link" id="focusBtn" onclick="toggleFocus()">
+        <i data-feather="crosshair"  class="nav-icon"></i><span class="nav-label">Focus</span>
+      </button>
+      <button class="nav-link" id="ambientBtn" onclick="toggleAmbient()">
+        <i data-feather="cloud-rain" class="nav-icon"></i><span class="nav-label">Pioggia</span>
+      </button>
+      <button class="nav-link" onclick="openSettings()">
+        <i data-feather="settings"   class="nav-icon"></i><span class="nav-label">Impostazioni</span>
+      </button>
+      <div class="theme-row">
+        <span class="theme-label">Tema</span>
+        <div class="theme-dots" id="theme-dots-sidebar">
+          <div class="tdot active" data-t="ocean"></div>
+          <div class="tdot" data-t="lavender"></div>
+          <div class="tdot" data-t="peach"></div>
+          <div class="tdot" data-t="forest"></div>
+          <div class="tdot" data-t="sakura"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="fc-page" id="fc-root">
+
+    <!-- ─── View 1: Lista mazzi ─── -->
+    <div id="fc-view-decks">
+      <div class="fc-section-hdr">
+        <div>
+          <div class="fc-title">Flashcard</div>
+          <div class="fc-subtitle">Studia con la ripetizione spaziata (SM-2)</div>
+        </div>
+        <button class="fc-btn-new" onclick="openDeckModal()">
+          <i data-feather="plus" class="nav-icon"></i> Nuovo Mazzo
+        </button>
+      </div>
+      <div class="deck-grid" id="deck-grid"></div>
+      <div id="fc-decks-empty" style="display:none">
+        <div class="fc-empty">
+          <div class="fc-empty-emoji">📚</div>
+          <div class="fc-empty-title">Nessun mazzo ancora</div>
+          <div class="fc-empty-sub">Crea il tuo primo mazzo di flashcard e inizia a studiare con la ripetizione spaziata!</div>
+          <button class="fc-btn primary" onclick="openDeckModal()" style="margin-top:4px">
+            <i data-feather="plus" class="nav-icon"></i> Crea mazzo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── View 2: Dettaglio mazzo ─── -->
+    <div id="fc-view-deck" style="display:none">
+      <div class="fc-deck-hdr">
+        <button class="fc-back-btn" onclick="showView('decks')" title="Torna ai mazzi">&#8592;</button>
+        <div class="fc-deck-info">
+          <div class="fc-deck-title" id="deck-detail-title">Mazzo</div>
+          <div class="fc-deck-meta" id="deck-detail-meta">0 carte</div>
+        </div>
+        <div class="fc-deck-btns">
+          <button class="fc-btn" onclick="_editCurrentDeck()">
+            <i data-feather="edit-2" class="nav-icon"></i> Modifica
+          </button>
+          <button class="fc-btn" onclick="startQuiz(_currentDeckId)">
+            <i data-feather="help-circle" class="nav-icon"></i> Quiz
+          </button>
+          <button class="fc-btn primary" onclick="startStudy(_currentDeckId)">
+            <i data-feather="play" class="nav-icon"></i> Studia
+          </button>
+        </div>
+      </div>
+      <div class="fc-cards-list" id="fc-cards-list"></div>
+      <div id="fc-cards-empty" style="display:none">
+        <div class="fc-empty">
+          <div class="fc-empty-emoji">🃏</div>
+          <div class="fc-empty-title">Nessuna carta nel mazzo</div>
+          <div class="fc-empty-sub">Aggiungi la prima carta per iniziare a studiare!</div>
+        </div>
+      </div>
+      <button class="fc-btn" onclick="openCardModal(_currentDeckId)" style="margin-top:4px;align-self:flex-start">
+        <i data-feather="plus" class="nav-icon"></i> Aggiungi carta
+      </button>
+    </div>
+
+    <!-- ─── View 3: Sessione studio flip ─── -->
+    <div id="fc-view-study" style="display:none">
+      <div class="fc-deck-hdr">
+        <button class="fc-back-btn" onclick="_exitStudy()" title="Esci dalla sessione">&#8592;</button>
+        <div class="fc-deck-info">
+          <div class="fc-deck-title" id="study-deck-title">Studio</div>
+          <div class="fc-deck-meta" id="study-deck-meta"></div>
+        </div>
+      </div>
+      <div class="fc-study-wrap" id="study-content">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- ─── View 4: Quiz ─── -->
+    <div id="fc-view-quiz" style="display:none">
+      <div class="fc-deck-hdr">
+        <button class="fc-back-btn" onclick="_exitQuiz()" title="Esci dal quiz">&#8592;</button>
+        <div class="fc-deck-info">
+          <div class="fc-deck-title" id="quiz-deck-title">Quiz</div>
+          <div class="fc-deck-meta" id="quiz-deck-meta"></div>
+        </div>
+      </div>
+      <div class="fc-study-wrap" id="quiz-content">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+  </div><!-- /fc-page -->
+</div><!-- /app -->
+
+<!-- ─── SETTINGS MODAL (standard) ─── -->
+<div class="overlay" id="settingsModal" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-hdr">Impostazioni<button class="modal-close" onclick="closeSettings()">&#10005;</button></div>
+    <div class="s-row">
+      <div><div class="s-label">Tempo di Lavoro</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('work',-1)">&#8722;</button>
+        <div class="num-val" id="sv-work">25</div>
+        <button class="num-btn" onclick="changeSetting('work',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Pausa Breve</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('short',-1)">&#8722;</button>
+        <div class="num-val" id="sv-short">5</div>
+        <button class="num-btn" onclick="changeSetting('short',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Pausa Lunga</div><div class="s-sub">minuti</div></div>
+      <div class="num-ctrl">
+        <button class="num-btn" onclick="changeSetting('long',-1)">&#8722;</button>
+        <div class="num-val" id="sv-long">15</div>
+        <button class="num-btn" onclick="changeSetting('long',1)">+</button>
+      </div>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Suono al termine</div></div>
+      <button class="toggle on" id="tog-sound" onclick="toggleSetting('sound')"></button>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Auto-avvio Pausa</div></div>
+      <button class="toggle" id="tog-autoBreak" onclick="toggleSetting('autoBreak')"></button>
+    </div>
+    <div class="s-row">
+      <div><div class="s-label">Auto-avvio Lavoro</div></div>
+      <button class="toggle" id="tog-autoWork" onclick="toggleSetting('autoWork')"></button>
+    </div>
+    <div class="s-row" style="border-top:1px solid var(--card-border);margin-top:6px;padding-top:14px">
+      <div>
+        <div class="s-label">Account</div>
+        <div class="s-sub" id="settings-user-label" style="margin-top:2px">—</div>
+      </div>
+      <button onclick="logout()" style="padding:8px 18px;border-radius:10px;border:1.5px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);color:#dc2626;font-family:Poppins,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">Esci</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal nuovo/edit mazzo ─── -->
+<div class="overlay" id="deckModal" onclick="overlayClick2(event,'deckModal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span id="deck-modal-title">Nuovo Mazzo</span>
+      <button class="modal-close" onclick="closeModal('deckModal')">&#10005;</button>
+    </div>
+    <div class="fc-modal-field">
+      <div class="fc-modal-label">Nome mazzo</div>
+      <input class="fc-modal-input" id="deck-name-input" placeholder="Es: Matematica, Storia..." maxlength="50">
+    </div>
+    <div class="fc-modal-field">
+      <div class="fc-modal-label">Emoji</div>
+      <div class="fc-emoji-row" id="deck-emoji-row"></div>
+    </div>
+    <div class="fc-modal-field">
+      <div class="fc-modal-label">Colore</div>
+      <div class="fc-color-row" id="deck-color-row"></div>
+    </div>
+    <button class="fc-modal-save-btn" onclick="saveDeck()">Salva Mazzo</button>
+  </div>
+</div>
+
+<!-- ─── Modal nuovo/edit carta ─── -->
+<div class="overlay" id="cardModal" onclick="overlayClick2(event,'cardModal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span id="card-modal-title">Nuova Carta</span>
+      <button class="modal-close" onclick="closeModal('cardModal')">&#10005;</button>
+    </div>
+    <div class="fc-modal-field">
+      <div class="fc-modal-label">Domanda (fronte)</div>
+      <textarea class="fc-modal-textarea" id="card-front-input" placeholder="Scrivi la domanda o il termine..."></textarea>
+    </div>
+    <div class="fc-modal-field">
+      <div class="fc-modal-label">Risposta (retro)</div>
+      <textarea class="fc-modal-textarea" id="card-back-input" placeholder="Scrivi la risposta o la definizione..."></textarea>
+    </div>
+    <button class="fc-modal-save-btn" onclick="saveCard()">Salva Carta</button>
+  </div>
+</div>
+
+<!-- ─── LOGIN GUARD ─── -->
+<script>
+  (function(){var a=JSON.parse(sessionStorage.getItem('sf_auth')||'null');if(!a||!a.token)location.replace('login.html');})();
+</script>
+
+<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script src="js/config.js?v=4"></script>
+<script>window.SF_API_BASE = 'https://studyflow-backend-5zy6.onrender.com/api';</script>
+<script src="js/auth.js?v=4"></script>
+<script src="js/shared.js?v=6"></script>
+<script src="js/api.js?v=5"></script>
+<script src="js/coins.js?v=6"></script>
+<script src="js/cat.js?v=5"></script>
+<script src="js/companions.js?v=5"></script>
+<script src="js/rabbit.js?v=5"></script>
+<script src="js/parrot.js?v=5"></script>
+<script src="js/fox.js?v=5"></script>
+<script src="js/procione.js?v=5"></script>
+<script src="js/platypus.js?v=1"></script>
+<script src="js/owl.js?v=5"></script>
+<script src="js/lion.js?v=5"></script>
+<script src="js/dragon.js?v=5"></script>
+<script src="js/giraffe.js?v=5"></script>
+
+<script>
+/* ============================================================
+   FLASHCARD SYSTEM — SM-2, flip, quiz
+   ============================================================ */
+
+/* ── Costanti ── */
+const _FC_COLORS  = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#06B6D4','#84CC16'];
+const _FC_EMOJIS  = ['📚','📐','🔬','🌍','💻','🎨','📖','🎵','⚗️','🏛️'];
+
+/* Stato modale */
+let _deckModalId  = null;   // null = nuovo, string = edit
+let _cardModalId  = null;   // null = nuovo, string = edit
+let _cardModalDeckId = null;
+let _currentDeckId   = null;
+
+/* Stato sessione studio flip */
+let _studyDeck    = null;
+let _studyCards   = [];
+let _studyIdx     = 0;
+let _studyResults = { knew: 0, forgot: 0 };
+let _studyFlipped = false;
+
+/* Stato quiz */
+let _quizDeck   = null;
+let _quizCards  = [];
+let _quizIdx    = 0;
+let _quizScore  = 0;
+
+/* Emoji / colore selezionato nel modal mazzo */
+let _selEmoji = _FC_EMOJIS[0];
+let _selColor = _FC_COLORS[0];
+
+/* ── Dati ── */
+function _fcLoad() {
+  try { return JSON.parse(localStorage.getItem('sf_flashcards') || '{"decks":[]}'); }
+  catch { return { decks: [] }; }
+}
+function _fcSave(data) {
+  localStorage.setItem('sf_flashcards', JSON.stringify(data));
+}
+function _fcUUID() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+/* ── SM-2 ──
+   quality: 0 = forgot, 2 = easy
+   Returns updated sr object */
+function _sm2(sr, quality) {
+  let interval = (sr && sr.interval) ? sr.interval : 1;
+  let ef       = (sr && sr.ef)       ? sr.ef       : 2.5;
+  let reps     = (sr && sr.reps)     ? sr.reps     : 0;
+
+  if (quality < 1) {
+    reps = 0;
+    interval = 1;
+  } else {
+    if (reps === 0)      interval = 1;
+    else if (reps === 1) interval = 6;
+    else                 interval = Math.round(interval * ef);
+    reps++;
+    ef = Math.max(1.3, ef + (0.1 - (2 - quality) * (0.08 + (2 - quality) * 0.02)));
+  }
+  return { interval, ef, reps, due: Date.now() + interval * 86400000 };
+}
+
+/* ── Shuffle array (Fisher-Yates) ── */
+function _shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ── Viste ── */
+function showView(name) {
+  ['decks','deck','study','quiz'].forEach(v => {
+    const el = document.getElementById('fc-view-' + v);
+    if (el) el.style.display = (v === name) ? '' : 'none';
+  });
+}
+
+/* ── Rendering mazzi (View 1) ── */
+function renderDecks() {
+  const data = _fcLoad();
+  const grid  = document.getElementById('deck-grid');
+  const empty = document.getElementById('fc-decks-empty');
+  if (!grid) return;
+
+  if (!data.decks || data.decks.length === 0) {
+    grid.innerHTML = '';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  const now = Date.now();
+  grid.innerHTML = data.decks.map(deck => {
+    const cards    = deck.cards || [];
+    const dueCount = cards.filter(c => !c.sr || c.sr.due <= now).length;
+    const totalStr = cards.length + ' cart' + (cards.length === 1 ? 'a' : 'e');
+    const dueStr   = dueCount > 0
+      ? `<div class="deck-card-due">${dueCount} da ripassare</div>`
+      : `<div class="deck-card-due zero">Tutto aggiornato ✓</div>`;
+    const c1 = deck.color || _FC_COLORS[0];
+    return `<div class="deck-card"
+        style="--dc-color-a:${c1};--dc-color-b:${c1}"
+        onclick="_openDeck('${deck.id}')">
+      <div class="deck-card-actions">
+        <button class="deck-card-action-btn" onclick="event.stopPropagation();openDeckModal('${deck.id}')" title="Modifica">✏️</button>
+        <button class="deck-card-action-btn del" onclick="event.stopPropagation();deleteDeck('${deck.id}')" title="Elimina">🗑</button>
+      </div>
+      <div class="deck-card-emoji">${deck.emoji || '📚'}</div>
+      <div class="deck-card-name">${_esc(deck.name)}</div>
+      <div class="deck-card-count">${totalStr}</div>
+      ${dueStr}
+    </div>`;
+  }).join('');
+
+  if (typeof feather !== 'undefined') feather.replace({ width: 17, height: 17, 'stroke-width': 1.8 });
+}
+
+/* ── Dettaglio mazzo (View 2) ── */
+function _openDeck(deckId) {
+  _currentDeckId = deckId;
+  renderDeck(deckId);
+  showView('deck');
+}
+
+function _editCurrentDeck() {
+  if (_currentDeckId) openDeckModal(_currentDeckId);
+}
+
+function renderDeck(deckId) {
+  const data = _fcLoad();
+  const deck = data.decks.find(d => d.id === deckId);
+  if (!deck) { showView('decks'); return; }
+
+  const titleEl = document.getElementById('deck-detail-title');
+  const metaEl  = document.getElementById('deck-detail-meta');
+  if (titleEl) titleEl.innerHTML = (deck.emoji || '📚') + ' ' + _esc(deck.name);
+  if (metaEl) {
+    const cards = deck.cards || [];
+    const now   = Date.now();
+    const due   = cards.filter(c => !c.sr || c.sr.due <= now).length;
+    metaEl.textContent = cards.length + ' carte · ' + due + ' da ripassare';
+  }
+
+  const list  = document.getElementById('fc-cards-list');
+  const empty = document.getElementById('fc-cards-empty');
+  const cards = deck.cards || [];
+
+  if (cards.length === 0) {
+    if (list)  list.innerHTML = '';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  if (list) {
+    list.innerHTML = cards.map(card => {
+      const sr = card.sr;
+      let srLabel = 'Nuova';
+      if (sr && sr.reps > 0) {
+        const daysLeft = Math.round((sr.due - Date.now()) / 86400000);
+        srLabel = daysLeft <= 0 ? 'Da ripassare' : 'tra ' + daysLeft + 'g';
+      }
+      return `<div class="fc-card-item">
+        <div class="fc-card-item-front">${_esc(card.front)}</div>
+        <div class="fc-card-item-back">${_esc(card.back)}</div>
+        <div class="fc-card-item-sr">${srLabel}</div>
+        <div class="fc-card-item-btns">
+          <button class="fc-card-item-btn" onclick="openCardModal('${deckId}','${card.id}')" title="Modifica">✏️</button>
+          <button class="fc-card-item-btn del" onclick="deleteCard('${deckId}','${card.id}')" title="Elimina">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  if (typeof feather !== 'undefined') feather.replace({ width: 17, height: 17, 'stroke-width': 1.8 });
+}
+
+/* ── Sessione flip (View 3) ── */
+function startStudy(deckId) {
+  const data = _fcLoad();
+  const deck = data.decks.find(d => d.id === deckId);
+  if (!deck) return;
+
+  _studyDeck = deck;
+  const now  = Date.now();
+  const all  = deck.cards || [];
+
+  // Studia card con sr.due <= ora OR nuove (no sr)
+  let due = all.filter(c => !c.sr || c.sr.due <= now);
+  _studyCards = due.length > 0 ? _shuffle(due) : _shuffle([...all]);
+  _studyIdx     = 0;
+  _studyResults = { knew: 0, forgot: 0 };
+  _studyFlipped = false;
+
+  if (_studyCards.length === 0) {
+    alert('Nessuna carta nel mazzo!');
+    return;
+  }
+
+  const titleEl = document.getElementById('study-deck-title');
+  if (titleEl) titleEl.textContent = (deck.emoji || '📚') + ' ' + deck.name;
+
+  showView('study');
+  _showStudyCard();
+}
+
+function _showStudyCard() {
+  const content = document.getElementById('study-content');
+  if (!content) return;
+
+  if (_studyIdx >= _studyCards.length) {
+    _showStudyResults();
+    return;
+  }
+
+  const card  = _studyCards[_studyIdx];
+  const total = _studyCards.length;
+  const pct   = Math.round((_studyIdx / total) * 100);
+
+  const metaEl = document.getElementById('study-deck-meta');
+  if (metaEl) metaEl.textContent = 'Carta ' + (_studyIdx + 1) + ' di ' + total;
+
+  _studyFlipped = false;
+
+  content.innerHTML = `
+    <div class="fc-progress">
+      <div class="fc-progress-bar-wrap">
+        <div class="fc-progress-bar" style="width:${pct}%"></div>
+      </div>
+      <div class="fc-progress-label">
+        <span>${_studyIdx} / ${total}</span>
+        <span>${_studyResults.knew} ✓ &nbsp; ${_studyResults.forgot} ✗</span>
+      </div>
+    </div>
+    <div class="fc-card-flip" id="study-flip" onclick="flipCard()">
+      <div class="fc-card-inner">
+        <div class="fc-card-front">
+          <div class="fc-card-face-label">DOMANDA</div>
+          <div class="fc-card-text">${_esc(card.front)}</div>
+          <div class="fc-card-hint">Clicca per vedere la risposta</div>
+        </div>
+        <div class="fc-card-back">
+          <div class="fc-card-face-label">RISPOSTA</div>
+          <div class="fc-card-text">${_esc(card.back)}</div>
+        </div>
+      </div>
+    </div>
+    <button class="fc-show-btn" id="study-show-btn" onclick="flipCard()">Mostra risposta</button>
+    <div class="fc-rate-btns hidden" id="study-rate-btns">
+      <button class="btn-forgot" onclick="rateCard(0)">✗ Non sapevo</button>
+      <button class="btn-knew"   onclick="rateCard(2)">✓ Sapevo</button>
+    </div>
+  `;
+}
+
+function flipCard() {
+  if (_studyFlipped) return;
+  _studyFlipped = true;
+
+  const flip    = document.getElementById('study-flip');
+  const showBtn = document.getElementById('study-show-btn');
+  const rateBtns = document.getElementById('study-rate-btns');
+
+  if (flip)     flip.classList.add('flipped');
+  if (showBtn)  showBtn.style.display = 'none';
+  if (rateBtns) rateBtns.classList.remove('hidden');
+}
+
+function rateCard(quality) {
+  // quality 0 = forgot, 2 = easy
+  if (quality >= 1) _studyResults.knew++;
+  else              _studyResults.forgot++;
+
+  // Aggiorna SM-2 nella carta
+  const data = _fcLoad();
+  const deck = data.decks.find(d => d.id === _studyDeck.id);
+  if (deck) {
+    const card = deck.cards.find(c => c.id === _studyCards[_studyIdx].id);
+    if (card) {
+      card.sr = _sm2(card.sr, quality);
+    }
+    _fcSave(data);
+    // Aggiorna il riferimento locale
+    _studyDeck = deck;
+  }
+
+  _studyIdx++;
+  _showStudyCard();
+}
+
+function _showStudyResults() {
+  const content  = document.getElementById('study-content');
+  const total    = _studyCards.length;
+  const pct      = total > 0 ? Math.round((_studyResults.knew / total) * 100) : 0;
+  const emoji    = pct >= 80 ? '🏆' : pct >= 50 ? '👍' : '💪';
+  const titleMsg = pct >= 80 ? 'Ottimo lavoro!' : pct >= 50 ? 'Buon progresso!' : 'Continua così!';
+
+  const metaEl = document.getElementById('study-deck-meta');
+  if (metaEl) metaEl.textContent = 'Sessione completata';
+
+  content.innerHTML = `
+    <div class="fc-results">
+      <div class="fc-results-emoji">${emoji}</div>
+      <div class="fc-results-title">${titleMsg}</div>
+      <div class="fc-results-sub">Sessione di ripetizione spaziata completata.</div>
+      <div class="fc-results-stats">
+        <div class="fc-res-stat knew">
+          <div class="fc-res-stat-val">${_studyResults.knew}</div>
+          <div class="fc-res-stat-label">Sapevo</div>
+        </div>
+        <div class="fc-res-stat forgot">
+          <div class="fc-res-stat-val">${_studyResults.forgot}</div>
+          <div class="fc-res-stat-label">Non sapevo</div>
+        </div>
+        <div class="fc-res-stat score">
+          <div class="fc-res-stat-val">${pct}%</div>
+          <div class="fc-res-stat-label">Accuratezza</div>
+        </div>
+      </div>
+      <div class="fc-results-btns">
+        <button class="fc-btn" onclick="_openDeck('${_studyDeck.id}')">Torna al mazzo</button>
+        <button class="fc-btn primary" onclick="startStudy('${_studyDeck.id}')">Ricomincia</button>
+      </div>
+    </div>
+  `;
+}
+
+function _exitStudy() {
+  if (_studyDeck) {
+    _openDeck(_studyDeck.id);
+  } else {
+    showView('decks');
+    renderDecks();
+  }
+}
+
+/* ── Quiz (View 4) ── */
+function startQuiz(deckId) {
+  const data = _fcLoad();
+  const deck = data.decks.find(d => d.id === deckId);
+  if (!deck) return;
+
+  const all = deck.cards || [];
+  if (all.length < 2) {
+    alert('Servono almeno 2 carte per il quiz!');
+    return;
+  }
+
+  _quizDeck  = deck;
+  _quizCards = _shuffle([...all]);
+  _quizIdx   = 0;
+  _quizScore = 0;
+
+  const titleEl = document.getElementById('quiz-deck-title');
+  if (titleEl) titleEl.textContent = (deck.emoji || '📚') + ' ' + deck.name + ' — Quiz';
+
+  showView('quiz');
+  _showQuizCard();
+}
+
+function _showQuizCard() {
+  const content = document.getElementById('quiz-content');
+  if (!content) return;
+
+  if (_quizIdx >= _quizCards.length) {
+    _showQuizResults();
+    return;
+  }
+
+  const card  = _quizCards[_quizIdx];
+  const total = _quizCards.length;
+  const pct   = Math.round((_quizIdx / total) * 100);
+
+  const metaEl = document.getElementById('quiz-deck-meta');
+  if (metaEl) metaEl.textContent = 'Domanda ' + (_quizIdx + 1) + ' di ' + total + ' · Punteggio: ' + _quizScore;
+
+  // Genera opzioni: risposta corretta + 3 distrattori
+  const allCards    = _quizDeck.cards || [];
+  const otherCards  = allCards.filter(c => c.id !== card.id);
+  const shuffled    = _shuffle(otherCards);
+  const distractors = shuffled.slice(0, 3);
+
+  // Se non ci sono abbastanza distrattori, aggiungi varianti generiche
+  while (distractors.length < 3) {
+    distractors.push({ id: '_dummy_' + distractors.length, back: '—' + (distractors.length + 1) });
+  }
+
+  // Mix: opzione corretta + 3 distrattori
+  const options = _shuffle([
+    { text: card.back, correct: true },
+    { text: distractors[0].back, correct: false },
+    { text: distractors[1].back, correct: false },
+    { text: distractors[2].back, correct: false },
+  ]);
+
+  const correctIdx = options.findIndex(o => o.correct);
+
+  content.innerHTML = `
+    <div class="fc-progress">
+      <div class="fc-progress-bar-wrap">
+        <div class="fc-progress-bar" style="width:${pct}%"></div>
+      </div>
+      <div class="fc-progress-label">
+        <span>${_quizIdx} / ${total}</span>
+        <span>Punteggio: ${_quizScore}</span>
+      </div>
+    </div>
+    <div class="fc-quiz-question">
+      <div class="fc-quiz-q-label">DOMANDA</div>
+      <div class="fc-quiz-q-text">${_esc(card.front)}</div>
+    </div>
+    <div class="fc-quiz-opts" id="quiz-opts">
+      ${options.map((opt, i) =>
+        `<button class="fc-quiz-opt" onclick="answerQuiz(${i},${correctIdx})">${_esc(opt.text)}</button>`
+      ).join('')}
+    </div>
+  `;
+}
+
+function answerQuiz(chosenIdx, correctIdx) {
+  const btns = document.querySelectorAll('.fc-quiz-opt');
+  btns.forEach(b => b.disabled = true);
+
+  const chosen  = btns[chosenIdx];
+  const correct = btns[correctIdx];
+
+  if (chosenIdx === correctIdx) {
+    _quizScore++;
+    chosen.classList.add('correct');
+  } else {
+    chosen.classList.add('wrong');
+    correct.classList.add('correct');
+  }
+
+  // Aggiorna meta
+  const metaEl = document.getElementById('quiz-deck-meta');
+  if (metaEl) metaEl.textContent = 'Domanda ' + (_quizIdx + 1) + ' di ' + _quizCards.length + ' · Punteggio: ' + _quizScore;
+
+  setTimeout(() => {
+    _quizIdx++;
+    _showQuizCard();
+  }, 1200);
+}
+
+function _showQuizResults() {
+  const content = document.getElementById('quiz-content');
+  const total   = _quizCards.length;
+  const pct     = total > 0 ? Math.round((_quizScore / total) * 100) : 0;
+  const emoji   = pct >= 80 ? '🏆' : pct >= 50 ? '🎯' : '💪';
+  const titleMsg = pct >= 80 ? 'Fantastico!' : pct >= 50 ? 'Buon risultato!' : 'Allenati ancora!';
+
+  const metaEl = document.getElementById('quiz-deck-meta');
+  if (metaEl) metaEl.textContent = 'Quiz completato';
+
+  content.innerHTML = `
+    <div class="fc-results">
+      <div class="fc-results-emoji">${emoji}</div>
+      <div class="fc-results-title">${titleMsg}</div>
+      <div class="fc-results-sub">${_quizScore} risposte corrette su ${total}</div>
+      <div class="fc-results-stats">
+        <div class="fc-res-stat knew">
+          <div class="fc-res-stat-val">${_quizScore}</div>
+          <div class="fc-res-stat-label">Corrette</div>
+        </div>
+        <div class="fc-res-stat forgot">
+          <div class="fc-res-stat-val">${total - _quizScore}</div>
+          <div class="fc-res-stat-label">Sbagliate</div>
+        </div>
+        <div class="fc-res-stat score">
+          <div class="fc-res-stat-val">${pct}%</div>
+          <div class="fc-res-stat-label">Punteggio</div>
+        </div>
+      </div>
+      <div class="fc-results-btns">
+        <button class="fc-btn" onclick="_openDeck('${_quizDeck.id}')">Torna al mazzo</button>
+        <button class="fc-btn primary" onclick="startQuiz('${_quizDeck.id}')">Rifai Quiz</button>
+      </div>
+    </div>
+  `;
+}
+
+function _exitQuiz() {
+  if (_quizDeck) {
+    _openDeck(_quizDeck.id);
+  } else {
+    showView('decks');
+    renderDecks();
+  }
+}
+
+/* ── CRUD mazzi ── */
+function openDeckModal(deckId) {
+  _deckModalId = deckId || null;
+
+  const titleEl = document.getElementById('deck-modal-title');
+  const nameEl  = document.getElementById('deck-name-input');
+  if (titleEl) titleEl.textContent = deckId ? 'Modifica Mazzo' : 'Nuovo Mazzo';
+
+  if (deckId) {
+    const data = _fcLoad();
+    const deck = data.decks.find(d => d.id === deckId);
+    if (deck) {
+      if (nameEl) nameEl.value = deck.name;
+      _selEmoji = deck.emoji || _FC_EMOJIS[0];
+      _selColor = deck.color || _FC_COLORS[0];
+    }
+  } else {
+    if (nameEl) nameEl.value = '';
+    _selEmoji = _FC_EMOJIS[0];
+    _selColor = _FC_COLORS[0];
+  }
+
+  _buildEmojiPicker();
+  _buildColorPicker();
+  openModal('deckModal');
+  setTimeout(() => { const n = document.getElementById('deck-name-input'); if(n) n.focus(); }, 100);
+}
+
+function _buildEmojiPicker() {
+  const row = document.getElementById('deck-emoji-row');
+  if (!row) return;
+  row.innerHTML = _FC_EMOJIS.map(e =>
+    `<button class="fc-emoji-btn${e === _selEmoji ? ' selected' : ''}" onclick="_pickEmoji('${e}')">${e}</button>`
+  ).join('');
+}
+function _pickEmoji(e) {
+  _selEmoji = e;
+  document.querySelectorAll('.fc-emoji-btn').forEach(b => b.classList.toggle('selected', b.textContent === e));
+}
+
+function _buildColorPicker() {
+  const row = document.getElementById('deck-color-row');
+  if (!row) return;
+  row.innerHTML = _FC_COLORS.map(c =>
+    `<div class="fc-color-dot${c === _selColor ? ' selected' : ''}" style="background:${c}" onclick="_pickColor('${c}')" title="${c}"></div>`
+  ).join('');
+}
+function _pickColor(c) {
+  _selColor = c;
+  document.querySelectorAll('.fc-color-dot').forEach(d => d.classList.toggle('selected', d.style.background === c || d.getAttribute('style') === 'background:' + c));
+}
+
+function saveDeck() {
+  const nameEl = document.getElementById('deck-name-input');
+  const name   = nameEl ? nameEl.value.trim() : '';
+  if (!name) { if (nameEl) nameEl.focus(); return; }
+
+  const data = _fcLoad();
+
+  if (_deckModalId) {
+    // Modifica
+    const deck = data.decks.find(d => d.id === _deckModalId);
+    if (deck) {
+      deck.name  = name;
+      deck.emoji = _selEmoji;
+      deck.color = _selColor;
+    }
+  } else {
+    // Nuovo
+    data.decks.push({
+      id:    _fcUUID(),
+      name,
+      emoji: _selEmoji,
+      color: _selColor,
+      cards: [],
+    });
+  }
+
+  _fcSave(data);
+  closeModal('deckModal');
+
+  // Aggiorna view corrente
+  if (_deckModalId && _currentDeckId === _deckModalId) {
+    renderDeck(_currentDeckId);
+  }
+  if (_currentView() === 'decks' || !_deckModalId) {
+    showView('decks');
+    renderDecks();
+  }
+}
+
+function deleteDeck(deckId) {
+  if (!confirm('Eliminare il mazzo e tutte le carte? Questa azione è irreversibile.')) return;
+  const data  = _fcLoad();
+  data.decks  = data.decks.filter(d => d.id !== deckId);
+  _fcSave(data);
+  showView('decks');
+  renderDecks();
+}
+
+/* ── CRUD carte ── */
+function openCardModal(deckId, cardId) {
+  _cardModalDeckId = deckId;
+  _cardModalId     = cardId || null;
+
+  const titleEl = document.getElementById('card-modal-title');
+  const frontEl = document.getElementById('card-front-input');
+  const backEl  = document.getElementById('card-back-input');
+
+  if (titleEl) titleEl.textContent = cardId ? 'Modifica Carta' : 'Nuova Carta';
+
+  if (cardId) {
+    const data = _fcLoad();
+    const deck = data.decks.find(d => d.id === deckId);
+    const card = deck ? deck.cards.find(c => c.id === cardId) : null;
+    if (card) {
+      if (frontEl) frontEl.value = card.front;
+      if (backEl)  backEl.value  = card.back;
+    }
+  } else {
+    if (frontEl) frontEl.value = '';
+    if (backEl)  backEl.value  = '';
+  }
+
+  openModal('cardModal');
+  setTimeout(() => { const f = document.getElementById('card-front-input'); if(f) f.focus(); }, 100);
+}
+
+function saveCard() {
+  const frontEl = document.getElementById('card-front-input');
+  const backEl  = document.getElementById('card-back-input');
+  const front   = frontEl ? frontEl.value.trim() : '';
+  const back    = backEl  ? backEl.value.trim()  : '';
+
+  if (!front) { if (frontEl) frontEl.focus(); return; }
+  if (!back)  { if (backEl)  backEl.focus();  return; }
+
+  const data = _fcLoad();
+  const deck = data.decks.find(d => d.id === _cardModalDeckId);
+  if (!deck) return;
+
+  if (_cardModalId) {
+    // Modifica
+    const card = deck.cards.find(c => c.id === _cardModalId);
+    if (card) { card.front = front; card.back = back; }
+  } else {
+    // Nuova — reset SR
+    deck.cards.push({ id: _fcUUID(), front, back, sr: null });
+  }
+
+  _fcSave(data);
+  closeModal('cardModal');
+  renderDeck(_cardModalDeckId);
+}
+
+function deleteCard(deckId, cardId) {
+  if (!confirm('Eliminare questa carta?')) return;
+  const data = _fcLoad();
+  const deck = data.decks.find(d => d.id === deckId);
+  if (deck) {
+    deck.cards = deck.cards.filter(c => c.id !== cardId);
+    _fcSave(data);
+    renderDeck(deckId);
+  }
+}
+
+/* ── Utility ── */
+function _currentView() {
+  const views = ['decks','deck','study','quiz'];
+  for (const v of views) {
+    const el = document.getElementById('fc-view-' + v);
+    if (el && el.style.display !== 'none') return v;
+  }
+  return 'decks';
+}
+
+function _esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('open');
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+}
+function overlayClick2(e, id) {
+  if (e.target === e.currentTarget) closeModal(id);
+}
+
+/* ── Init ── */
+initShared();
+initCoins();
+initCat();
+initDog();
+initRabbit();
+initParrot();
+initFox();
+initOwl();
+initLion();
+initCampfire();
+setActivePage('flashcards');
+renderDecks();
+showView('decks');
+if (typeof feather !== 'undefined') feather.replace({ width: 17, height: 17, 'stroke-width': 1.8 });
+</script>
+</body>
+</html>
