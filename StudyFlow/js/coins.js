@@ -19,7 +19,7 @@ async function _loadShopDisabled() {
 
 /* Ruolo — costanti globali usate da buyItem, renderShopPage, initCoins */
 /* ── Sistema slot dinamico compagni ──────────────────── */
-const _GND_SLOT_ORDER = ['cat','dog','rabbit','fox','raccoon','lion','dragon'];
+const _GND_SLOT_ORDER = ['cat','dog','rabbit','fox','raccoon','lion','dragon','platypus'];
 const _SLOT_BASE_RIGHT = 24;
 const _SLOT_WIDTH      = 112; // 92px + 20px gap
 
@@ -29,7 +29,7 @@ function _companionSlotRight(id) {
     const vis = {
       cat: ae.catVisible, dog: ae.dogVisible, rabbit: ae.rabbitVisible,
       fox: ae.foxVisible, raccoon: ae.raccoonVisible,
-      lion: ae.lionVisible, dragon: ae.dragonVisible
+      lion: ae.lionVisible, dragon: ae.dragonVisible, platypus: ae.platypusVisible
     };
     const myIdx = _GND_SLOT_ORDER.indexOf(id);
     if (myIdx < 0) return _SLOT_BASE_RIGHT;
@@ -46,11 +46,12 @@ function repositionAllCompanions() {
     ['fox',    () => { if(typeof _stopFoxWalking==='function') _stopFoxWalking(); if(typeof _foxGoHome==='function') _foxGoHome(900); }],
     ['raccoon',() => { if(typeof _stopRaccoonWalking==='function') _stopRaccoonWalking(); if(typeof _raccoonGoHome==='function') _raccoonGoHome(900); }],
     ['lion',   () => { if(typeof _stopLionWalking==='function') _stopLionWalking(); if(typeof _lionGoHome==='function') _lionGoHome(900); }],
-    ['dragon', () => { if(typeof _stopDragonWalking==='function') _stopDragonWalking(); if(typeof _dragonGoHome==='function') _dragonGoHome(900); }],
+    ['dragon',   () => { if(typeof _stopDragonWalking==='function') _stopDragonWalking(); if(typeof _dragonGoHome==='function') _dragonGoHome(900); }],
+    ['platypus', () => { if(typeof _stopPlatypusWalking==='function') _stopPlatypusWalking(); if(typeof _platypusGoHome==='function') _platypusGoHome(900); }],
   ];
   try {
     const ae = coinData?.activeEffects || {};
-    const vis = { dog:ae.dogVisible, rabbit:ae.rabbitVisible, fox:ae.foxVisible, raccoon:ae.raccoonVisible, lion:ae.lionVisible, dragon:ae.dragonVisible };
+    const vis = { dog:ae.dogVisible, rabbit:ae.rabbitVisible, fox:ae.foxVisible, raccoon:ae.raccoonVisible, lion:ae.lionVisible, dragon:ae.dragonVisible, platypus:ae.platypusVisible };
     pairs.forEach(([id, fn]) => { if (vis[id]) fn(); });
   } catch {}
 }
@@ -95,6 +96,7 @@ const SHOP_ITEMS = [
   { id:'rabbitGrey',  name:'Pelo Grigio',      desc:'Un elegante coniglietto grigio cenere.', price:35, type:'rabbitcolor', req:'rabbit' },
   { id:'rabbitBlack', name:'Pelo Nero',        desc:'Un coniglietto nero misterioso.', price:40, type:'rabbitcolor', req:'rabbit' },
   { id:'raccoon',   name:'Procione 🦝',        desc:'Un procione astuto con la coda a strisce che gironzola furtivo mentre studi!', price:280, type:'companion' },
+  { id:'platypus',  name:'Ornitorinco 🦆',     desc:'L\'animale più strano al mondo! Nuota, scava e passeggia sul tuo schermo con il suo famoso becco.', price:320, type:'companion' },
   { id:'parrot',    name:'Pappagallo',         desc:'Un pappagallo colorato che vola e si appollaia sulla pagina!', price:220, type:'companion' },
   { id:'fox',       name:'Volpe',              desc:'Una volpe arancione con la grande coda soffice che gironzola mentre studi!', price:200, type:'companion' },
   { id:'owl',       name:'Gufo',               desc:'Un gufo saggio con grandi occhi gialli che si appollaia e vola occasionalmente.', price:190, type:'companion' },
@@ -178,7 +180,7 @@ let coinData = {
   challengesCompleted: 0,
   achievements: [],
   shop: {},
-  activeEffects: { stars:false, bubbles:false, catVisible:false, activeSound:'', glow:false, pulsePro:false, cat4legs:false, dogVisible:false, activeDogColor:'', campfire:false, rabbitVisible:false, activeRabbitColor:'', parrotVisible:false, foxVisible:false, owlVisible:false, lionVisible:false, giraffeVisible:false, raccoonVisible:false, dragonVisible:false, gardenActive:{}, catHouseVisible:false, dogHouseVisible:false, rabbitHouseVisible:false, parrotHouseVisible:false, foxHouseVisible:false, owlHouseVisible:false, lionHouseVisible:false, giraffeHouseVisible:false, raccoonHouseVisible:false, dragonHouseVisible:false },
+  activeEffects: { stars:false, bubbles:false, catVisible:false, activeSound:'', glow:false, pulsePro:false, cat4legs:false, dogVisible:false, activeDogColor:'', campfire:false, rabbitVisible:false, activeRabbitColor:'', parrotVisible:false, foxVisible:false, owlVisible:false, lionVisible:false, giraffeVisible:false, raccoonVisible:false, dragonVisible:false, platypusVisible:false, gardenActive:{}, catHouseVisible:false, dogHouseVisible:false, rabbitHouseVisible:false, parrotHouseVisible:false, foxHouseVisible:false, owlHouseVisible:false, lionHouseVisible:false, giraffeHouseVisible:false, raccoonHouseVisible:false, dragonHouseVisible:false },
   challenge: null,
   challengeDate: '',
   challengeProgress: 0,
@@ -231,7 +233,7 @@ function loadCoinData() {
     coinData.shop          = coinData.shop || {};
     coinData.achievements  = coinData.achievements || [];
     coinData.activeEffects    = Object.assign(
-      { stars:false, bubbles:false, catVisible:false, activeSound:'', glow:false, pulsePro:false, cat4legs:false, dogVisible:false, activeDogColor:'', campfire:false, rabbitVisible:false, activeRabbitColor:'', parrotVisible:false, foxVisible:false, owlVisible:false, lionVisible:false, giraffeVisible:false, raccoonVisible:false, dragonVisible:false, gardenActive:{}, catHouseVisible:false, dogHouseVisible:false, rabbitHouseVisible:false, parrotHouseVisible:false, foxHouseVisible:false, owlHouseVisible:false, lionHouseVisible:false, giraffeHouseVisible:false, raccoonHouseVisible:false, dragonHouseVisible:false },
+      { stars:false, bubbles:false, catVisible:false, activeSound:'', glow:false, pulsePro:false, cat4legs:false, dogVisible:false, activeDogColor:'', campfire:false, rabbitVisible:false, activeRabbitColor:'', parrotVisible:false, foxVisible:false, owlVisible:false, lionVisible:false, giraffeVisible:false, raccoonVisible:false, dragonVisible:false, platypusVisible:false, gardenActive:{}, catHouseVisible:false, dogHouseVisible:false, rabbitHouseVisible:false, parrotHouseVisible:false, foxHouseVisible:false, owlHouseVisible:false, lionHouseVisible:false, giraffeHouseVisible:false, raccoonHouseVisible:false, dragonHouseVisible:false },
       coinData.activeEffects || {}
     );
     coinData.rewardedTaskIds  = coinData.rewardedTaskIds || [];
@@ -244,7 +246,7 @@ function loadCoinData() {
     const _DM = {
       cat:'catVisible', dog:'dogVisible', rabbit:'rabbitVisible', fox:'foxVisible',
       raccoon:'raccoonVisible', parrot:'parrotVisible', owl:'owlVisible',
-      lion:'lionVisible', dragon:'dragonVisible',
+      lion:'lionVisible', dragon:'dragonVisible', platypus:'platypusVisible',
       catHouse:'catHouseVisible', dogHouse:'dogHouseVisible', rabbitHouse:'rabbitHouseVisible',
       foxHouse:'foxHouseVisible', raccoonHouse:'raccoonHouseVisible', parrotHouse:'parrotHouseVisible',
       owlHouse:'owlHouseVisible', lionHouse:'lionHouseVisible', dragonHouse:'dragonHouseVisible',
@@ -600,6 +602,11 @@ function _activateShopEffect(id) {
       setTimeout(repositionAllCompanions, 150);
       break;
     case 'dragonHouse': coinData.activeEffects.dragonHouseVisible = true; if (typeof showDragonHouse === 'function') showDragonHouse(); break;
+    case 'platypus':
+      coinData.activeEffects.platypusVisible = true;
+      if (typeof showPlatypus === 'function') showPlatypus();
+      setTimeout(repositionAllCompanions, 150);
+      break;
     case 'aurora':
       coinData.activeEffects.aurora = true;
       _showAurora();
@@ -817,6 +824,12 @@ function _toggleShopEffect(id) {
       if (coinData.activeEffects.dragonHouseVisible) { if (typeof showDragonHouse === 'function') showDragonHouse(); }
       else { if (typeof hideDragonHouse === 'function') hideDragonHouse(); }
       break;
+    case 'platypus':
+      coinData.activeEffects.platypusVisible = !coinData.activeEffects.platypusVisible;
+      if (coinData.activeEffects.platypusVisible) { if (typeof showPlatypus === 'function') showPlatypus(); }
+      else { if (typeof hidePlatypus === 'function') hidePlatypus(); }
+      setTimeout(repositionAllCompanions, 150);
+      break;
     case 'aurora':
       coinData.activeEffects.aurora = !coinData.activeEffects.aurora;
       if (coinData.activeEffects.aurora) _showAurora(); else _hideAurora();
@@ -981,6 +994,7 @@ function restoreActiveEffects() {
   if (coinData.activeEffects.giraffeHouseVisible && coinData.shop.giraffeHouse && typeof showGiraffeHouse === 'function') showGiraffeHouse();
   if (coinData.activeEffects.raccoonVisible    && coinData.shop.raccoon    && typeof showRaccoon    === 'function') showRaccoon();
   if (coinData.activeEffects.dragonVisible      && coinData.shop.dragon      && typeof showDragon     === 'function') showDragon();
+  if (coinData.activeEffects.platypusVisible    && coinData.shop.platypus    && typeof showPlatypus   === 'function') showPlatypus();
   if (coinData.activeEffects.raccoonHouseVisible && coinData.shop.raccoonHouse && typeof showRaccoonHouse === 'function') showRaccoonHouse();
   if (coinData.activeEffects.dragonHouseVisible  && coinData.shop.dragonHouse  && typeof showDragonHouse  === 'function') showDragonHouse();
   if (coinData.activeEffects.aurora             && coinData.shop.aurora)     _showAurora();
@@ -1087,6 +1101,7 @@ async function renderShopPage() {
       if (item.id === 'lion')           active = !!coinData.activeEffects.lionVisible;
       if (item.id === 'raccoon')        active = !!coinData.activeEffects.raccoonVisible;
       if (item.id === 'dragon')         active = !!coinData.activeEffects.dragonVisible;
+      if (item.id === 'platypus')       active = !!coinData.activeEffects.platypusVisible;
       if (item.id === 'raccoonHouse')   active = !!coinData.activeEffects.raccoonHouseVisible;
       if (item.id === 'dragonHouse')    active = !!coinData.activeEffects.dragonHouseVisible;
       if (item.id === 'aurora')         active = !!coinData.activeEffects.aurora;
@@ -1283,7 +1298,7 @@ function renderDailyDeal() {
   const _HIDE = {
     cat:'hideCat', dog:'hideDog', rabbit:'hideRabbit', fox:'hideFox',
     raccoon:'hideRaccoon', parrot:'hideParrot', owl:'hideOwl',
-    lion:'hideLion', dragon:'hideDragon',
+    lion:'hideLion', dragon:'hideDragon', platypus:'hidePlatypus',
     catHouse:'hideCatHouse', dogHouse:'hideDogHouse', rabbitHouse:'hideRabbitHouse',
     foxHouse:'hideFoxHouse', raccoonHouse:'hideRaccoonHouse', parrotHouse:'hideParrotHouse',
     owlHouse:'hideOwlHouse', lionHouse:'hideLionHouse', dragonHouse:'hideDragonHouse',

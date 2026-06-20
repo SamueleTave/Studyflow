@@ -539,7 +539,7 @@ body.focus-mode .focus-exit-btn { display: flex !important; }
 @media (max-width: 768px) {
   .cat-companion, .dog-companion, .fox-companion,
   .rabbit-companion, .parrot-companion, .owl-companion,
-  .lion-companion, .raccoon-companion, .dragon-companion,
+  .lion-companion, .raccoon-companion, .dragon-companion, .platypus-companion,
   .giraffe-companion, .campfire-wrap, .animal-house,
   .animal-bubble { display: none !important; }
 }

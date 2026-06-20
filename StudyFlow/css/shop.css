@@ -1101,3 +1101,16 @@ body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out inf
 .dragon-companion.dragon-happy .dragon-wing-l { animation: owl-wing-l-flap 0.4s ease-in-out infinite; transform-origin:34px 75px; transform-box:view-box; }
 .dragon-companion.dragon-happy .dragon-wing-r { animation: owl-wing-r-flap 0.4s ease-in-out infinite; transform-origin:86px 75px; transform-box:view-box; }
 .dragon-companion.dragon-happy .dragon-heart  { animation: heart-pop 0.4s ease; }
+
+/* ── ORNITORINCO ── */
+.platypus-companion { cursor:pointer; filter:drop-shadow(0 4px 16px rgba(0,0,0,.18)); user-select:none; }
+.platypus-hidden { opacity:0 !important; pointer-events:none !important; }
+.platypus-dir-wrap { display:flex; flex-direction:column; align-items:center; }
+.platypus-companion.platypus-sleeping svg { animation: cat-breathe 3.8s ease-in-out infinite; }
+.platypus-companion.platypus-sitting  svg { animation: cat-breathe 4.5s ease-in-out infinite; }
+.platypus-companion.platypus-walking  svg { animation: cat-hop 0.5s ease-in-out infinite; }
+.platypus-companion.platypus-happy    svg { animation: cat-bounce-happy 0.4s ease-in-out infinite alternate; }
+.platypus-companion.platypus-walking .platypus-foot-l { animation: paw-lift 0.5s ease-in-out infinite; transform-origin:center; transform-box:fill-box; }
+.platypus-companion.platypus-walking .platypus-foot-r { animation: paw-lift 0.5s 0.25s ease-in-out infinite; transform-origin:center; transform-box:fill-box; }
+.platypus-companion.platypus-sleeping .platypus-zzz   { animation: zzz-float 2.6s ease-in-out infinite; }
+.platypus-companion.platypus-happy    .platypus-heart { animation: heart-pop 0.4s ease; }
