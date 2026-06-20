@@ -1662,13 +1662,14 @@ def generate_flashcards():
 
     text = text[:16000]
 
-    api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+    api_key = os.environ.get('GEMINI_API_KEY', '')
     if not api_key:
-        return jsonify({'error': 'ANTHROPIC_API_KEY non configurata sul server'}), 500
+        return jsonify({'error': 'GEMINI_API_KEY non configurata sul server'}), 500
 
     try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=api_key)
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = (
             "Sei un assistente per lo studio universitario. "
             "Analizza il testo seguente e genera flashcard di studio in italiano.\n"
@@ -1680,12 +1681,8 @@ def generate_flashcards():
             '[{"front": "...", "back": "..."}, ...]\n\n'
             f"Testo:\n{text}"
         )
-        response = client.messages.create(
-            model='claude-haiku-4-5-20251001',
-            max_tokens=4096,
-            messages=[{'role': 'user', 'content': prompt}]
-        )
-        raw = response.content[0].text.strip()
+        response = model.generate_content(prompt)
+        raw = response.text.strip()
         # Rimuovi eventuali blocchi markdown ```json ... ```
         raw = re.sub(r'^```[a-z]*\s*', '', raw)
         raw = re.sub(r'\s*```$', '', raw).strip()
