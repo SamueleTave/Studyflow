@@ -549,13 +549,19 @@ function renderDeck(deckId) {
         const daysLeft = Math.round((sr.due - Date.now()) / 86400000);
         srLabel = daysLeft <= 0 ? 'Da ripassare' : 'tra ' + daysLeft + 'g';
       }
-      return `<div class="fc-card-item">
-        <div class="fc-card-item-front">${_esc(card.front)}</div>
-        <div class="fc-card-item-back">${_esc(card.back)}</div>
-        <div class="fc-card-item-sr">${srLabel}</div>
-        <div class="fc-card-item-btns">
-          <button class="fc-card-item-btn" onclick="openCardModal('${deckId}','${card.id}')" title="Modifica">✏️</button>
-          <button class="fc-card-item-btn del" onclick="deleteCard('${deckId}','${card.id}')" title="Elimina">🗑</button>
+      const isDue = !sr || sr.reps === 0 || sr.due <= Date.now();
+      return `<div class="fc-card-item" style="--dc:${deck.color||'var(--accent)'}">
+        <div class="fc-card-item-accent"></div>
+        <div class="fc-card-item-body">
+          <div class="fc-card-item-front">${_esc(card.front)}</div>
+          <div class="fc-card-item-back">${_esc(card.back)}</div>
+        </div>
+        <div class="fc-card-item-meta">
+          <span class="fc-card-item-sr ${isDue?'due':''}">${srLabel}</span>
+          <div class="fc-card-item-btns">
+            <button class="fc-card-item-btn" onclick="openCardModal('${deckId}','${card.id}')" title="Modifica">✏️</button>
+            <button class="fc-card-item-btn del" onclick="deleteCard('${deckId}','${card.id}')" title="Elimina">🗑</button>
+          </div>
         </div>
       </div>`;
     }).join('');

@@ -214,49 +214,75 @@
 }
 .fc-card-item {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: rgba(255,255,255,0.44);
+  align-items: stretch;
+  gap: 0;
+  background: var(--card);
   border: 1.5px solid var(--card-border);
-  border-radius: 14px;
-  transition: background 0.18s;
+  border-radius: 18px;
+  overflow: hidden;
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.22s ease;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
-.fc-card-item:hover { background: rgba(255,255,255,0.68); }
-.fc-card-item-front {
+.fc-card-item:hover {
+  transform: translateY(-2px) scale(1.005);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.10);
+}
+.fc-card-item-accent {
+  width: 4px;
+  flex-shrink: 0;
+  background: var(--dc, var(--accent));
+  border-radius: 0;
+}
+.fc-card-item-body {
   flex: 1;
-  font-size: 0.84rem;
-  font-weight: 500;
+  padding: 13px 14px;
+  min-width: 0;
+}
+.fc-card-item-front {
+  font-size: 0.88rem;
+  font-weight: 600;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
 }
 .fc-card-item-back {
-  flex: 1;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--text-soft);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
+  margin-top: 3px;
+}
+.fc-card-item-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 10px 12px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 .fc-card-item-sr {
-  font-size: 0.65rem;
+  font-size: 0.63rem;
+  font-weight: 600;
   color: var(--text-soft);
   background: rgba(0,0,0,0.06);
-  border-radius: 6px;
-  padding: 2px 7px;
+  border-radius: 8px;
+  padding: 2px 8px;
   white-space: nowrap;
-  flex-shrink: 0;
+}
+.fc-card-item-sr.due {
+  background: rgba(239,68,68,0.1);
+  color: #EF4444;
 }
 .fc-card-item-btns {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   opacity: 0;
   transition: opacity 0.15s;
-  flex-shrink: 0;
 }
 .fc-card-item:hover .fc-card-item-btns { opacity: 1; }
 .fc-card-item-btn {
@@ -264,13 +290,12 @@
   border: 1.5px solid var(--card-border);
   background: rgba(255,255,255,0.7);
   border-radius: 8px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  color: var(--text-soft);
   transition: all 0.15s;
 }
-.fc-card-item-btn:hover { background: rgba(255,255,255,0.95); color: var(--text); }
+.fc-card-item-btn:hover { background: rgba(255,255,255,0.95); transform: scale(1.1); }
 .fc-card-item-btn.del:hover { color: #EF4444; border-color: rgba(239,68,68,0.4); }
 
 /* ── Stato vuoto ── */
@@ -339,139 +364,208 @@
 .fc-card-flip {
   width: 100%;
   max-width: 560px;
-  height: 260px;
-  perspective: 1000px;
+  height: 300px;
+  perspective: 1200px;
   cursor: pointer;
+  user-select: none;
 }
+.fc-card-flip:active .fc-card-inner { transform: scale(0.97); }
+.fc-card-flip.flipped:active .fc-card-inner { transform: rotateY(180deg) scale(0.97); }
+
 .fc-card-inner {
   position: relative;
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: transform 0.55s cubic-bezier(0.32,0.72,0,1);
+  transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .fc-card-flip.flipped .fc-card-inner {
   transform: rotateY(180deg);
 }
+
 .fc-card-front,
 .fc-card-back {
   position: absolute;
   inset: 0;
-  border-radius: 24px;
+  border-radius: 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 30px 28px;
+  padding: 32px 32px 28px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   text-align: center;
-  gap: 14px;
+  gap: 12px;
   overflow: hidden;
 }
+
+/* ─ Front: Apple liquid glass ─ */
 .fc-card-front {
-  background: var(--card);
-  border: 1.5px solid var(--card-border);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  box-shadow: 0 16px 48px rgba(0,0,0,0.1);
+  background: linear-gradient(160deg,
+    rgba(255,255,255,0.72) 0%,
+    rgba(255,255,255,0.42) 100%);
+  border: 1.5px solid rgba(255,255,255,0.65);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  box-shadow:
+    0 2px 0 rgba(255,255,255,0.8) inset,
+    0 -1px 0 rgba(0,0,0,0.04) inset,
+    0 20px 60px rgba(0,0,0,0.12),
+    0 4px 16px rgba(0,0,0,0.06);
 }
+/* Riflesso in cima */
+.fc-card-front::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 10%; right: 10%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+  border-radius: 50%;
+}
+/* Shimmer sweep al flip */
+.fc-card-front::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg,
+    transparent 35%,
+    rgba(255,255,255,0.45) 50%,
+    transparent 65%);
+  transform: translateX(-100%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+.fc-card-flip.flipped .fc-card-front::after {
+  animation: _fc-shimmer 0.7s ease 0.1s forwards;
+}
+@keyframes _fc-shimmer { to { transform: translateX(200%); } }
+
+/* ─ Back: gradiente vivace ─ */
 .fc-card-back {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: linear-gradient(145deg,
+    var(--accent) 0%,
+    var(--accent-2) 60%,
+    color-mix(in srgb, var(--accent-2) 60%, #fff 40%) 100%);
   transform: rotateY(180deg);
-  box-shadow: 0 16px 48px rgba(0,0,0,0.14);
+  box-shadow:
+    0 2px 0 rgba(255,255,255,0.25) inset,
+    0 20px 60px rgba(0,0,0,0.18),
+    0 4px 16px rgba(0,0,0,0.1);
+  border: 1.5px solid rgba(255,255,255,0.2);
 }
+.fc-card-back::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 8%; right: 8%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+}
+
 .fc-card-face-label {
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  opacity: 0.5;
 }
-.fc-card-front .fc-card-face-label { color: var(--text-soft); }
-.fc-card-back .fc-card-face-label  { color: rgba(255,255,255,0.65); }
+.fc-card-front .fc-card-face-label { color: rgba(0,0,0,0.3); }
+.fc-card-back  .fc-card-face-label { color: rgba(255,255,255,0.55); }
 
 .fc-card-text {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 700;
   line-height: 1.45;
-  max-height: 140px;
+  max-height: 160px;
   overflow-y: auto;
 }
 .fc-card-front .fc-card-text { color: var(--text); }
-.fc-card-back .fc-card-text  { color: #fff; }
+.fc-card-back  .fc-card-text { color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.15); }
 
 .fc-card-hint {
-  font-size: 0.72rem;
-  opacity: 0.55;
+  font-size: 0.7rem;
+  font-weight: 500;
 }
-.fc-card-front .fc-card-hint { color: var(--text-soft); }
-.fc-card-back .fc-card-hint  { color: rgba(255,255,255,0.7); }
+.fc-card-front .fc-card-hint { color: rgba(0,0,0,0.28); }
+.fc-card-back  .fc-card-hint { color: rgba(255,255,255,0.6); }
 
 /* Rate buttons ── */
 .fc-rate-btns {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
   max-width: 560px;
+  animation: _fc-rate-in 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes _fc-rate-in {
+  from { opacity:0; transform: translateY(14px) scale(0.95); }
+  to   { opacity:1; transform: translateY(0)    scale(1); }
 }
 .fc-rate-btns.hidden { display: none; }
-.btn-forgot,
-.btn-knew {
+
+.btn-forgot, .btn-knew {
   flex: 1;
-  padding: 14px;
-  border-radius: 16px;
-  border: none;
+  padding: 16px 12px;
+  border-radius: 20px;
   font-family: Poppins, sans-serif;
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.2s;
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.2s ease,
+              background 0.18s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
+.btn-forgot:active, .btn-knew:active { transform: scale(0.95) !important; }
+
 .btn-forgot {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1.5px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239,68,68,0.12);
+  border: 1.5px solid rgba(239,68,68,0.3);
   color: #EF4444;
+  box-shadow: 0 2px 12px rgba(239,68,68,0.08);
 }
 .btn-forgot:hover {
-  background: rgba(239, 68, 68, 0.18);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 16px rgba(239,68,68,0.12);
+  background: rgba(239,68,68,0.2);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(239,68,68,0.2);
 }
 .btn-knew {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1.5px solid rgba(16, 185, 129, 0.25);
+  background: rgba(16,185,129,0.12);
+  border: 1.5px solid rgba(16,185,129,0.3);
   color: #10B981;
+  box-shadow: 0 2px 12px rgba(16,185,129,0.08);
 }
 .btn-knew:hover {
-  background: rgba(16, 185, 129, 0.18);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 16px rgba(16,185,129,0.12);
+  background: rgba(16,185,129,0.2);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(16,185,129,0.2);
 }
 
+/* Show button ── */
 .fc-show-btn {
   width: 100%;
   max-width: 560px;
-  padding: 14px;
-  border-radius: 16px;
-  border: 1.5px solid var(--card-border);
-  background: rgba(255,255,255,0.55);
+  padding: 16px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(255,255,255,0.6);
+  background: linear-gradient(160deg, rgba(255,255,255,0.65), rgba(255,255,255,0.35));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: var(--text);
   font-family: Poppins, sans-serif;
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow: 0 2px 0 rgba(255,255,255,0.8) inset, 0 6px 20px rgba(0,0,0,0.07);
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
 }
 .fc-show-btn:hover {
-  background: rgba(255,255,255,0.9);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 2px 0 rgba(255,255,255,0.9) inset, 0 10px 28px rgba(0,0,0,0.1);
 }
+.fc-show-btn:active { transform: scale(0.97); }
 
 /* ── Quiz ── */
 .fc-quiz-question {
