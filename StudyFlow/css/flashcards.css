@@ -4,10 +4,11 @@
 
 /* ── Wrapper principale ── */
 .fc-page {
-  padding: 20px 22px;
+  padding: 20px 22px 150px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-width: 900px;
 }
 
 /* ── Header sezione ── */
@@ -251,10 +252,13 @@
 .fc-card-item-back {
   font-size: 0.76rem;
   color: var(--text-soft);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
   margin-top: 3px;
+  max-width: 100%;
 }
 .fc-card-item-meta {
   display: flex;
