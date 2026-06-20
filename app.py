@@ -369,6 +369,14 @@ def unauthorized(e):
 def forbidden(e):
     return jsonify({"error": "accesso negato"}), 403
 
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "endpoint non trovato"}), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    return jsonify({"error": f"errore interno: {e}"}), 500
+
 # ──────────────────────────────────────────
 # STATIC FILES
 # ──────────────────────────────────────────
