@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 150" width="58" height="67" aria-label="Pappagallo">
+  <ellipse cx="65" cy="146" rx="26" ry="5" fill="rgba(0,0,0,0.12)"/>
+  <!-- Coda piume -->
+  <path d="M52,120 Q44,136 47,142 Q52,144 55,132 Q57,124 54,120Z" fill="#1565C0" stroke="#1a0a2e" stroke-width="2.2"/>
+  <path d="M65,124 Q63,140 66,144 Q70,144 69,130 Q68,122 65,124Z" fill="#1976D2" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M78,120 Q86,136 83,142 Q78,144 75,132 Q73,124 76,120Z" fill="#1565C0" stroke="#1a0a2e" stroke-width="2.2"/>
+  <!-- Ali (solo in volo) -->
+  <g class="parrot-wings" style="display:none">
+    <g class="parrot-wing-l">
+      <path d="M34,86 C18,80 4,72 -2,62 C-4,54 4,46 16,52 C26,57 32,76 34,86Z" fill="#27AE60" stroke="#1a0a2e" stroke-width="2.5"/>
+      <path d="M34,86 C20,81 8,74 2,66 C0,60 6,54 16,60 C24,65 30,78 34,86Z" fill="#2ECC71" opacity="0.6"/>
+    </g>
+    <g class="parrot-wing-r">
+      <path d="M96,86 C112,80 126,72 132,62 C134,54 126,46 114,52 C104,57 98,76 96,86Z" fill="#27AE60" stroke="#1a0a2e" stroke-width="2.5"/>
+      <path d="M96,86 C110,81 122,74 128,66 C130,60 124,54 114,60 C106,65 100,78 96,86Z" fill="#2ECC71" opacity="0.6"/>
+    </g>
+  </g>
+  <!-- Corpo tondo -->
+  <circle cx="65" cy="100" r="34" fill="#27AE60" stroke="#1a0a2e" stroke-width="3.5"/>
+  <ellipse cx="65" cy="106" rx="20" ry="20" fill="#A9DFBF" stroke="#1a0a2e" stroke-width="2"/>
+  <!-- Braccia piuma -->
+  <path d="M30,94 Q18,104 22,116 Q32,118 34,108Z" fill="#27AE60" stroke="#1a0a2e" stroke-width="2.5"/>
+  <path d="M100,94 Q112,104 108,116 Q98,118 96,108Z" fill="#27AE60" stroke="#1a0a2e" stroke-width="2.5"/>
+  <!-- Zampe (nascoste in volo) -->
+  <g class="parrot-feet">
+    <line x1="52" y1="130" x2="48" y2="142" stroke="#D4AC0D" stroke-width="2.8" stroke-linecap="round"/>
+    <line x1="48" y1="142" x2="40" y2="145" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="48" y1="142" x2="48" y2="148" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="48" y1="142" x2="56" y2="146" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="78" y1="130" x2="82" y2="142" stroke="#D4AC0D" stroke-width="2.8" stroke-linecap="round"/>
+    <line x1="82" y1="142" x2="74" y2="146" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="82" y1="142" x2="82" y2="148" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="82" y1="142" x2="90" y2="145" stroke="#D4AC0D" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+  <!-- Ciuffo testa -->
+  <path d="M56,26 Q54,14 58,8 Q62,4 60,14 Q59,20 58,26Z" fill="#E74C3C" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M65,24 Q65,10 68,4 Q72,0 70,12 Q68,18 67,24Z" fill="#E74C3C" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M74,26 Q76,14 72,8 Q68,4 70,14 Q71,20 72,26Z" fill="#E74C3C" stroke="#1a0a2e" stroke-width="2"/>
+  <!-- Testa rotonda rossa -->
+  <circle cx="65" cy="54" r="30" fill="#E74C3C" stroke="#1a0a2e" stroke-width="3.5"/>
+  <!-- Maschera gialla -->
+  <ellipse cx="72" cy="62" rx="16" ry="13" fill="#F39C12" stroke="#1a0a2e" stroke-width="2"/>
+  <!-- Becco curvo -->
+  <path d="M76,58 Q90,64 82,74 Q74,78 70,68 Q72,58 76,58Z" fill="#C0392B" stroke="#1a0a2e" stroke-width="2.2"/>
+  <path d="M76,58 Q88,63 82,71 Q76,74 72,66Z" fill="#E67E22"/>
+  <!-- Occhio aperto -->
+  <g class="parrot-eye-open">
+    <circle cx="60" cy="44" r="10" fill="white" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="61" cy="44" r="6.5" fill="#1a0a2e"/><circle cx="63" cy="41" r="2.4" fill="white"/>
+  </g>
+  <!-- Occhio chiuso -->
+  <g class="parrot-eye-closed" style="display:none">
+    <path d="M50,44 Q60,35 70,44" fill="none" stroke="#1a0a2e" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <!-- ZZZ -->
+  <g class="parrot-zzz" style="display:none">
+    <text x="82" y="22" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="12">z</text>
+    <text x="92" y="10" font-family="Arial,sans-serif" font-weight="800" fill="#94A3B8" font-size="16">z</text>
+  </g>
+  <!-- Cuore -->
+  <g class="parrot-heart" style="display:none">
+    <path d="M65,22 C65,22 55,14 48,20 C44,25 46,32 51,35 L65,46 L79,35 C84,32 86,25 82,20 C75,14 65,22 65,22Z" fill="#EC4899" opacity="0.9"/>
+  </g>
+</svg>

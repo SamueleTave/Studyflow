@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>🦁 Leone Mini — Animazioni</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #4E88B0; display: flex; flex-direction: column; align-items: center; gap: 30px; padding: 40px 20px 60px; font-family: 'Segoe UI', sans-serif; }
+h1 { color: white; font-size: 1.4rem; font-weight: 900; letter-spacing: .1em; text-shadow: 0 2px 8px rgba(0,0,0,.35); }
+.grid { display: flex; flex-wrap: wrap; gap: 22px; justify-content: center; max-width: 760px; }
+.pose { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.label { font-size: .62rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.9); }
+.card { background: white; border-radius: 14px; padding: 14px; box-shadow: 0 4px 20px rgba(0,0,0,.22); }
+
+/* ── IDLE ── */
+.idle-g { animation: idle 1.4s ease-in-out infinite; }
+@keyframes idle { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+
+/* ── WALK ── */
+.walk-g { animation: walk-bob 0.46s ease-in-out infinite; }
+@keyframes walk-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+.wll,.wlr,.wal,.war { transform-box:fill-box; transform-origin:50% 0%; }
+.wll { animation: limb-swing 0.46s ease-in-out infinite; }
+.wlr { animation: limb-swing 0.46s ease-in-out infinite; animation-delay:-0.23s; }
+.wal { animation: limb-swing 0.46s ease-in-out infinite; animation-delay:-0.23s; }
+.war { animation: limb-swing 0.46s ease-in-out infinite; }
+@keyframes limb-swing { 0%,100%{transform:rotate(-20deg)} 50%{transform:rotate(20deg)} }
+
+/* ── RUN ── */
+.run-g { animation: run-bob 0.25s ease-in-out infinite; }
+@keyframes run-bob { 0%,100%{transform:translateY(0) rotate(-6deg)} 50%{transform:translateY(-7px) rotate(-6deg)} }
+.rll,.rlr,.ral,.rar { transform-box:fill-box; transform-origin:50% 0%; }
+.rll { animation: run-limb 0.25s ease-in-out infinite; }
+.rlr { animation: run-limb 0.25s ease-in-out infinite; animation-delay:-0.125s; }
+.ral { animation: run-limb 0.25s ease-in-out infinite; animation-delay:-0.125s; }
+.rar { animation: run-limb 0.25s ease-in-out infinite; }
+@keyframes run-limb { 0%,100%{transform:rotate(-38deg)} 50%{transform:rotate(38deg)} }
+
+/* ── HURT ── */
+.hurt-g { animation: hurt-shake 0.08s ease-in-out infinite; }
+@keyframes hurt-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.hurt-ov { animation: hurt-flash 0.16s ease-in-out infinite; }
+@keyframes hurt-flash { 0%,100%{opacity:0} 50%{opacity:.6} }
+
+/* ── DIZZY ── */
+.dz1,.dz2,.dz3 { transform-box:fill-box; transform-origin:50% 50%; }
+.dz1 { animation: dzspin 1.1s linear infinite; }
+.dz2 { animation: dzspin 1.1s linear infinite; animation-delay:-.37s; }
+.dz3 { animation: dzspin 1.1s linear infinite; animation-delay:-.73s; }
+@keyframes dzspin { from{transform:rotate(0deg) translateX(18px)} to{transform:rotate(360deg) translateX(18px)} }
+.dz-eye-l,.dz-eye-r { animation: dz-eyespin 0.6s linear infinite; transform-box:fill-box; transform-origin:50% 50%; }
+@keyframes dz-eyespin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+/* ── SLEEP ── */
+.sleep-g { animation: sleep-breath 2.2s ease-in-out infinite; transform-box:fill-box; transform-origin:50% 75%; }
+@keyframes sleep-breath { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(1.035)} }
+.z1 { animation: zzz 2.2s ease-in-out infinite; }
+.z2 { animation: zzz 2.2s ease-in-out infinite; animation-delay:-.73s; }
+.z3 { animation: zzz 2.2s ease-in-out infinite; animation-delay:-1.46s; }
+@keyframes zzz { 0%,100%{opacity:.25;transform:translate(0,0) scale(.7)} 50%{opacity:1;transform:translate(6px,-12px) scale(1.1)} }
+</style>
+</head>
+<body>
+<h1>🦁 Leone Mini — Animazioni</h1>
+<div class="grid">
+
+<!-- ══ IDLE ══ -->
+<div class="pose"><div class="card">
+<svg viewBox="0 0 100 124" width="90" height="112">
+  <ellipse cx="50" cy="120" rx="22" ry="5" fill="rgba(0,0,0,.14)"/>
+  <g class="idle-g">
+    <!-- Left arm -->
+    <ellipse cx="22" cy="78" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-12 22 78)"/>
+    <!-- Right arm -->
+    <ellipse cx="78" cy="78" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(12 78 78)"/>
+    <!-- Left leg -->
+    <rect x="34" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <ellipse cx="40.5" cy="119" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2"/>
+    <!-- Right leg -->
+    <rect x="53" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <ellipse cx="59.5" cy="119" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2"/>
+    <!-- Coda leone -->
+    <path d="M28,84 C10,72 6,50 12,30 C14,22 22,24 20,36 C18,52 20,70 26,84Z" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2"/>
+    <circle cx="11" cy="26" r="9" fill="#C07818" stroke="#1a0a2e" stroke-width="2"/>
+        <!-- Body -->
+    <circle cx="50" cy="78" r="24" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <!-- Shirt -->
+    <path d="M28,72 Q50,62 72,72 L74,98 Q50,106 26,98Z" fill="#3344BB" stroke="#1a0a2e" stroke-width="2"/>
+    <path d="M44,62 Q50,69 56,62" fill="none" stroke="#CC2020" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- Ears (before head) -->
+    <circle cx="30" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="30" cy="16" r="6.5" fill="#E8A020"/>
+    <circle cx="70" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="70" cy="16" r="6.5" fill="#E8A020"/>
+    <!-- Head -->
+    <circle cx="50" cy="38" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <!-- Eyes -->
+    <circle cx="40" cy="34" r="6" fill="white" stroke="#1a0a2e" stroke-width="1.8"/>
+    <circle cx="40" cy="35" r="3.8" fill="#1a0a2e"/>
+    <circle cx="41.8" cy="33" r="1.6" fill="white"/>
+    <circle cx="60" cy="34" r="6" fill="white" stroke="#1a0a2e" stroke-width="1.8"/>
+    <circle cx="60" cy="35" r="3.8" fill="#1a0a2e"/>
+    <circle cx="61.8" cy="33" r="1.6" fill="white"/>
+    <!-- Cheeks -->
+    <ellipse cx="32" cy="42" rx="8" ry="5.5" fill="#F87878" opacity=".55"/>
+    <ellipse cx="68" cy="42" rx="8" ry="5.5" fill="#F87878" opacity=".55"/>
+    <!-- Nose -->
+    <ellipse cx="50" cy="46" rx="5.5" ry="3.8" fill="#F87878" stroke="#1a0a2e" stroke-width="1.5"/>
+    <!-- Mouth -->
+    <path d="M44,51 Q50,57 56,51" fill="none" stroke="#1a0a2e" stroke-width="1.8" stroke-linecap="round"/>
+  </g>
+</svg>
+</div><span class="label">Idle</span></div>
+
+<!-- ══ WALK ══ -->
+<div class="pose"><div class="card">
+<svg viewBox="0 0 100 124" width="90" height="112">
+  <ellipse cx="50" cy="120" rx="22" ry="5" fill="rgba(0,0,0,.14)"/>
+  <g class="walk-g">
+    <!-- Left arm (animated) -->
+    <g class="wal">
+      <ellipse cx="22" cy="78" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-12 22 78)"/>
+    </g>
+    <!-- Right arm (animated) -->
+    <g class="war">
+      <ellipse cx="78" cy="78" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(12 78 78)"/>
+    </g>
+    <!-- Left leg (animated) -->
+    <g class="wll">
+      <rect x="34" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+      <ellipse cx="40.5" cy="119" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2"/>
+    </g>
+    <!-- Right leg (animated) -->
+    <g class="wlr">
+      <rect x="53" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+      <ellipse cx="59.5" cy="119" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2"/>
+    </g>
+    <!-- Coda leone -->
+    <path d="M28,84 C10,72 6,50 12,30 C14,22 22,24 20,36 C18,52 20,70 26,84Z" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2"/>
+    <circle cx="11" cy="26" r="9" fill="#C07818" stroke="#1a0a2e" stroke-width="2"/>
+        <!-- Body -->
+    <circle cx="50" cy="78" r="24" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <path d="M28,72 Q50,62 72,72 L74,98 Q50,106 26,98Z" fill="#3344BB" stroke="#1a0a2e" stroke-width="2"/>
+    <path d="M44,62 Q50,69 56,62" fill="none" stroke="#CC2020" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="30" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="30" cy="16" r="6.5" fill="#E8A020"/>
+    <circle cx="70" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="70" cy="16" r="6.5" fill="#E8A020"/>
+    <circle cx="50" cy="38" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="40" cy="34" r="6" fill="white" stroke="#1a0a2e" stroke-width="1.8"/>
+    <circle cx="40" cy="35" r="3.8" fill="#1a0a2e"/>
+    <circle cx="41.8" cy="33" r="1.6" fill="white"/>
+    <circle cx="60" cy="34" r="6" fill="white" stroke="#1a0a2e" stroke-width="1.8"/>
+    <circle cx="60" cy="35" r="3.8" fill="#1a0a2e"/>
+    <circle cx="61.8" cy="33" r="1.6" fill="white"/>
+    <ellipse cx="32" cy="42" rx="8" ry="5.5" fill="#F87878" opacity=".55"/>
+    <ellipse cx="68" cy="42" rx="8" ry="5.5" fill="#F87878" opacity=".55"/>
+    <ellipse cx="50" cy="46" rx="5.5" ry="3.8" fill="#F87878" stroke="#1a0a2e" stroke-width="1.5"/>
+    <path d="M44,51 Q50,57 56,51" fill="none" stroke="#1a0a2e" stroke-width="1.8" stroke-linecap="round"/>
+  </g>
+</svg>
+</div><span class="label">Walk</span></div>
+
+<!-- ══ RUN ══ -->
+<div class="pose"><div class="card">
+<svg viewBox="0 0 100 124" width="90" height="112">
+  <ellipse cx="50" cy="120" rx="22" ry="5" fill="rgba(0,0,0,.14)"/>
+  <g class="run-g">
+    <g class="ral">
+      <ellipse cx="22" cy="78" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-12 22 78)"/>
+    </g>
+    <g class="rar">
+      <ellipse cx="78" cy="78" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(12 78 78)"/>
+    </g>
+    <g class="rll">
+      <rect x="34" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+      <ellipse cx="40.5" cy="119" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2"/>
+    </g>
+    <g class="rlr">
+      <rect x="53" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+      <ellipse cx="59.5" cy="119" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2"/>
+    </g>
+    <circle cx="50" cy="78" r="24" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <path d="M28,72 Q50,62 72,72 L74,98 Q50,106 26,98Z" fill="#3344BB" stroke="#1a0a2e" stroke-width="2"/>
+    <path d="M44,62 Q50,69 56,62" fill="none" stroke="#CC2020" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- Speed lines -->
+    <line x1="4" y1="60" x2="18" y2="60" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round" opacity=".4"/>
+    <line x1="2" y1="70" x2="14" y2="70" stroke="#1a0a2e" stroke-width="1.5" stroke-linecap="round" opacity=".3"/>
+    <line x1="6" y1="80" x2="16" y2="80" stroke="#1a0a2e" stroke-width="1.5" stroke-linecap="round" opacity=".25"/>
+    <circle cx="30" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="30" cy="16" r="6.5" fill="#E8A020"/>
+    <circle cx="70" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="70" cy="16" r="6.5" fill="#E8A020"/>
+    <circle cx="50" cy="38" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <!-- Eyes (determined run face) -->
+    <path d="M34,32 Q40,28 46,32" fill="none" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="40" cy="35" r="4" fill="#1a0a2e"/>
+    <circle cx="41.5" cy="33.5" r="1.4" fill="white"/>
+    <path d="M54,32 Q60,28 66,32" fill="none" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="60" cy="35" r="4" fill="#1a0a2e"/>
+    <circle cx="61.5" cy="33.5" r="1.4" fill="white"/>
+    <ellipse cx="32" cy="42" rx="8" ry="5.5" fill="#F87878" opacity=".5"/>
+    <ellipse cx="68" cy="42" rx="8" ry="5.5" fill="#F87878" opacity=".5"/>
+    <ellipse cx="50" cy="46" rx="5.5" ry="3.8" fill="#F87878" stroke="#1a0a2e" stroke-width="1.5"/>
+    <path d="M46,51 Q50,56 54,51" fill="none" stroke="#1a0a2e" stroke-width="1.8" stroke-linecap="round"/>
+  </g>
+</svg>
+</div><span class="label">Run</span></div>
+
+<!-- ══ THROW ══ -->
+<div class="pose"><div class="card">
+<svg viewBox="0 0 100 124" width="90" height="112">
+  <ellipse cx="50" cy="120" rx="22" ry="5" fill="rgba(0,0,0,.14)"/>
+  <!-- Left arm back -->
+  <ellipse cx="22" cy="72" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(30 22 72)"/>
+  <!-- Right arm extended forward (throw) -->
+  <ellipse cx="84" cy="56" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-60 84 56)"/>
+  <!-- Ball being thrown -->
+  <circle cx="94" cy="38" r="8" fill="#FFD700" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M90,34 Q94,38 90,42" fill="none" stroke="#CC9900" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Motion arc -->
+  <path d="M80,48 Q86,40 94,38" fill="none" stroke="#1a0a2e" stroke-width="1.5" stroke-dasharray="3,3" opacity=".5"/>
+  <!-- Legs -->
+  <rect x="34" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <ellipse cx="40.5" cy="119" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2"/>
+  <rect x="53" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <ellipse cx="59.5" cy="119" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2"/>
+  <!-- Body (slightly twisted) -->
+  <circle cx="50" cy="78" r="24" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <path d="M28,72 Q50,62 72,72 L74,98 Q50,106 26,98Z" fill="#3344BB" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M44,62 Q50,69 56,62" fill="none" stroke="#CC2020" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="30" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <circle cx="30" cy="16" r="6.5" fill="#E8A020"/>
+  <circle cx="70" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <circle cx="70" cy="16" r="6.5" fill="#E8A020"/>
+  <circle cx="50" cy="38" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <!-- Determined face -->
+  <path d="M34,32 Q40,29 46,32" fill="none" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="40" cy="36" r="4" fill="#1a0a2e"/>
+  <circle cx="41.5" cy="34.5" r="1.4" fill="white"/>
+  <path d="M54,32 Q60,29 66,32" fill="none" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="60" cy="36" r="4" fill="#1a0a2e"/>
+  <circle cx="61.5" cy="34.5" r="1.4" fill="white"/>
+  <ellipse cx="32" cy="42" rx="7" ry="5" fill="#F87878" opacity=".5"/>
+  <ellipse cx="68" cy="42" rx="7" ry="5" fill="#F87878" opacity=".5"/>
+  <ellipse cx="50" cy="47" rx="5.5" ry="3.8" fill="#F87878" stroke="#1a0a2e" stroke-width="1.5"/>
+  <path d="M45,52 Q50,57 55,52" fill="none" stroke="#1a0a2e" stroke-width="1.8" stroke-linecap="round"/>
+</svg>
+</div><span class="label">Throw</span></div>
+
+<!-- ══ JUMP UP ══ -->
+<div class="pose"><div class="card">
+<svg viewBox="0 0 100 124" width="90" height="112">
+  <!-- Arms raised up -->
+  <ellipse cx="20" cy="52" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-50 20 52)"/>
+  <ellipse cx="80" cy="52" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(50 80 52)"/>
+  <!-- Legs bent up/tucked -->
+  <rect x="30" y="96" width="13" height="18" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-20 36 96)"/>
+  <ellipse cx="34" cy="112" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2" transform="rotate(-20 34 112)"/>
+  <rect x="57" y="96" width="13" height="18" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(20 63 96)"/>
+  <ellipse cx="67" cy="112" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2" transform="rotate(20 67 112)"/>
+  <!-- Body -->
+  <circle cx="50" cy="78" r="24" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <path d="M28,72 Q50,62 72,72 L74,98 Q50,106 26,98Z" fill="#3344BB" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M44,62 Q50,69 56,62" fill="none" stroke="#CC2020" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Ears -->
+  <circle cx="30" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <circle cx="30" cy="16" r="6.5" fill="#E8A020"/>
+  <circle cx="70" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <circle cx="70" cy="16" r="6.5" fill="#E8A020"/>
+  <circle cx="50" cy="38" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <!-- Excited face -->
+  <circle cx="40" cy="34" r="6" fill="white" stroke="#1a0a2e" stroke-width="1.8"/>
+  <circle cx="40" cy="35" r="3.8" fill="#1a0a2e"/>
+  <circle cx="41.8" cy="33" r="1.6" fill="white"/>
+  <circle cx="60" cy="34" r="6" fill="white" stroke="#1a0a2e" stroke-width="1.8"/>
+  <circle cx="60" cy="35" r="3.8" fill="#1a0a2e"/>
+  <circle cx="61.8" cy="33" r="1.6" fill="white"/>
+  <ellipse cx="32" cy="42" rx="8" ry="5.5" fill="#F87878" opacity=".55"/>
+  <ellipse cx="68" cy="42" rx="8" ry="5.5" fill="#F87878" opacity=".55"/>
+  <ellipse cx="50" cy="46" rx="5.5" ry="3.8" fill="#F87878" stroke="#1a0a2e" stroke-width="1.5"/>
+  <path d="M43,51 Q50,58 57,51" fill="#1a0a2e" stroke="#1a0a2e" stroke-width="1.5"/>
+  <path d="M43,51 Q50,57 57,51 Q50,55 43,51Z" fill="#CC1040"/>
+  <!-- Stars -->
+  <text x="4" y="24" font-size="10" fill="#FFD700" stroke="#1a0a2e" stroke-width=".8" paint-order="stroke" font-family="Arial">★</text>
+  <text x="82" y="20" font-size="8" fill="#FFD700" stroke="#1a0a2e" stroke-width=".7" paint-order="stroke" font-family="Arial">★</text>
+</svg>
+</div><span class="label">Jump Up</span></div>
+
+<!-- ══ JUMP FALL ══ -->
+<div class="pose"><div class="card">
+<svg viewBox="0 0 100 124" width="90" height="112">
+  <!-- Arms out to sides -->
+  <ellipse cx="16" cy="74" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(20 16 74)"/>
+  <ellipse cx="84" cy="74" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-20 84 74)"/>
+  <!-- Legs hanging slightly bent -->
+  <rect x="34" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(10 40 96)"/>
+  <ellipse cx="43" cy="118" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2" transform="rotate(10 43 118)"/>
+  <rect x="53" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-10 60 96)"/>
+  <ellipse cx="58" cy="118" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2" transform="rotate(-10 58 118)"/>
+  <!-- Body -->
+  <circle cx="50" cy="78" r="24" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <path d="M28,72 Q50,62 72,72 L74,98 Q50,106 26,98Z" fill="#3344BB" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M44,62 Q50,69 56,62" fill="none" stroke="#CC2020" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="30" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <circle cx="30" cy="16" r="6.5" fill="#E8A020"/>
+  <circle cx="70" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <circle cx="70" cy="16" r="6.5" fill="#E8A020"/>
+  <circle cx="50" cy="38" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <!-- Worried face -->
+  <path d="M36,30 Q40,27 44,30" fill="none" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="40" cy="35" r="5" fill="white" stroke="#1a0a2e" stroke-width="1.8"/>
+  <circle cx="40" cy="36" r="3.2" fill="#1a0a2e"/>
+  <circle cx="41.4" cy="34.5" r="1.3" fill="white"/>
+  <path d="M56,30 Q60,27 64,30" fill="none" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="60" cy="35" r="5" fill="white" stroke="#1a0a2e" stroke-width="1.8"/>
+  <circle cx="60" cy="36" r="3.2" fill="#1a0a2e"/>
+  <circle cx="61.4" cy="34.5" r="1.3" fill="white"/>
+  <ellipse cx="32" cy="43" rx="8" ry="5.5" fill="#F87878" opacity=".5"/>
+  <ellipse cx="68" cy="43" rx="8" ry="5.5" fill="#F87878" opacity=".5"/>
+  <ellipse cx="50" cy="47" rx="5.5" ry="3.8" fill="#F87878" stroke="#1a0a2e" stroke-width="1.5"/>
+  <path d="M45,54 Q50,50 55,54" fill="none" stroke="#1a0a2e" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Wind lines -->
+  <line x1="6" y1="44" x2="18" y2="44" stroke="#1a0a2e" stroke-width="1.5" stroke-linecap="round" opacity=".35"/>
+  <line x1="82" y1="44" x2="94" y2="44" stroke="#1a0a2e" stroke-width="1.5" stroke-linecap="round" opacity=".35"/>
+</svg>
+</div><span class="label">Jump Fall</span></div>
+
+<!-- ══ JUMP THROW ══ -->
+<div class="pose"><div class="card">
+<svg viewBox="0 0 100 124" width="90" height="112">
+  <!-- Left arm back -->
+  <ellipse cx="18" cy="64" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-40 18 64)"/>
+  <!-- Right arm throwing (extended up-right) -->
+  <ellipse cx="84" cy="48" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-65 84 48)"/>
+  <!-- Ball -->
+  <circle cx="96" cy="26" r="8" fill="#FFD700" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M92,22 Q96,26 92,30" fill="none" stroke="#CC9900" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M78,40 Q86,32 96,26" fill="none" stroke="#1a0a2e" stroke-width="1.5" stroke-dasharray="3,3" opacity=".5"/>
+  <!-- Legs tucked (jumping) -->
+  <rect x="30" y="94" width="13" height="18" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-25 36 94)"/>
+  <ellipse cx="32" cy="110" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2" transform="rotate(-25 32 110)"/>
+  <rect x="57" y="94" width="13" height="18" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(15 63 94)"/>
+  <ellipse cx="65" cy="110" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2" transform="rotate(15 65 110)"/>
+  <!-- Body -->
+  <circle cx="50" cy="78" r="24" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <path d="M28,72 Q50,62 72,72 L74,98 Q50,106 26,98Z" fill="#3344BB" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M44,62 Q50,69 56,62" fill="none" stroke="#CC2020" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="30" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <circle cx="30" cy="16" r="6.5" fill="#E8A020"/>
+  <circle cx="70" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <circle cx="70" cy="16" r="6.5" fill="#E8A020"/>
+  <circle cx="50" cy="38" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <path d="M34,32 Q40,29 46,32" fill="none" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="40" cy="36" r="4" fill="#1a0a2e"/>
+  <circle cx="41.5" cy="34.5" r="1.4" fill="white"/>
+  <path d="M54,32 Q60,29 66,32" fill="none" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="60" cy="36" r="4" fill="#1a0a2e"/>
+  <circle cx="61.5" cy="34.5" r="1.4" fill="white"/>
+  <ellipse cx="32" cy="42" rx="7" ry="5" fill="#F87878" opacity=".5"/>
+  <ellipse cx="68" cy="42" rx="7" ry="5" fill="#F87878" opacity=".5"/>
+  <ellipse cx="50" cy="47" rx="5.5" ry="3.8" fill="#F87878" stroke="#1a0a2e" stroke-width="1.5"/>
+  <path d="M45,52 Q50,57 55,52" fill="none" stroke="#1a0a2e" stroke-width="1.8" stroke-linecap="round"/>
+</svg>
+</div><span class="label">Jump Throw</span></div>
+
+<!-- ══ HURT ══ -->
+<div class="pose"><div class="card">
+<svg viewBox="0 0 100 124" width="90" height="112">
+  <ellipse cx="50" cy="120" rx="22" ry="5" fill="rgba(0,0,0,.14)"/>
+  <g class="hurt-g">
+    <ellipse cx="22" cy="78" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(25 22 78)"/>
+    <ellipse cx="78" cy="78" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-25 78 78)"/>
+    <rect x="34" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <ellipse cx="40.5" cy="119" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2"/>
+    <rect x="53" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <ellipse cx="59.5" cy="119" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2"/>
+    <circle cx="50" cy="78" r="24" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <path d="M28,72 Q50,62 72,72 L74,98 Q50,106 26,98Z" fill="#3344BB" stroke="#1a0a2e" stroke-width="2"/>
+    <path d="M44,62 Q50,69 56,62" fill="none" stroke="#CC2020" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- Red hurt flash overlay on body -->
+    <circle cx="50" cy="78" r="24" fill="#FF2020" stroke="none" class="hurt-ov"/>
+    <circle cx="30" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="30" cy="16" r="6.5" fill="#E8A020"/>
+    <circle cx="70" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="70" cy="16" r="6.5" fill="#E8A020"/>
+    <circle cx="50" cy="38" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <!-- Red flash on head -->
+    <circle cx="50" cy="38" r="28" fill="#FF2020" stroke="none" class="hurt-ov"/>
+    <!-- Pain face: X eyes -->
+    <line x1="35" y1="30" x2="45" y2="40" stroke="#1a0a2e" stroke-width="3" stroke-linecap="round"/>
+    <line x1="45" y1="30" x2="35" y2="40" stroke="#1a0a2e" stroke-width="3" stroke-linecap="round"/>
+    <line x1="55" y1="30" x2="65" y2="40" stroke="#1a0a2e" stroke-width="3" stroke-linecap="round"/>
+    <line x1="65" y1="30" x2="55" y2="40" stroke="#1a0a2e" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="32" cy="46" rx="8" ry="5" fill="#F87878" opacity=".6"/>
+    <ellipse cx="68" cy="46" rx="8" ry="5" fill="#F87878" opacity=".6"/>
+    <ellipse cx="50" cy="50" rx="5.5" ry="3.8" fill="#F87878" stroke="#1a0a2e" stroke-width="1.5"/>
+    <path d="M44,56 Q50,52 56,56" fill="none" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <!-- Impact stars -->
+    <text x="2" y="18" font-size="14" fill="#FFD700" stroke="#1a0a2e" stroke-width="1" paint-order="stroke" font-family="Arial">★</text>
+    <text x="80" y="14" font-size="11" fill="#FFD700" stroke="#1a0a2e" stroke-width=".8" paint-order="stroke" font-family="Arial">★</text>
+  </g>
+</svg>
+</div><span class="label">Hurt</span></div>
+
+<!-- ══ HURT DIZZY ══ -->
+<div class="pose"><div class="card">
+<svg viewBox="0 0 100 124" width="90" height="112">
+  <ellipse cx="50" cy="120" rx="22" ry="5" fill="rgba(0,0,0,.14)"/>
+  <!-- Orbiting stars (pivot at head center 50,38) -->
+  <g style="transform-origin:50px 32px">
+    <g class="dz1"><text x="46" y="6" font-size="11" fill="#FFD700" stroke="#1a0a2e" stroke-width=".8" paint-order="stroke" font-family="Arial">★</text></g>
+    <g class="dz2"><text x="46" y="6" font-size="11" fill="#FF6060" stroke="#1a0a2e" stroke-width=".8" paint-order="stroke" font-family="Arial">★</text></g>
+    <g class="dz3"><text x="46" y="6" font-size="9" fill="#60C0FF" stroke="#1a0a2e" stroke-width=".7" paint-order="stroke" font-family="Arial">★</text></g>
+  </g>
+  <!-- Arms drooping -->
+  <ellipse cx="20" cy="82" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(35 20 82)"/>
+  <ellipse cx="80" cy="82" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-35 80 82)"/>
+  <!-- Legs wobbly -->
+  <rect x="33" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-10 39 96)"/>
+  <ellipse cx="38" cy="118" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2" transform="rotate(-10 38 118)"/>
+  <rect x="54" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(10 60 96)"/>
+  <ellipse cx="62" cy="118" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2" transform="rotate(10 62 118)"/>
+  <!-- Body -->
+  <circle cx="50" cy="78" r="24" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <path d="M28,72 Q50,62 72,72 L74,98 Q50,106 26,98Z" fill="#3344BB" stroke="#1a0a2e" stroke-width="2"/>
+  <path d="M44,62 Q50,69 56,62" fill="none" stroke="#CC2020" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="30" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <circle cx="30" cy="16" r="6.5" fill="#E8A020"/>
+  <circle cx="70" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <circle cx="70" cy="16" r="6.5" fill="#E8A020"/>
+  <circle cx="50" cy="38" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <!-- Dizzy spiral eyes -->
+  <circle cx="40" cy="35" r="7" fill="white" stroke="#1a0a2e" stroke-width="1.8"/>
+  <path d="M40,35 m5,0 a5,5 0 1,1 -5,-5 a3,3 0 1,0 3,3" fill="none" stroke="#1a0a2e" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="60" cy="35" r="7" fill="white" stroke="#1a0a2e" stroke-width="1.8"/>
+  <path d="M60,35 m5,0 a5,5 0 1,1 -5,-5 a3,3 0 1,0 3,3" fill="none" stroke="#1a0a2e" stroke-width="1.5" stroke-linecap="round"/>
+  <ellipse cx="32" cy="44" rx="8" ry="5.5" fill="#F87878" opacity=".55"/>
+  <ellipse cx="68" cy="44" rx="8" ry="5.5" fill="#F87878" opacity=".55"/>
+  <ellipse cx="50" cy="49" rx="5.5" ry="3.8" fill="#F87878" stroke="#1a0a2e" stroke-width="1.5"/>
+  <path d="M44,55 Q50,51 56,55" fill="none" stroke="#1a0a2e" stroke-width="1.8" stroke-linecap="round"/>
+</svg>
+</div><span class="label">Hurt Dizzy</span></div>
+
+<!-- ══ DEAD ══ -->
+<div class="pose"><div class="card">
+<svg viewBox="0 0 130 80" width="130" height="80">
+  <ellipse cx="65" cy="76" rx="52" ry="6" fill="rgba(0,0,0,.14)"/>
+  <!-- Bear lying on back, head left, legs right -->
+  <!-- Left arm (up) -->
+  <ellipse cx="26" cy="36" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(80 26 36)"/>
+  <!-- Right arm (spread) -->
+  <ellipse cx="76" cy="30" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(70 76 30)"/>
+  <!-- Legs (sticking up/spread) -->
+  <rect x="96" y="40" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-60 102 40)"/>
+  <ellipse cx="84" cy="32" rx="6" ry="12" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2" transform="rotate(-60 84 32)"/>
+  <rect x="108" y="44" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-40 114 44)"/>
+  <ellipse cx="100" cy="34" rx="6" ry="12" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2" transform="rotate(-40 100 34)"/>
+  <!-- Body (lying) -->
+  <ellipse cx="70" cy="56" rx="26" ry="20" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <!-- Shirt on body -->
+  <path d="M46,50 Q70,40 94,50 L96,68 Q70,76 44,68Z" fill="#3344BB" stroke="#1a0a2e" stroke-width="2"/>
+  <!-- Ear (before head) -->
+  <circle cx="22" cy="34" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <circle cx="22" cy="34" r="6.5" fill="#E8A020"/>
+  <!-- Head (on left, lying) -->
+  <circle cx="36" cy="52" r="26" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+  <!-- X eyes -->
+  <line x1="26" y1="44" x2="34" y2="52" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="34" y1="44" x2="26" y2="52" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="38" y1="44" x2="46" y2="52" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="46" y1="44" x2="38" y2="52" stroke="#1a0a2e" stroke-width="2.5" stroke-linecap="round"/>
+  <ellipse cx="22" cy="57" rx="7" ry="4.5" fill="#F87878" opacity=".5"/>
+  <ellipse cx="50" cy="57" rx="7" ry="4.5" fill="#F87878" opacity=".5"/>
+  <ellipse cx="36" cy="62" rx="5" ry="3.5" fill="#F87878" stroke="#1a0a2e" stroke-width="1.5"/>
+  <path d="M30,67 Q36,63 42,67" fill="none" stroke="#1a0a2e" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Floating birds -->
+  <path d="M88,8 Q92,4 96,8" fill="none" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+  <path d="M100,4 Q104,0 108,4" fill="none" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+  <path d="M112,8 Q116,4 120,8" fill="none" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+</svg>
+</div><span class="label">Dead</span></div>
+
+<!-- ══ SLEEP ══ -->
+<div class="pose"><div class="card">
+<svg viewBox="0 0 100 124" width="90" height="112">
+  <ellipse cx="50" cy="120" rx="22" ry="5" fill="rgba(0,0,0,.14)"/>
+  <!-- ZZZ (floating) -->
+  <text class="z1" x="68" y="26" font-size="11" font-weight="900" fill="#8B9AAF" stroke="#1a0a2e" stroke-width=".8" paint-order="stroke" font-family="Arial">Z</text>
+  <text class="z2" x="76" y="18" font-size="9" font-weight="900" fill="#8B9AAF" stroke="#1a0a2e" stroke-width=".7" paint-order="stroke" font-family="Arial">Z</text>
+  <text class="z3" x="82" y="11" font-size="7" font-weight="900" fill="#8B9AAF" stroke="#1a0a2e" stroke-width=".6" paint-order="stroke" font-family="Arial">Z</text>
+  <g class="sleep-g">
+    <!-- Arms relaxed down -->
+    <ellipse cx="22" cy="82" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(20 22 82)"/>
+    <ellipse cx="78" cy="82" rx="10" ry="14" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5" transform="rotate(-20 78 82)"/>
+    <!-- Legs -->
+    <rect x="34" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <ellipse cx="40.5" cy="119" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2"/>
+    <rect x="53" y="96" width="13" height="22" rx="6.5" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <ellipse cx="59.5" cy="119" rx="12" ry="6" fill="#2A1A08" stroke="#1a0a2e" stroke-width="2"/>
+    <!-- Coda leone -->
+    <path d="M28,84 C10,72 6,50 12,30 C14,22 22,24 20,36 C18,52 20,70 26,84Z" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2"/>
+    <circle cx="11" cy="26" r="9" fill="#C07818" stroke="#1a0a2e" stroke-width="2"/>
+        <!-- Body -->
+    <circle cx="50" cy="78" r="24" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <path d="M28,72 Q50,62 72,72 L74,98 Q50,106 26,98Z" fill="#3344BB" stroke="#1a0a2e" stroke-width="2"/>
+    <path d="M44,62 Q50,69 56,62" fill="none" stroke="#CC2020" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- Ears -->
+    <circle cx="30" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="30" cy="16" r="6.5" fill="#E8A020"/>
+    <circle cx="70" cy="16" r="11" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <circle cx="70" cy="16" r="6.5" fill="#E8A020"/>
+    <!-- Head -->
+    <circle cx="50" cy="38" r="28" fill="#F5B82E" stroke="#1a0a2e" stroke-width="2.5"/>
+    <!-- Eyes closed -->
+    <path d="M34,34 Q40,29 46,34" fill="none" stroke="#1a0a2e" stroke-width="2.8" stroke-linecap="round"/>
+    <line x1="36" y1="33" x2="33" y2="27" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="40" y1="30" x2="38" y2="24" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="44" y1="33" x2="47" y2="27" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <path d="M54,34 Q60,29 66,34" fill="none" stroke="#1a0a2e" stroke-width="2.8" stroke-linecap="round"/>
+    <line x1="56" y1="33" x2="53" y2="27" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="60" y1="30" x2="58" y2="24" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="64" y1="33" x2="67" y2="27" stroke="#1a0a2e" stroke-width="2" stroke-linecap="round"/>
+    <!-- Cheeks (softer) -->
+    <ellipse cx="32" cy="44" rx="8" ry="5.5" fill="#F87878" opacity=".3"/>
+    <ellipse cx="68" cy="44" rx="8" ry="5.5" fill="#F87878" opacity=".3"/>
+    <!-- Nose -->
+    <ellipse cx="50" cy="48" rx="5.5" ry="3.8" fill="#F87878" stroke="#1a0a2e" stroke-width="1.5"/>
+    <!-- Smile -->
+    <path d="M44,53 Q50,59 56,53" fill="none" stroke="#1a0a2e" stroke-width="1.8" stroke-linecap="round"/>
+  </g>
+</svg>
+</div><span class="label">Sleep</span></div>
+
+</div>
+</body>
+</html>

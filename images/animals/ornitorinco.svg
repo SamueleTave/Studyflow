@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 158" width="130" height="158">
+  <!-- Ombra -->
+  <ellipse cx="65" cy="154" rx="28" ry="5" fill="rgba(0,0,0,0.13)"/>
+
+  <!-- Coda castoro -->
+  <path d="M85,126 C96,130 116,136 122,126 C130,116 124,104 116,109 C106,114 98,118 86,118 Z"
+        fill="#8B3E0E" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M88,120 C100,122 116,124 120,118" fill="none" stroke="#6B2E08" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M90,128 C102,130 116,130 120,124" fill="none" stroke="#6B2E08" stroke-width="1.8" stroke-linecap="round"/>
+
+  <!-- Corpo -->
+  <ellipse cx="65" cy="104" rx="37" ry="42" fill="#C8722A" stroke="#1a0a2e" stroke-width="3.2"/>
+
+  <!-- Pancia -->
+  <ellipse cx="62" cy="114" rx="22" ry="27" fill="#D4A870" stroke="#1a0a2e" stroke-width="1.8"/>
+
+  <!-- Ala sinistra -->
+  <path d="M31,92 C18,86 10,93 12,105 C16,113 28,110 34,103 Z"
+        fill="#A85820" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+
+  <!-- Ala destra -->
+  <path d="M99,92 C112,86 118,94 114,105 C110,112 100,107 99,101 Z"
+        fill="#A85820" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+
+  <!-- Testa -->
+  <circle cx="65" cy="56" r="34" fill="#C8722A" stroke="#1a0a2e" stroke-width="3.2"/>
+
+  <!-- Ciuffo -->
+  <path d="M59,26 C55,16 51,8 54,3 C56,-1 61,3 63,10 Q65,3 69,1 C71,-2 73,3 71,10 Q73,3 78,6 C81,10 77,20 71,26 Z"
+        fill="#C8722A" stroke="#1a0a2e" stroke-width="2"/>
+
+  <!-- Becco -->
+  <path d="M81,58 C91,52 116,58 119,68 C116,78 91,78 81,72 Q78,65 81,58 Z"
+        fill="#D4B07A" stroke="#1a0a2e" stroke-width="2.8" stroke-linejoin="round"/>
+  <ellipse cx="110" cy="64" rx="3.5" ry="2.5" fill="#1a0a2e" opacity="0.5"/>
+  <line x1="81" y1="66" x2="116" y2="68" stroke="#1a0a2e" stroke-width="1.8" stroke-linecap="round" opacity="0.35"/>
+
+  <!-- Occhi -->
+  <circle cx="49" cy="48" r="13" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+  <circle cx="50" cy="49" r="9"   fill="#6B5010"/>
+  <circle cx="50" cy="49" r="5.5" fill="#1a0a2e"/>
+  <circle cx="54" cy="44" r="3"   fill="white"/>
+
+  <circle cx="77" cy="48" r="13" fill="white" stroke="#1a0a2e" stroke-width="2.8"/>
+  <circle cx="78" cy="49" r="9"   fill="#6B5010"/>
+  <circle cx="78" cy="49" r="5.5" fill="#1a0a2e"/>
+  <circle cx="82" cy="44" r="3"   fill="white"/>
+
+  <!-- Guancia rossa (opzionale accento carino) -->
+  <ellipse cx="34" cy="62" rx="9" ry="7" fill="#F87060" opacity="0.3"/>
+
+  <!-- Piedino sinistro -->
+  <ellipse cx="47" cy="147" rx="16" ry="8" fill="#4A7A88" stroke="#1a0a2e" stroke-width="2.8"/>
+  <line x1="35" y1="147" x2="31" y2="154" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="47" y1="149" x2="47" y2="156" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="59" y1="147" x2="63" y2="154" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round"/>
+
+  <!-- Piedino destro -->
+  <ellipse cx="81" cy="147" rx="16" ry="8" fill="#4A7A88" stroke="#1a0a2e" stroke-width="2.8"/>
+  <line x1="69" y1="147" x2="65" y2="154" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="81" y1="149" x2="81" y2="156" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="93" y1="147" x2="97" y2="154" stroke="#1a0a2e" stroke-width="2.2" stroke-linecap="round"/>
+</svg>
