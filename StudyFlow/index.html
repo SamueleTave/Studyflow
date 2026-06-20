@@ -126,6 +126,34 @@
     <!-- SFIDA GIORNALIERA -->
     <div class="challenge-bar" id="challenge-bar"></div>
 
+    <!-- BANNER NOVITÀ -->
+    <div class="update-banner" id="update-banner" style="display:none">
+      <div class="update-banner-inner">
+        <div class="update-banner-left">
+          <span class="update-badge">✨ Novità — 20 Giugno 2026</span>
+          <div class="update-items">
+            <div class="update-item">
+              <span class="update-dot" style="background:#6366f1"></span>
+              <span><b>Flashcard</b> — mazzi, studio con SM-2, quiz (Facile / Normale / Difficile)</span>
+            </div>
+            <div class="update-item">
+              <span class="update-dot" style="background:#10b981"></span>
+              <span><b>AI Generator</b> — genera carte da PDF o testo con Groq AI (gratis)</span>
+            </div>
+            <div class="update-item">
+              <span class="update-dot" style="background:#f59e0b"></span>
+              <span><b>Sotto-mazzi</b> — organizza le carte per argomento dentro ogni mazzo</span>
+            </div>
+            <div class="update-item">
+              <span class="update-dot" style="background:#ec4899"></span>
+              <span><b>Animali</b> — fix split view / finestra ridimensionata</span>
+            </div>
+          </div>
+        </div>
+        <button class="update-dismiss" onclick="dismissBanner()" title="Chiudi">&#10005;</button>
+      </div>
+    </div>
+
     <!-- TIMER GRID -->
     <div class="timer-grid">
 
@@ -508,6 +536,11 @@
 <script src="js/tasks.js?v=4"></script>
 <script src="js/calendar.js?v=4"></script>
 <script>
+  function dismissBanner() {
+    const el = document.getElementById('update-banner');
+    if (el) { el.style.transition = 'opacity 0.3s, transform 0.3s'; el.style.opacity = '0'; el.style.transform = 'translateY(-6px)'; setTimeout(() => el.style.display = 'none', 310); }
+    localStorage.setItem('sf_banner_v20260620', '1');
+  }
   initShared();
   initCoins();
   initWidgets();
@@ -525,6 +558,13 @@
   renderMiniTasks();
   setActivePage('home');
   if (typeof feather !== 'undefined') feather.replace({ width: 17, height: 17, 'stroke-width': 1.8 });
+
+  /* Banner novità — mostra se non già chiuso per questa versione */
+  (function() {
+    const BANNER_VER = 'sf_banner_v20260620';
+    const el = document.getElementById('update-banner');
+    if (el && !localStorage.getItem(BANNER_VER)) el.style.display = '';
+  })();
 
   /* Calendario compatto — data di oggi */
   (function() {
