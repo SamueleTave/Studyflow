@@ -155,11 +155,11 @@
 <body>
 
 <h1>🐛 Bug StudyFlow — Registro Completo</h1>
-<p class="subtitle">Aggiornato: 2026-06-19 — Sessione 13 &nbsp;|&nbsp; ⚡ Priorità: Netlify (online) &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
+<p class="subtitle">Aggiornato: 2026-06-20 — Sessione 14 &nbsp;|&nbsp; ⚡ Priorità: Netlify (online) &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
 
 <!-- STATO DEPLOY -->
 <div class="status-row">
-  <div class="status-chip"><div class="dot green"></div> GitHub: pushato (7cd75f1)</div>
+  <div class="status-chip"><div class="dot green"></div> GitHub: pushato (b464816)</div>
   <div class="status-chip"><div class="dot green"></div> Netlify: ⚡ PRIORITÀ — auto-deploy da GitHub</div>
   <div class="status-chip"><div class="dot green"></div> Render: OK — app.py non toccato</div>
 </div>
@@ -444,10 +444,68 @@
   </div>
 </div>
 
+<!-- ===== SESSIONE 14 — BUG FIXATI ===== -->
+<div class="section">
+  <div class="section-title">🚀 Aggiornamenti — sessione 14 (2026-06-20) — pushati</div>
+
+  <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:12px;padding:16px 20px;margin-bottom:20px">
+    <div style="font-size:0.75rem;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">📣 Messaggio aggiornamento utenti</div>
+    <p style="font-size:0.88rem;line-height:1.8;color:#e2e8f0">
+      <strong>🆕 Aggiornamento StudyFlow — 20 Giugno 2026</strong><br><br>
+
+      Ciao! 👋 Abbiamo lavorato sodo per rendere StudyFlow più veloce, più stabile e molto più usabile da cellulare. Ecco le novità di oggi:<br><br>
+
+      📋 <strong>Nuova Task ora funziona davvero</strong> — c'era un bug che bloccava tutto: i tasti "Giornaliera" e "Studio", la selezione della priorità e il salvataggio erano tutti rotti. Ora gira tutto liscio. Scusate il disagio!<br><br>
+
+      🏷️ <strong>Didascalie sui tipi di task</strong> — sotto i pulsanti Giornaliera e Studio ora compare una breve descrizione per capire subito qual è quella giusta da scegliere.<br><br>
+
+      📚 <strong>Materie rapide</strong> — nella sezione "Nuova Task" trovi ora una riga di chip per aggiungere subito le materie più comuni (Matematica, Fisica, Italiano…) con un solo tap.<br><br>
+
+      ⚡ <strong>Animali molto più fluidi</strong> — abbiamo riscritto il sistema di movimento di tutti i compagni. Prima ogni passo causava un calcolo pesante nel browser, ora tutto gira sulla GPU. Se avevi lag quando un animale camminava, adesso è sparito.<br><br>
+
+      📱 <strong>Mobile finalmente sistemato</strong> — fix importanti per chi usa StudyFlow da cellulare:<br>
+      &nbsp;&nbsp;• Doppio tap: la pagina non si ingrandisce più<br>
+      &nbsp;&nbsp;• Pulsanti più grandi e più facili da premere<br>
+      &nbsp;&nbsp;• Layout corretto su tutte le pagine (niente più elementi sovrapposti)<br>
+      &nbsp;&nbsp;• Animali nascosti su mobile — troppo pesanti su schermi piccoli, torneranno in forma ottimizzata<br><br>
+
+      Continuate a segnalarci qualsiasi cosa non vada — ogni feedback ci aiuta a migliorare! 🙏
+    </p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#6366f1;text-transform:uppercase;margin-bottom:10px">🐛 Bug fixati</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span> <div><strong>Nuova Task completamente rotta</strong> — <code>renderSubjectPresets</code> non definita causava ReferenceError che bloccava tutto lo script inline (type, priorità, salvataggio, dropdown materie)</div></li>
+        <li><span>✓</span> <div><strong>Lag animali</strong> — tutti e 10 gli animali usavano <code>left/bottom</code> per le CSS transition (reflow per ogni frame). Passati a <code>transform:translate()</code> GPU-accelerated</div></li>
+        <li><span>✓</span> <div><strong>Giraffa: reflow a 60fps</strong> — <code>setInterval(16ms)</code> che scriveva <code>style.right</code> direttamente. Fix: usa <code>style.transform</code></div></li>
+        <li><span>✓</span> <div><strong>Double-tap zoom mobile</strong> — aggiunto <code>user-scalable=no</code> + <code>touch-action:manipulation</code></div></li>
+        <li><span>✓</span> <div><strong>Elementi sovrapposti su mobile</strong> — media query 600px aggiunta per tutte le pagine (timer, tasks, calendar, stats, shop)</div></li>
+        <li><span>✓</span> <div><strong>Hamburger che copre contenuto</strong> — padding-top 66px su tutte le pagine mobile</div></li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#06b6d4;text-transform:uppercase;margin-bottom:10px">✨ Migliorie UX</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span> <div>Didascalia sotto Giornaliera/Studio in Nuova Task</div></li>
+        <li><span>✓</span> <div>Chip materie preset (Matematica, Fisica, ecc.) in Nuova Task</div></li>
+        <li><span>✓</span> <div>Animali nascosti su mobile ≤768px (performance)</div></li>
+        <li><span>✓</span> <div>Touch target min 44-48px su tutti i pulsanti mobile</div></li>
+        <li><span>✓</span> <div>Sidebar mobile: link più grandi, scrollabile, sfondo più opaco</div></li>
+        <li><span>✓</span> <div>Timer mobile: ring 200px, mode-row scrollabile, widgets col nascosta</div></li>
+        <li><span>✓</span> <div>Shop/stats mobile: tab scrollabili, griglia 2 colonne</div></li>
+        <li><span>✓</span> <div><code>will-change:transform</code> su tutti gli animali (GPU layer dedicato)</div></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
 <!-- ===== DA FARE — PROSSIMA SESSIONE ===== -->
 <div class="section">
   <div class="section-title">🔴 Da fare — prossima sessione (priorità Netlify/online)</div>
   <ul class="todo-list">
+    <li><span>📱</span> <div><strong>Menu mobile — revisione completa</strong> — rifare il menu mobile per bene: navigazione più pulita, nessun overlap, esperienza nativa</div></li>
     <li><span>🐰</span> <div><strong>Coniglio nuovo design</strong> — ridisegnare fat/cartoon come procione e drago. Aggiornare rabbit.js SVG e animazioni.</div></li>
     <li><span>🐶</span> <div><strong>Cane nuovo design</strong> — ridisegnare fat/cartoon. Aggiornare companions.js SVG e animazioni.</div></li>
     <li><span>🧠</span> <div><strong>Card argomenti + Notebook + AI</strong> — ogni materia ha una card con: note personali editabili, pulsante "Chiedi all'AI" (Claude API), spiegazioni/quiz/esempi contestuali. Pagina dedicata o sezione in tasks.html.</div></li>
