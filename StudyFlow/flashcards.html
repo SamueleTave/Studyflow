@@ -289,12 +289,12 @@
 
     <!-- API Key row -->
     <div class="fc-ai-key-row" id="aiKeyRow">
-      <div class="fc-ai-key-label">🔑 Gemini API Key</div>
+      <div class="fc-ai-key-label">🔑 Groq API Key</div>
       <div class="fc-ai-key-inputs">
-        <input class="fc-modal-input" id="aiKeyInput" type="password" placeholder="AIza..." autocomplete="off">
+        <input class="fc-modal-input" id="aiKeyInput" type="password" placeholder="gsk_..." autocomplete="off">
         <button class="fc-btn fc-btn-ai" onclick="_aiSaveKey()" style="white-space:nowrap">Salva</button>
       </div>
-      <div class="fc-ai-key-hint">Gratis su <b>aistudio.google.com</b> → Chiavi API</div>
+      <div class="fc-ai-key-hint">100% gratis su <b>console.groq.com</b> → API Keys (no carta di credito)</div>
     </div>
     <div class="fc-ai-key-saved" id="aiKeySaved" style="display:none">
       <span>🔑 Chiave salvata</span>
@@ -1190,15 +1190,20 @@ async function _aiGenerate() {
       'Rispondi SOLO con un array JSON valido, senza markdown ne testo aggiuntivo:\n' +
       '[{"front":"...","back":"..."}, ...]\n\nTesto:\n' + text;
 
-    const res  = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
-      { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] }) }
-    );
+    const res  = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 4096,
+        temperature: 0.3
+      })
+    });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || `Gemini errore ${res.status}`);
+    if (!res.ok) throw new Error(data.error?.message || `Groq errore ${res.status}`);
 
-    let raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    let raw = data.choices?.[0]?.message?.content || '';
     raw = raw.replace(/^```[a-z]*\s*/,'').replace(/\s*```$/,'').trim();
     const s = raw.indexOf('['), e2 = raw.lastIndexOf(']');
     if (s === -1 || e2 === -1) throw new Error('Risposta AI non in formato JSON valido.');
