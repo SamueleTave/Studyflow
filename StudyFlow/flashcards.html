@@ -287,6 +287,20 @@
       <button class="modal-close" onclick="closeModal('aiModal')">&#10005;</button>
     </div>
 
+    <!-- API Key row -->
+    <div class="fc-ai-key-row" id="aiKeyRow">
+      <div class="fc-ai-key-label">🔑 Gemini API Key</div>
+      <div class="fc-ai-key-inputs">
+        <input class="fc-modal-input" id="aiKeyInput" type="password" placeholder="AIza..." autocomplete="off">
+        <button class="fc-btn fc-btn-ai" onclick="_aiSaveKey()" style="white-space:nowrap">Salva</button>
+      </div>
+      <div class="fc-ai-key-hint">Gratis su <b>aistudio.google.com</b> → Chiavi API</div>
+    </div>
+    <div class="fc-ai-key-saved" id="aiKeySaved" style="display:none">
+      <span>🔑 Chiave salvata</span>
+      <button class="fc-ai-select-all" onclick="_aiChangeKey()">Cambia</button>
+    </div>
+
     <!-- Tabs -->
     <div class="fc-ai-tabs">
       <button class="fc-ai-tab active" id="aiTabFile" onclick="_aiTab('file')">📎 Carica file</button>
@@ -347,6 +361,7 @@
   (function(){var a=JSON.parse(sessionStorage.getItem('sf_auth')||'null');if(!a||!a.token)location.replace('login.html');})();
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 <script src="js/config.js?v=4"></script>
 <script>window.SF_API_BASE = 'https://studyflow-backend-5zy6.onrender.com/api';</script>
@@ -1059,23 +1074,43 @@ function overlayClick2(e, id) {
 }
 
 /* ══════════════════════════════════════════
-   AI GENERATION
+   AI GENERATION — Gemini REST (client-side)
    ══════════════════════════════════════════ */
-let _aiFile    = null;
-let _aiCards   = [];
-let _aiAllSel  = true;
+let _aiFile   = null;
+let _aiCards  = [];
+let _aiAllSel = true;
+
+/* ── API Key ── */
+function _aiGetKey()    { return localStorage.getItem('sf_gemini_key') || ''; }
+function _aiSaveKey()   {
+  const v = document.getElementById('aiKeyInput').value.trim();
+  if (!v) return;
+  localStorage.setItem('sf_gemini_key', v);
+  _aiRefreshKeyUI();
+}
+function _aiChangeKey() {
+  localStorage.removeItem('sf_gemini_key');
+  _aiRefreshKeyUI();
+}
+function _aiRefreshKeyUI() {
+  const has = !!_aiGetKey();
+  document.getElementById('aiKeyRow').style.display   = has ? 'none' : '';
+  document.getElementById('aiKeySaved').style.display = has ? ''     : 'none';
+}
 
 function openAiModal() {
-  _aiFile  = null;
-  _aiCards = [];
+  _aiFile   = null;
+  _aiCards  = [];
   _aiAllSel = true;
-  document.getElementById('aiFileName').textContent   = '';
-  document.getElementById('aiTextInput').value        = '';
-  document.getElementById('aiPreview').style.display  = 'none';
-  document.getElementById('aiLoading').style.display  = 'none';
-  document.getElementById('aiError').style.display    = 'none';
+  document.getElementById('aiFileName').textContent      = '';
+  document.getElementById('aiTextInput').value           = '';
+  document.getElementById('aiPreview').style.display     = 'none';
+  document.getElementById('aiLoading').style.display     = 'none';
+  document.getElementById('aiError').style.display       = 'none';
   document.getElementById('aiBtnGenerate').style.display = '';
-  document.getElementById('aiFileInput').value        = '';
+  document.getElementById('aiFileInput').value           = '';
+  document.getElementById('aiKeyInput').value            = '';
+  _aiRefreshKeyUI();
   _aiTab('file');
   openModal('aiModal');
 }
@@ -1101,24 +1136,28 @@ function _aiDrop(e) {
   document.getElementById('aiFileName').textContent = f.name;
 }
 
-async function _aiGenerate() {
-  const tab = document.getElementById('aiPanelText').style.display === 'none' ? 'file' : 'text';
-  const auth = getAuth();
-  if (!auth) return;
-
-  let body, headers = { 'Authorization': 'Bearer ' + auth.token };
-
-  if (tab === 'file') {
-    if (!_aiFile) { _aiShowErr('Seleziona un file prima di generare.'); return; }
-    const fd = new FormData();
-    fd.append('file', _aiFile);
-    body = fd;
-  } else {
-    const text = document.getElementById('aiTextInput').value.trim();
-    if (!text) { _aiShowErr('Incolla del testo prima di generare.'); return; }
-    headers['Content-Type'] = 'application/json';
-    body = JSON.stringify({ text });
+/* ── Estrai testo da PDF con pdf.js ── */
+async function _aiExtractPdf(file) {
+  if (typeof pdfjsLib === 'undefined') throw new Error('pdf.js non caricato');
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const buf  = await file.arrayBuffer();
+  const pdf  = await pdfjsLib.getDocument({ data: buf }).promise;
+  let text   = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page    = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(s => s.str).join(' ') + '\n';
   }
+  return text;
+}
+
+async function _aiGenerate() {
+  const apiKey = _aiGetKey();
+  if (!apiKey) { _aiShowErr('Inserisci prima la tua Gemini API Key.'); return; }
+
+  const isText = document.getElementById('aiPanelText').style.display !== 'none';
+  let text = '';
 
   document.getElementById('aiLoading').style.display      = '';
   document.getElementById('aiBtnGenerate').style.display  = 'none';
@@ -1126,14 +1165,46 @@ async function _aiGenerate() {
   document.getElementById('aiError').style.display        = 'none';
 
   try {
-    const base = (window.SF_API_BASE || '/api').replace(/\/$/, '');
-    const res  = await fetch(base + '/generate-flashcards', { method:'POST', headers, body });
-    let json;
-    try { json = await res.json(); }
-    catch { throw new Error('Risposta server non valida (backend offline o errore interno)'); }
-    if (!res.ok || json.error) throw new Error(json.error || `Errore ${res.status}`);
-    _aiCards = json.cards || [];
-    if (!_aiCards.length) throw new Error('Nessuna flashcard generata — prova con un testo più lungo');
+    if (isText) {
+      text = document.getElementById('aiTextInput').value.trim();
+      if (!text) throw new Error('Incolla del testo prima di generare.');
+    } else {
+      if (!_aiFile) throw new Error('Seleziona un file prima di generare.');
+      const name = _aiFile.name.toLowerCase();
+      if (name.endsWith('.pdf')) {
+        text = await _aiExtractPdf(_aiFile);
+      } else {
+        text = await _aiFile.text();
+      }
+    }
+
+    text = text.trim().slice(0, 16000);
+    if (!text) throw new Error('Nessun testo trovato nel documento.');
+
+    const prompt =
+      'Sei un assistente per lo studio universitario. ' +
+      'Analizza il testo seguente e genera flashcard di studio in italiano.\n' +
+      'Crea tra 10 e 25 flashcard pertinenti e utili.\n' +
+      'front: domanda chiara, termine o concetto chiave\n' +
+      'back: risposta precisa, definizione o spiegazione\n\n' +
+      'Rispondi SOLO con un array JSON valido, senza markdown ne testo aggiuntivo:\n' +
+      '[{"front":"...","back":"..."}, ...]\n\nTesto:\n' + text;
+
+    const res  = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] }) }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || `Gemini errore ${res.status}`);
+
+    let raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    raw = raw.replace(/^```[a-z]*\s*/,'').replace(/\s*```$/,'').trim();
+    const s = raw.indexOf('['), e2 = raw.lastIndexOf(']');
+    if (s === -1 || e2 === -1) throw new Error('Risposta AI non in formato JSON valido.');
+    _aiCards = JSON.parse(raw.slice(s, e2+1))
+      .filter(c => c && c.front && c.back);
+    if (!_aiCards.length) throw new Error('Nessuna flashcard generata — prova con un testo più lungo.');
     _aiShowPreview();
   } catch(err) {
     _aiShowErr(err.message || 'Errore durante la generazione');
