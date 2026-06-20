@@ -99,8 +99,9 @@ async function loadFromServer() {
       if (data[k] == null) return;
       const localVal = localStorage.getItem(k);
       if (!isFirstLoad && localVal != null) return;
-      // sf_timer e sf_garden sono real-time: il dato locale è sempre più fresco del server
-      if ((k === 'sf_timer' || k === 'sf_garden') && localVal != null) return;
+      // sf_timer e sf_garden sono real-time: il dato locale è più fresco del server
+      // MA solo nelle sessioni successive (non al primo caricamento dopo login)
+      if (!isFirstLoad && (k === 'sf_timer' || k === 'sf_garden') && localVal != null) return;
       // Per sf_coins: merge intelligente — se admin ha aggiornato (_adminTs diverso), server vince su shop/balance.
       // Altrimenti gli acquisti locali recenti vengono preservati.
       if (k === 'sf_coins' && localVal) {
@@ -206,6 +207,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (typeof _loadWidgetState            === 'function') _loadWidgetState();
       if (typeof _renderOrderedDynamicWidgets === 'function') _renderOrderedDynamicWidgets();
       if (typeof renderMiniTasks             === 'function') renderMiniTasks();
+      /* Ricarica giardino con le posizioni aggiornate dal server */
+      if (typeof initGarden === 'function') initGarden();
       _sfSyncSuppressed = false;
     }
   }

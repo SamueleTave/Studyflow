@@ -61,8 +61,8 @@ function _syncOwnership() {
   const shop = (typeof coinData !== 'undefined' && coinData.shop) ? coinData.shop : {};
   const ga   = (typeof coinData !== 'undefined' && coinData.activeEffects?.gardenActive) || {};
   Object.keys(GARDEN_CATALOG).forEach(id => {
-    /* Piazza se: owned, non disattivato, e senza posizione salvata (undefined = mai piazzato, null = rimosso con X ma riattivato dallo shop) */
-    if (shop[id] && ga[id] !== false && !_gardenItems[id]) {
+    /* Piazza solo se undefined (mai piazzato) — null significa rimosso con X, non ri-piazzare */
+    if (shop[id] && ga[id] !== false && _gardenItems[id] === undefined) {
       _gardenItems[id] = { x: 8 + Math.random() * 76, y: GARDEN_CATALOG[id].defY };
       saveGardenState();
     }
