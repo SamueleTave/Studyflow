@@ -34,7 +34,10 @@ function requireAdmin() {
 }
 
 /* ── Logout ── */
-function logout() {
+async function logout() {
+  /* Salva subito al server prima di pulire — evita perdita tema/sfida/impostazioni */
+  if (_sfSyncTimer) { clearTimeout(_sfSyncTimer); _sfSyncTimer = null; }
+  try { await syncToServer(); } catch {}
   _SF_SYNC_KEYS.forEach(k => localStorage.removeItem(k));
   ['sf_spotify_token','sf_spotify_token_exp','sf_pkce_verifier','sf_pkce_client_id'].forEach(k => localStorage.removeItem(k));
   sessionStorage.removeItem(SF_AUTH_KEY);

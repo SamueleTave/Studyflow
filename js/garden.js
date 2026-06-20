@@ -250,6 +250,7 @@ function _createItem(canvas, id, cat, data, effects) {
   rmBtn.style.transformOrigin = 'top right';
   rmBtn.addEventListener('mousedown',  e => { e.stopPropagation(); });
   rmBtn.addEventListener('touchstart', e => { e.stopPropagation(); e.preventDefault(); }, { passive: false });
+  rmBtn.addEventListener('touchend',   e => { e.stopPropagation(); e.preventDefault(); removeGardenItem(id); }, { passive: false });
   rmBtn.addEventListener('click',      e => { e.stopPropagation(); e.preventDefault(); removeGardenItem(id); });
   el.appendChild(rmBtn);
 

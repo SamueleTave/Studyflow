@@ -830,13 +830,16 @@
   }
 
   function markAllNotifsRead() {
-    _apiCall('POST', '/notifications/read-all', null, function() {
-      document.querySelectorAll('.notif-card').forEach(function(c) {
-        c.classList.remove('notif-unread');
-        var btn = c.querySelector('.notif-read-btn');
-        if (btn) btn.remove();
-      });
+    /* Aggiorna subito UI — lista in-page + badge sidebar */
+    document.querySelectorAll('.notif-card').forEach(function(c) {
+      c.classList.remove('notif-unread');
+      var btn = c.querySelector('.notif-read-btn');
+      if (btn) btn.remove();
     });
+    if (typeof _notifsData !== 'undefined') _notifsData.forEach(function(n) { n.is_read = true; });
+    var badge = document.getElementById('notif-badge');
+    if (badge) badge.style.display = 'none';
+    _apiCall('POST', '/notifications/read-all', null, function() {});
   }
 
   /* Aggiorna quando si torna sulla pagina */
