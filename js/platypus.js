@@ -17,7 +17,7 @@ let _platypusX = 0, _platypusY = 0, _platypusScale = 1;
 
 const PLATYPUS_SVG = `
 <div class="platypus-dir-wrap">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 160" width="${PLATYPUS_W}" height="${Math.round(PLATYPUS_W * 160/140)}" aria-label="Ornitorinco">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 170" width="${PLATYPUS_W}" height="${Math.round(PLATYPUS_W * 1.215)}" aria-label="Ornitorinco">
     <!-- Ombra -->
     <ellipse cx="68" cy="156" rx="29" ry="5" fill="rgba(0,0,0,0.12)"/>
 
