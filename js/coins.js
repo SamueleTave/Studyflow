@@ -56,6 +56,22 @@ function repositionAllCompanions() {
   } catch {}
 }
 
+/* ── Resize: riposiziona animali quando la finestra cambia dimensione ── */
+(function() {
+  let _resizeTimer = null;
+  window.addEventListener('resize', function() {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(function() {
+      // Gatto usa _goHome/_stopWalking (nomi interni al modulo cat.js)
+      try {
+        const ae = (typeof coinData !== 'undefined' ? coinData?.activeEffects : null) || {};
+        if (ae.catVisible && typeof _stopWalking === 'function') { _stopWalking(); _goHome(600); }
+      } catch {}
+      repositionAllCompanions();
+    }, 120);
+  });
+})();
+
 const _ROLE_ORDER = ['novizio','studente','applicato','determinato','studioso','esperto','maestro'];
 const _ROLE_MINS  = {novizio:0,studente:1,applicato:10,determinato:25,studioso:50,esperto:100,maestro:200};
 const _ROLE_META  = {
