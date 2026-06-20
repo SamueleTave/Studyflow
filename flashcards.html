@@ -121,8 +121,9 @@
     <!-- ─── View 2: Dettaglio mazzo ─── -->
     <div id="fc-view-deck" style="display:none">
       <div class="fc-deck-hdr">
-        <button class="fc-back-btn" onclick="showView('decks')" title="Torna ai mazzi">&#8592;</button>
+        <button class="fc-back-btn" onclick="_fcGoBack()" title="Indietro">&#8592;</button>
         <div class="fc-deck-info">
+          <div class="fc-breadcrumb" id="deck-breadcrumb" style="display:none"></div>
           <div class="fc-deck-title" id="deck-detail-title">Mazzo</div>
           <div class="fc-deck-meta" id="deck-detail-meta">0 carte</div>
         </div>
@@ -130,13 +131,24 @@
           <button class="fc-btn" onclick="_editCurrentDeck()">
             <i data-feather="edit-2" class="nav-icon"></i> Modifica
           </button>
-          <button class="fc-btn" onclick="startQuiz(_currentDeckId)">
+          <button class="fc-btn" onclick="openQuizModeModal(_currentDeckId)">
             <i data-feather="help-circle" class="nav-icon"></i> Quiz
           </button>
           <button class="fc-btn primary" onclick="startStudy(_currentDeckId)">
             <i data-feather="play" class="nav-icon"></i> Studia
           </button>
         </div>
+      </div>
+      <!-- Sotto-mazzi -->
+      <div id="fc-subdecks-section" style="display:none">
+        <div class="fc-subdecks-hdr">
+          <span class="fc-subdecks-label">Sotto-mazzi</span>
+        </div>
+        <div class="deck-grid" id="fc-subdecks-grid"></div>
+      </div>
+      <!-- Separatore -->
+      <div class="fc-cards-section-hdr" id="fc-cards-section-hdr" style="display:none">
+        <span>Carte</span>
       </div>
       <div class="fc-cards-list" id="fc-cards-list"></div>
       <div id="fc-cards-empty" style="display:none">
@@ -149,6 +161,9 @@
       <div class="fc-deck-actions">
         <button class="fc-btn" onclick="openCardModal(_currentDeckId)">
           <i data-feather="plus" class="nav-icon"></i> Aggiungi carta
+        </button>
+        <button class="fc-btn" onclick="openDeckModal(null, _currentDeckId)">
+          <i data-feather="folder-plus" class="nav-icon"></i> Sotto-mazzo
         </button>
         <button class="fc-btn fc-btn-ai" onclick="openAiModal()">
           <i data-feather="zap" class="nav-icon"></i> Genera con AI
@@ -279,6 +294,39 @@
   </div>
 </div>
 
+<!-- ─── Modal difficoltà quiz ─── -->
+<div class="overlay" id="quizModeModal" onclick="overlayClick2(event,'quizModeModal')">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hdr">
+      <span>🎯 Scegli difficoltà</span>
+      <button class="modal-close" onclick="closeModal('quizModeModal')">&#10005;</button>
+    </div>
+    <div class="fc-quiz-modes">
+      <button class="fc-quiz-mode-btn easy" onclick="_startQuizMode('easy')">
+        <div class="fc-qm-icon">🟢</div>
+        <div class="fc-qm-info">
+          <div class="fc-qm-name">Facile</div>
+          <div class="fc-qm-desc">2 opzioni — indovina tra 2</div>
+        </div>
+      </button>
+      <button class="fc-quiz-mode-btn normal" onclick="_startQuizMode('normal')">
+        <div class="fc-qm-icon">🟡</div>
+        <div class="fc-qm-info">
+          <div class="fc-qm-name">Normale</div>
+          <div class="fc-qm-desc">4 opzioni — scelta multipla</div>
+        </div>
+      </button>
+      <button class="fc-quiz-mode-btn hard" onclick="_startQuizMode('hard')">
+        <div class="fc-qm-icon">🔴</div>
+        <div class="fc-qm-info">
+          <div class="fc-qm-name">Difficile</div>
+          <div class="fc-qm-desc">Scrivi la risposta a mano</div>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ─── Modal Genera con AI ─── -->
 <div class="overlay" id="aiModal" onclick="overlayClick2(event,'aiModal')">
   <div class="modal" style="max-width:560px">
@@ -391,10 +439,35 @@ const _FC_COLORS  = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899'
 const _FC_EMOJIS  = ['📚','📐','🔬','🌍','💻','🎨','📖','🎵','⚗️','🏛️'];
 
 /* Stato modale */
-let _deckModalId  = null;   // null = nuovo, string = edit
-let _cardModalId  = null;   // null = nuovo, string = edit
+let _deckModalId     = null;
+let _deckModalParentId = null;
+let _cardModalId     = null;
 let _cardModalDeckId = null;
 let _currentDeckId   = null;
+let _currentParentId = null;   // per il tasto indietro nei sotto-mazzi
+let _quizModeDeckId  = null;
+let _quizMode        = 'normal';
+
+/* Helpers sotto-mazzi */
+function _getAllDeckCards(deckId, data) {
+  data = data || _fcLoad();
+  const deck = data.decks.find(d => d.id === deckId);
+  if (!deck) return [];
+  const own = deck.cards || [];
+  const subs = data.decks.filter(d => d.parentId === deckId);
+  return own.concat(...subs.map(s => _getAllDeckCards(s.id, data)));
+}
+
+function _fcGoBack() {
+  if (_currentParentId) {
+    const pid = _currentParentId;
+    _currentParentId = null;
+    _openDeck(pid);
+  } else {
+    showView('decks');
+    renderDecks();
+  }
+}
 
 /* Stato sessione studio flip */
 let _studyDeck    = null;
@@ -479,8 +552,15 @@ function renderDecks() {
   if (empty) empty.style.display = 'none';
 
   const now = Date.now();
-  grid.innerHTML = data.decks.map(deck => {
-    const cards    = deck.cards || [];
+  const rootDecks = data.decks.filter(d => !d.parentId);
+  if (rootDecks.length === 0) {
+    grid.innerHTML = '';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  grid.innerHTML = rootDecks.map(deck => {
+    const allCards = _getAllDeckCards(deck.id, data);
+    const cards    = allCards;
     const dueCount = cards.filter(c => !c.sr || c.sr.due <= now).length;
     const totalStr = cards.length + ' cart' + (cards.length === 1 ? 'a' : 'e');
     const dueStr   = dueCount > 0
@@ -520,15 +600,63 @@ function renderDeck(deckId) {
   const deck = data.decks.find(d => d.id === deckId);
   if (!deck) { showView('decks'); return; }
 
-  const titleEl = document.getElementById('deck-detail-title');
-  const metaEl  = document.getElementById('deck-detail-meta');
+  const titleEl    = document.getElementById('deck-detail-title');
+  const metaEl     = document.getElementById('deck-detail-meta');
+  const breadEl    = document.getElementById('deck-breadcrumb');
+  const subSection = document.getElementById('fc-subdecks-section');
+  const subGrid    = document.getElementById('fc-subdecks-grid');
+  const cardsHdr   = document.getElementById('fc-cards-section-hdr');
+
   if (titleEl) titleEl.innerHTML = (deck.emoji || '📚') + ' ' + _esc(deck.name);
-  if (metaEl) {
-    const cards = deck.cards || [];
-    const now   = Date.now();
-    const due   = cards.filter(c => !c.sr || c.sr.due <= now).length;
-    metaEl.textContent = cards.length + ' carte · ' + due + ' da ripassare';
+
+  // Breadcrumb se è un sotto-mazzo
+  if (breadEl) {
+    if (deck.parentId) {
+      const parent = data.decks.find(d => d.id === deck.parentId);
+      breadEl.style.display = '';
+      breadEl.innerHTML = parent
+        ? `<span onclick="_openDeck('${parent.id}')" style="cursor:pointer">${_esc(parent.name)}</span> › `
+        : '';
+    } else {
+      breadEl.style.display = 'none';
+    }
   }
+
+  if (metaEl) {
+    const allCards = _getAllDeckCards(deckId, data);
+    const now      = Date.now();
+    const due      = allCards.filter(c => !c.sr || c.sr.due <= now).length;
+    metaEl.textContent = allCards.length + ' carte · ' + due + ' da ripassare';
+  }
+
+  // Sotto-mazzi
+  const subDecks = data.decks.filter(d => d.parentId === deckId);
+  if (subSection && subGrid) {
+    if (subDecks.length > 0) {
+      subSection.style.display = '';
+      const now2 = Date.now();
+      subGrid.innerHTML = subDecks.map(sd => {
+        const sdCards = _getAllDeckCards(sd.id, data);
+        const due2 = sdCards.filter(c => !c.sr || c.sr.due <= now2).length;
+        const c1 = sd.color || deck.color || _FC_COLORS[0];
+        return `<div class="deck-card deck-card-sub"
+            style="--dc-color-a:${c1};--dc-color-b:${c1}"
+            onclick="_openSubDeck('${sd.id}','${deckId}')">
+          <div class="deck-card-actions">
+            <button class="deck-card-action-btn" onclick="event.stopPropagation();openDeckModal('${sd.id}')" title="Modifica">✏️</button>
+            <button class="deck-card-action-btn del" onclick="event.stopPropagation();deleteDeck('${sd.id}')" title="Elimina">🗑</button>
+          </div>
+          <div class="deck-card-emoji">${sd.emoji || '📂'}</div>
+          <div class="deck-card-name">${_esc(sd.name)}</div>
+          <div class="deck-card-count">${sdCards.length} carte</div>
+          ${due2 > 0 ? `<div class="deck-card-due">${due2} da ripassare</div>` : '<div class="deck-card-due zero">✓</div>'}
+        </div>`;
+      }).join('');
+    } else {
+      subSection.style.display = 'none';
+    }
+  }
+  if (cardsHdr) cardsHdr.style.display = subDecks.length > 0 ? '' : 'none';
 
   const list  = document.getElementById('fc-cards-list');
   const empty = document.getElementById('fc-cards-empty');
@@ -728,15 +856,27 @@ function _exitStudy() {
   }
 }
 
-/* ── Quiz (View 4) ── */
+/* ── Quiz ── */
+function openQuizModeModal(deckId) {
+  _quizModeDeckId = deckId;
+  openModal('quizModeModal');
+}
+
+function _startQuizMode(mode) {
+  _quizMode = mode;
+  closeModal('quizModeModal');
+  startQuiz(_quizModeDeckId);
+}
+
 function startQuiz(deckId) {
   const data = _fcLoad();
   const deck = data.decks.find(d => d.id === deckId);
   if (!deck) return;
 
-  const all = deck.cards || [];
-  if (all.length < 2) {
-    alert('Servono almeno 2 carte per il quiz!');
+  const all = _getAllDeckCards(deckId, data);
+  const minCards = _quizMode === 'hard' ? 1 : _quizMode === 'easy' ? 2 : 2;
+  if (all.length < minCards) {
+    alert('Servono almeno ' + minCards + ' carte per questo quiz!');
     return;
   }
 
@@ -745,8 +885,9 @@ function startQuiz(deckId) {
   _quizIdx   = 0;
   _quizScore = 0;
 
+  const modeLabel = _quizMode === 'easy' ? '🟢 Facile' : _quizMode === 'hard' ? '🔴 Difficile' : '🟡 Normale';
   const titleEl = document.getElementById('quiz-deck-title');
-  if (titleEl) titleEl.textContent = (deck.emoji || '📚') + ' ' + deck.name + ' — Quiz';
+  if (titleEl) titleEl.textContent = (deck.emoji || '📚') + ' ' + deck.name + ' — ' + modeLabel;
 
   showView('quiz');
   _showQuizCard();
@@ -768,26 +909,40 @@ function _showQuizCard() {
   const metaEl = document.getElementById('quiz-deck-meta');
   if (metaEl) metaEl.textContent = 'Domanda ' + (_quizIdx + 1) + ' di ' + total + ' · Punteggio: ' + _quizScore;
 
-  // Genera opzioni: risposta corretta + 3 distrattori
-  const allCards    = _quizDeck.cards || [];
-  const otherCards  = allCards.filter(c => c.id !== card.id);
-  const shuffled    = _shuffle(otherCards);
-  const distractors = shuffled.slice(0, 3);
+  // Genera opzioni in base alla difficoltà
+  const allCards   = _quizCards;
+  const otherCards = allCards.filter(c => c.id !== card.id);
+  const shuffled   = _shuffle([...otherCards]);
 
-  // Se non ci sono abbastanza distrattori, aggiungi varianti generiche
-  while (distractors.length < 3) {
-    distractors.push({ id: '_dummy_' + distractors.length, back: '—' + (distractors.length + 1) });
+  const numOpts = _quizMode === 'easy' ? 1 : 3; // distrattori
+  const distractors = shuffled.slice(0, numOpts);
+  while (distractors.length < numOpts) {
+    distractors.push({ id: '_d' + distractors.length, back: '—' });
   }
 
-  // Mix: opzione corretta + 3 distrattori
-  const options = _shuffle([
+  const optList = _shuffle([
     { text: card.back, correct: true },
-    { text: distractors[0].back, correct: false },
-    { text: distractors[1].back, correct: false },
-    { text: distractors[2].back, correct: false },
+    ...distractors.map(d => ({ text: d.back, correct: false }))
   ]);
+  const correctIdx = optList.findIndex(o => o.correct);
 
-  const correctIdx = options.findIndex(o => o.correct);
+  let interactiveHTML = '';
+  if (_quizMode === 'hard') {
+    interactiveHTML = `
+      <div class="fc-quiz-hard-wrap">
+        <input class="fc-quiz-hard-input" id="quiz-hard-input" placeholder="Scrivi la risposta..."
+          onkeydown="if(event.key==='Enter') checkHardAnswer('${card.id}')">
+        <button class="fc-btn primary" onclick="checkHardAnswer('${card.id}')">Conferma</button>
+        <div class="fc-quiz-hard-result" id="quiz-hard-result" style="display:none"></div>
+      </div>`;
+  } else {
+    interactiveHTML = `
+      <div class="fc-quiz-opts" id="quiz-opts">
+        ${optList.map((opt, i) =>
+          `<button class="fc-quiz-opt" onclick="answerQuiz(${i},${correctIdx})">${_esc(opt.text)}</button>`
+        ).join('')}
+      </div>`;
+  }
 
   content.innerHTML = `
     <div class="fc-progress">
@@ -803,12 +958,14 @@ function _showQuizCard() {
       <div class="fc-quiz-q-label">DOMANDA</div>
       <div class="fc-quiz-q-text">${_esc(card.front)}</div>
     </div>
-    <div class="fc-quiz-opts" id="quiz-opts">
-      ${options.map((opt, i) =>
-        `<button class="fc-quiz-opt" onclick="answerQuiz(${i},${correctIdx})">${_esc(opt.text)}</button>`
-      ).join('')}
-    </div>
+    ${interactiveHTML}
   `;
+  if (_quizMode === 'hard') {
+    const inp = document.getElementById('quiz-hard-input');
+    if (inp) setTimeout(() => inp.focus(), 100);
+    // Salva risposta corretta nel DOM
+    content.dataset.correctAnswer = card.back;
+  }
 }
 
 function answerQuiz(chosenIdx, correctIdx) {
@@ -834,6 +991,39 @@ function answerQuiz(chosenIdx, correctIdx) {
     _quizIdx++;
     _showQuizCard();
   }, 1200);
+}
+
+function checkHardAnswer(cardId) {
+  const inp = document.getElementById('quiz-hard-input');
+  const resultEl = document.getElementById('quiz-hard-result');
+  if (!inp || !resultEl) return;
+
+  const content = document.getElementById('quiz-content');
+  const correct = (content.dataset.correctAnswer || '').trim().toLowerCase();
+  const given   = inp.value.trim().toLowerCase();
+  if (!given) { inp.focus(); return; }
+
+  inp.disabled = true;
+  document.querySelectorAll('.fc-quiz-hard-wrap button').forEach(b => b.disabled = true);
+
+  const isCorrect = given === correct ||
+    correct.includes(given) && given.length > 4 ||
+    given.includes(correct) && correct.length > 4;
+
+  if (isCorrect) {
+    _quizScore++;
+    resultEl.innerHTML = '✅ Corretto!';
+    resultEl.className = 'fc-quiz-hard-result correct';
+  } else {
+    resultEl.innerHTML = `❌ Risposta: <b>${_esc(content.dataset.correctAnswer)}</b>`;
+    resultEl.className = 'fc-quiz-hard-result wrong';
+  }
+  resultEl.style.display = '';
+
+  const metaEl = document.getElementById('quiz-deck-meta');
+  if (metaEl) metaEl.textContent = 'Domanda ' + (_quizIdx + 1) + ' di ' + _quizCards.length + ' · Punteggio: ' + _quizScore;
+
+  setTimeout(() => { _quizIdx++; _showQuizCard(); }, 1600);
 }
 
 function _showQuizResults() {
@@ -882,9 +1072,15 @@ function _exitQuiz() {
   }
 }
 
+function _openSubDeck(subId, parentId) {
+  _currentParentId = parentId;
+  _openDeck(subId);
+}
+
 /* ── CRUD mazzi ── */
-function openDeckModal(deckId) {
-  _deckModalId = deckId || null;
+function openDeckModal(deckId, parentId) {
+  _deckModalId       = deckId || null;
+  _deckModalParentId = (!deckId && parentId) ? parentId : null;
 
   const titleEl = document.getElementById('deck-modal-title');
   const nameEl  = document.getElementById('deck-name-input');
@@ -951,13 +1147,9 @@ function saveDeck() {
     }
   } else {
     // Nuovo
-    data.decks.push({
-      id:    _fcUUID(),
-      name,
-      emoji: _selEmoji,
-      color: _selColor,
-      cards: [],
-    });
+    const newDeck = { id: _fcUUID(), name, emoji: _selEmoji, color: _selColor, cards: [] };
+    if (_deckModalParentId) newDeck.parentId = _deckModalParentId;
+    data.decks.push(newDeck);
   }
 
   _fcSave(data);

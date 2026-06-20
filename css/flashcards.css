@@ -207,6 +207,52 @@
 }
 .fc-btn.primary:hover { box-shadow: 0 5px 16px rgba(0,0,0,0.13); }
 
+/* ── Breadcrumb ── */
+.fc-breadcrumb { font-size:0.72rem; color:var(--text-soft); margin-bottom:2px; }
+.fc-breadcrumb span:hover { color:var(--accent); }
+
+/* ── Sotto-mazzi section ── */
+.fc-subdecks-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.fc-subdecks-label { font-size:0.78rem; font-weight:700; color:var(--text-soft); text-transform:uppercase; letter-spacing:.06em; }
+.deck-card-sub { transform:scale(0.96); opacity:0.92; }
+.deck-card-sub:hover { transform:scale(0.99) translateY(-2px); opacity:1; }
+.fc-cards-section-hdr { font-size:0.78rem; font-weight:700; color:var(--text-soft); text-transform:uppercase; letter-spacing:.06em; margin-top:4px; margin-bottom:4px; }
+
+/* ── Quiz mode picker ── */
+.fc-quiz-modes { display:flex; flex-direction:column; gap:10px; margin-top:4px; }
+.fc-quiz-mode-btn {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 18px; border-radius:18px;
+  border:1.5px solid var(--card-border);
+  background:var(--card); cursor:pointer;
+  transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  text-align:left; width:100%;
+  backdrop-filter:blur(12px);
+}
+.fc-quiz-mode-btn:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 8px 24px rgba(0,0,0,.1); }
+.fc-quiz-mode-btn:active { transform:scale(0.97); }
+.fc-quiz-mode-btn.easy:hover  { border-color:rgba(16,185,129,.4); background:rgba(16,185,129,.08); }
+.fc-quiz-mode-btn.normal:hover{ border-color:rgba(245,158,11,.4); background:rgba(245,158,11,.08); }
+.fc-quiz-mode-btn.hard:hover  { border-color:rgba(239,68,68,.4);  background:rgba(239,68,68,.08); }
+.fc-qm-icon { font-size:1.6rem; }
+.fc-qm-name { font-size:0.95rem; font-weight:700; color:var(--text); }
+.fc-qm-desc { font-size:0.78rem; color:var(--text-soft); margin-top:2px; }
+
+/* ── Hard mode input ── */
+.fc-quiz-hard-wrap { display:flex; flex-direction:column; gap:10px; width:100%; max-width:560px; }
+.fc-quiz-hard-input {
+  width:100%; padding:14px 18px; border-radius:16px;
+  border:1.5px solid var(--card-border);
+  background:var(--card); color:var(--text);
+  font-family:Poppins,sans-serif; font-size:1rem; font-weight:500;
+  backdrop-filter:blur(12px); outline:none;
+  transition:border-color .2s;
+}
+.fc-quiz-hard-input:focus { border-color:var(--accent); }
+.fc-quiz-hard-result { padding:12px 16px; border-radius:14px; font-size:0.9rem; font-weight:600; }
+.fc-quiz-hard-result.correct { background:rgba(16,185,129,.12); color:#10B981; border:1.5px solid rgba(16,185,129,.3); }
+.fc-quiz-hard-result.wrong   { background:rgba(239,68,68,.1);   color:#EF4444; border:1.5px solid rgba(239,68,68,.25); }
+
 /* ── Lista carte nel dettaglio ── */
 .fc-cards-list {
   display: flex;
