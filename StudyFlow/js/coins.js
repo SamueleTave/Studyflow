@@ -96,7 +96,7 @@ const SHOP_ITEMS = [
   { id:'rabbitGrey',  name:'Pelo Grigio',      desc:'Un elegante coniglietto grigio cenere.', price:35, type:'rabbitcolor', req:'rabbit' },
   { id:'rabbitBlack', name:'Pelo Nero',        desc:'Un coniglietto nero misterioso.', price:40, type:'rabbitcolor', req:'rabbit' },
   { id:'raccoon',   name:'Procione 🦝',        desc:'Un procione astuto con la coda a strisce che gironzola furtivo mentre studi!', price:280, type:'companion' },
-  { id:'platypus',  name:'Ornitorinco 🦆',     desc:'L\'animale più strano al mondo! Nuota, scava e passeggia sul tuo schermo con il suo famoso becco.', price:320, type:'companion' },
+  { id:'platypus',  name:'Ornitorinco',          desc:'L\'animale più strano al mondo! Nuota, scava e passeggia sul tuo schermo con il suo famoso becco.', price:320, type:'companion' },
   { id:'parrot',    name:'Pappagallo',         desc:'Un pappagallo colorato che vola e si appollaia sulla pagina!', price:220, type:'companion' },
   { id:'fox',       name:'Volpe',              desc:'Una volpe arancione con la grande coda soffice che gironzola mentre studi!', price:200, type:'companion' },
   { id:'owl',       name:'Gufo',               desc:'Un gufo saggio con grandi occhi gialli che si appollaia e vola occasionalmente.', price:190, type:'companion' },

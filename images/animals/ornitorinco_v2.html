@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>🦆 Ornitorinco v2 — Design</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #3B7BC8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding: 50px 20px 80px;
+  font-family: 'Segoe UI', sans-serif;
+}
+h1 { color: white; font-size: 1.5rem; font-weight: 900; letter-spacing: .08em; text-shadow: 0 2px 10px rgba(0,0,0,.4); }
+.row { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+.pose { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.label { font-size: .65rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.9); }
+.card { background: white; border-radius: 18px; padding: 18px; box-shadow: 0 6px 28px rgba(0,0,0,.28); }
+.bg-check .card { background: #F0E8D8; }
+.bg-night .card { background: #1e2a3a; }
+
+/* ── Animazioni ── */
+.idle-g  { animation: idle-bob  2s   ease-in-out infinite; }
+.walk-g  { animation: walk-hop  0.5s ease-in-out infinite; }
+.happy-g { animation: happy-bounce 0.38s ease-in-out infinite alternate; }
+.sleep-g { animation: sleep-breath 2.8s ease-in-out infinite; transform-box:fill-box; transform-origin:50% 70%; }
+
+@keyframes idle-bob    { 0%,100%{transform:translateY(0)}   50%{transform:translateY(-5px)} }
+@keyframes walk-hop    { 0%,100%{transform:translateY(0)}   50%{transform:translateY(-4px)} }
+@keyframes happy-bounce{ 0%{transform:translateY(0) scaleY(1)} 100%{transform:translateY(-9px) scaleY(1.03)} }
+@keyframes sleep-breath{ 0%,100%{transform:scaleY(1)}       50%{transform:scaleY(1.05)} }
+
+.foot-l { animation: foot-l 0.5s ease-in-out infinite; transform-box:fill-box; transform-origin:50% 10%; }
+.foot-r { animation: foot-r 0.5s ease-in-out infinite; transform-box:fill-box; transform-origin:50% 10%; }
+@keyframes foot-l { 0%,100%{transform:rotate(-16deg)} 50%{transform:rotate(16deg)} }
+@keyframes foot-r { 0%,100%{transform:rotate(16deg)}  50%{transform:rotate(-16deg)} }
+
+.zzz-1 { animation: zzz 2.8s ease-in-out infinite; }
+.zzz-2 { animation: zzz 2.8s ease-in-out infinite; animation-delay:-.93s; }
+.zzz-3 { animation: zzz 2.8s ease-in-out infinite; animation-delay:-1.87s; }
+@keyframes zzz { 0%,100%{opacity:.15;transform:translate(0,0) scale(.65)} 50%{opacity:1;transform:translate(7px,-14px) scale(1.12)} }
+</style>
+</head>
+<body>
+
+<h1>Ornitorinco v2</h1>
+
+<!-- ══════════ GRANDE — tutte le pose ══════════ -->
+<div class="row">
+
+<!-- ── IDLE grande ── -->
+<div class="pose"><div class="card">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 170" width="130" height="138">
+  <!-- Ombra -->
+  <ellipse cx="76" cy="165" rx="36" ry="6" fill="rgba(0,0,0,0.14)"/>
+
+  <g class="idle-g">
+    <!-- CODA CASTORO — flat paddle, dietro al corpo -->
+    <path d="M104,128 C118,130 142,138 146,124 C150,110 140,100 130,106
+             C120,112 112,120 104,126 Z"
+          fill="#7B3008" stroke="#1a0800" stroke-width="2.6" stroke-linejoin="round"/>
+    <line x1="112" y1="112" x2="140" y2="110" stroke="#5A2006" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+    <line x1="110" y1="120" x2="142" y2="120" stroke="#5A2006" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+    <line x1="110" y1="128" x2="140" y2="130" stroke="#5A2006" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+
+    <!-- CORPO — ovale tondo, chubby -->
+    <ellipse cx="74" cy="112" rx="48" ry="44" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+
+    <!-- PANCIA — chiara -->
+    <ellipse cx="70" cy="120" rx="30" ry="32" fill="#D4A870" stroke="#1a0800" stroke-width="1.8"/>
+
+    <!-- ALA/BRACCIO sinistro (piccolo flipper) -->
+    <path d="M28,105 C14,98 6,107 9,120 C14,130 28,126 34,117 Z"
+          fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+
+    <!-- ALA/BRACCIO destro -->
+    <path d="M118,106 C130,100 138,110 133,120 C128,128 118,122 116,115 Z"
+          fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+
+    <!-- TESTA — grande cerchio che si fonde col corpo -->
+    <circle cx="74" cy="62" r="42" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+
+    <!-- CIUFFO IN TESTA — 3 ciocche -->
+    <path d="M60,24 C56,12 50,4 54,-2 C57,-6 63,0 65,8 Q67,0 72,-3 C75,-6 78,0 76,8 Q78,0 84,2 C88,6 84,16 78,24 Z"
+          fill="#C8722A" stroke="#1a0800" stroke-width="2.2"/>
+
+    <!-- BECCO — piatto e LARGO, firma dell'ornitorinco -->
+    <!-- Il becco si apre verso destra, ampio come un'anatra -->
+    <path d="M92,64 C104,56 138,62 142,74 C138,86 104,88 92,80 Q88,72 92,64 Z"
+          fill="#C8B47A" stroke="#1a0800" stroke-width="3" stroke-linejoin="round"/>
+    <!-- Narici sul becco -->
+    <ellipse cx="130" cy="70" rx="4" ry="3" fill="#1a0800" opacity="0.5"/>
+    <!-- Linea centrale del becco -->
+    <path d="M93,73 Q118,76 140,74" fill="none" stroke="#1a0800" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+
+    <!-- OCCHIO SINISTRO — enorme -->
+    <circle cx="52" cy="54" r="17" fill="white" stroke="#1a0800" stroke-width="3"/>
+    <circle cx="53" cy="55" r="12" fill="#7B5A18"/>
+    <circle cx="53" cy="55" r="7"  fill="#1a0800"/>
+    <circle cx="58" cy="49" r="4"  fill="white"/>
+    <circle cx="60" cy="57" r="1.8" fill="white" opacity="0.6"/>
+
+    <!-- OCCHIO DESTRO — enorme -->
+    <circle cx="84" cy="54" r="17" fill="white" stroke="#1a0800" stroke-width="3"/>
+    <circle cx="85" cy="55" r="12" fill="#7B5A18"/>
+    <circle cx="85" cy="55" r="7"  fill="#1a0800"/>
+    <circle cx="90" cy="49" r="4"  fill="white"/>
+    <circle cx="92" cy="57" r="1.8" fill="white" opacity="0.6"/>
+
+    <!-- PIEDINO SINISTRO — teal, largo con dita -->
+    <ellipse cx="50" cy="155" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+    <line x1="34" y1="154" x2="29" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="46" y1="157" x2="44" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="58" y1="157" x2="60" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="68" y1="154" x2="73" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+
+    <!-- PIEDINO DESTRO — teal -->
+    <ellipse cx="92" cy="155" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+    <line x1="76" y1="154" x2="71" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="88" y1="157" x2="86" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="100" y1="157" x2="102" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="110" y1="154" x2="115" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+</svg>
+</div><span class="label">Idle</span></div>
+
+<!-- ── WALK grande ── -->
+<div class="pose"><div class="card">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 170" width="130" height="138">
+  <ellipse cx="76" cy="165" rx="36" ry="6" fill="rgba(0,0,0,0.14)"/>
+  <g class="walk-g">
+    <path d="M104,128 C118,130 142,138 146,124 C150,110 140,100 130,106 C120,112 112,120 104,126 Z"
+          fill="#7B3008" stroke="#1a0800" stroke-width="2.6" stroke-linejoin="round"/>
+    <line x1="112" y1="112" x2="140" y2="110" stroke="#5A2006" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+    <line x1="110" y1="120" x2="142" y2="120" stroke="#5A2006" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+    <line x1="110" y1="128" x2="140" y2="130" stroke="#5A2006" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+    <ellipse cx="74" cy="112" rx="48" ry="44" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+    <ellipse cx="70" cy="120" rx="30" ry="32" fill="#D4A870" stroke="#1a0800" stroke-width="1.8"/>
+    <path d="M28,105 C14,98 6,107 9,120 C14,130 28,126 34,117 Z" fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M118,106 C130,100 138,110 133,120 C128,128 118,122 116,115 Z" fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+    <circle cx="74" cy="62" r="42" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+    <path d="M60,24 C56,12 50,4 54,-2 C57,-6 63,0 65,8 Q67,0 72,-3 C75,-6 78,0 76,8 Q78,0 84,2 C88,6 84,16 78,24 Z" fill="#C8722A" stroke="#1a0800" stroke-width="2.2"/>
+    <path d="M92,64 C104,56 138,62 142,74 C138,86 104,88 92,80 Q88,72 92,64 Z" fill="#C8B47A" stroke="#1a0800" stroke-width="3" stroke-linejoin="round"/>
+    <ellipse cx="130" cy="70" rx="4" ry="3" fill="#1a0800" opacity="0.5"/>
+    <path d="M93,73 Q118,76 140,74" fill="none" stroke="#1a0800" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+    <circle cx="52" cy="54" r="17" fill="white" stroke="#1a0800" stroke-width="3"/>
+    <circle cx="53" cy="55" r="12" fill="#7B5A18"/><circle cx="53" cy="55" r="7" fill="#1a0800"/><circle cx="58" cy="49" r="4" fill="white"/>
+    <circle cx="84" cy="54" r="17" fill="white" stroke="#1a0800" stroke-width="3"/>
+    <circle cx="85" cy="55" r="12" fill="#7B5A18"/><circle cx="85" cy="55" r="7" fill="#1a0800"/><circle cx="90" cy="49" r="4" fill="white"/>
+    <!-- Piedini ANIMATI -->
+    <g class="foot-l">
+      <ellipse cx="50" cy="155" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+      <line x1="34" y1="154" x2="29" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="46" y1="157" x2="44" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="58" y1="157" x2="60" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="68" y1="154" x2="73" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+    <g class="foot-r">
+      <ellipse cx="92" cy="155" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+      <line x1="76" y1="154" x2="71" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="88" y1="157" x2="86" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="100" y1="157" x2="102" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="110" y1="154" x2="115" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>
+</div><span class="label">Walk</span></div>
+
+<!-- ── HAPPY grande ── -->
+<div class="pose"><div class="card">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 178" width="130" height="145">
+  <!-- Stelline -->
+  <text x="4"  y="28" font-size="18" fill="#FFD700" stroke="#1a0800" stroke-width="1.2" paint-order="stroke" font-family="Arial">⭐</text>
+  <text x="126" y="22" font-size="14" fill="#FFD700" stroke="#1a0800" stroke-width="1"   paint-order="stroke" font-family="Arial">✨</text>
+  <!-- Cuore -->
+  <path d="M74,16 C74,16 62,6 54,13 C50,18 52,26 58,29 L74,42 L90,29 C96,26 98,18 94,13 C86,6 74,16 74,16Z"
+        fill="#EC4899" stroke="#1a0800" stroke-width="2.2"/>
+  <ellipse cx="76" cy="173" rx="36" ry="6" fill="rgba(0,0,0,0.14)"/>
+  <g class="happy-g">
+    <path d="M104,136 C118,138 142,146 146,132 C150,118 140,108 130,114 C120,120 112,128 104,134 Z"
+          fill="#7B3008" stroke="#1a0800" stroke-width="2.6" stroke-linejoin="round"/>
+    <line x1="112" y1="120" x2="140" y2="118" stroke="#5A2006" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+    <line x1="110" y1="128" x2="142" y2="128" stroke="#5A2006" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+    <ellipse cx="74" cy="120" rx="48" ry="44" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+    <ellipse cx="70" cy="128" rx="30" ry="32" fill="#D4A870" stroke="#1a0800" stroke-width="1.8"/>
+    <path d="M28,113 C14,106 6,115 9,128 C14,138 28,134 34,125 Z" fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M118,114 C130,108 138,118 133,128 C128,136 118,130 116,123 Z" fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+    <circle cx="74" cy="70" r="42" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+    <path d="M60,32 C56,20 50,12 54,6 C57,2 63,8 65,16 Q67,8 72,5 C75,2 78,8 76,16 Q78,8 84,10 C88,14 84,24 78,32 Z" fill="#C8722A" stroke="#1a0800" stroke-width="2.2"/>
+    <path d="M92,72 C104,64 138,70 142,82 C138,94 104,96 92,88 Q88,80 92,72 Z" fill="#C8B47A" stroke="#1a0800" stroke-width="3" stroke-linejoin="round"/>
+    <ellipse cx="130" cy="78" rx="4" ry="3" fill="#1a0800" opacity="0.5"/>
+    <!-- Occhi FELICI — chiusi ad arco, con guance rosa -->
+    <path d="M36,62 Q52,50 66,62" fill="none" stroke="#1a0800" stroke-width="5" stroke-linecap="round"/>
+    <path d="M82,62 Q96,50 110,62" fill="none" stroke="#1a0800" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="38" cy="72" rx="14" ry="9" fill="#F87060" opacity="0.5"/>
+    <ellipse cx="112" cy="72" rx="14" ry="9" fill="#F87060" opacity="0.5"/>
+    <!-- Bocca sorridente -->
+    <path d="M60,84 Q74,94 88,84" fill="none" stroke="#1a0800" stroke-width="3.5" stroke-linecap="round"/>
+    <ellipse cx="50" cy="163" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+    <line x1="34" y1="162" x2="29" y2="171" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="46" y1="165" x2="44" y2="174" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="58" y1="165" x2="60" y2="174" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="68" y1="162" x2="73" y2="171" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <ellipse cx="92" cy="163" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+    <line x1="76" y1="162" x2="71" y2="171" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="88" y1="165" x2="86" y2="174" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="100" y1="165" x2="102" y2="174" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="110" y1="162" x2="115" y2="171" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+</svg>
+</div><span class="label">Happy</span></div>
+
+<!-- ── SLEEP grande ── -->
+<div class="pose"><div class="card">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 170" width="130" height="138">
+  <ellipse cx="76" cy="165" rx="36" ry="6" fill="rgba(0,0,0,0.14)"/>
+  <g class="sleep-g">
+    <path d="M104,128 C118,130 142,138 146,124 C150,110 140,100 130,106 C120,112 112,120 104,126 Z"
+          fill="#7B3008" stroke="#1a0800" stroke-width="2.6" stroke-linejoin="round"/>
+    <line x1="112" y1="112" x2="140" y2="110" stroke="#5A2006" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+    <line x1="110" y1="120" x2="142" y2="120" stroke="#5A2006" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+    <ellipse cx="74" cy="112" rx="48" ry="44" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+    <ellipse cx="70" cy="120" rx="30" ry="32" fill="#D4A870" stroke="#1a0800" stroke-width="1.8"/>
+    <path d="M28,105 C14,98 6,107 9,120 C14,130 28,126 34,117 Z" fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M118,106 C130,100 138,110 133,120 C128,128 118,122 116,115 Z" fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+    <circle cx="74" cy="62" r="42" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+    <path d="M60,24 C56,12 50,4 54,-2 C57,-6 63,0 65,8 Q67,0 72,-3 C75,-6 78,0 76,8 Q78,0 84,2 C88,6 84,16 78,24 Z" fill="#C8722A" stroke="#1a0800" stroke-width="2.2"/>
+    <!-- Becco aperto (quasi sorridente nel sonno) -->
+    <path d="M92,64 C104,56 138,62 142,74 C138,86 104,88 92,80 Q88,72 92,64 Z" fill="#C8B47A" stroke="#1a0800" stroke-width="3" stroke-linejoin="round"/>
+    <ellipse cx="130" cy="70" rx="4" ry="3" fill="#1a0800" opacity="0.4"/>
+    <!-- Occhi CHIUSI con ciglia -->
+    <path d="M35,55 Q52,44 67,55" fill="none" stroke="#1a0800" stroke-width="5" stroke-linecap="round"/>
+    <line x1="38"  y1="52" x2="34"  y2="44" stroke="#1a0800" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="52"  y1="47" x2="51"  y2="39" stroke="#1a0800" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="66"  y1="52" x2="70"  y2="44" stroke="#1a0800" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M82,55 Q96,44 110,55" fill="none" stroke="#1a0800" stroke-width="5" stroke-linecap="round"/>
+    <line x1="84"  y1="52" x2="80"  y2="44" stroke="#1a0800" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="97"  y1="47" x2="96"  y2="39" stroke="#1a0800" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="108" y1="52" x2="112" y2="44" stroke="#1a0800" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- ZZZ animati -->
+    <g class="zzz-1"><text x="122" y="30" font-family="Arial,sans-serif" font-weight="900" fill="#94A3B8" font-size="14">z</text></g>
+    <g class="zzz-2"><text x="136" y="14" font-family="Arial,sans-serif" font-weight="900" fill="#94A3B8" font-size="19">z</text></g>
+    <g class="zzz-3"><text x="150" y="4"  font-family="Arial,sans-serif" font-weight="900" fill="#94A3B8" font-size="11">z</text></g>
+    <!-- Piedini -->
+    <ellipse cx="50" cy="155" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+    <line x1="34" y1="154" x2="29" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="46" y1="157" x2="44" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="58" y1="157" x2="60" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="68" y1="154" x2="73" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <ellipse cx="92" cy="155" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+    <line x1="76" y1="154" x2="71" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="88" y1="157" x2="86" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="100" y1="157" x2="102" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="110" y1="154" x2="115" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+</svg>
+</div><span class="label">Sleep</span></div>
+
+</div><!-- end row grande -->
+
+
+<!-- ══════════ MINI — dimensioni reali nel gioco (90×~103px) ══════════ -->
+<h1 style="font-size:1rem;opacity:.7">Mini — dimensioni reali in-game</h1>
+<div class="row">
+
+<!-- ── MINI Idle ── -->
+<div class="pose"><div class="card">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 170" width="90" height="96">
+  <ellipse cx="76" cy="165" rx="36" ry="6" fill="rgba(0,0,0,0.14)"/>
+  <g class="idle-g">
+    <path d="M104,128 C118,130 142,138 146,124 C150,110 140,100 130,106 C120,112 112,120 104,126 Z" fill="#7B3008" stroke="#1a0800" stroke-width="2.6" stroke-linejoin="round"/>
+    <ellipse cx="74" cy="112" rx="48" ry="44" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+    <ellipse cx="70" cy="120" rx="30" ry="32" fill="#D4A870" stroke="#1a0800" stroke-width="1.8"/>
+    <path d="M28,105 C14,98 6,107 9,120 C14,130 28,126 34,117 Z" fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M118,106 C130,100 138,110 133,120 C128,128 118,122 116,115 Z" fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+    <circle cx="74" cy="62" r="42" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+    <path d="M60,24 C56,12 50,4 54,-2 C57,-6 63,0 65,8 Q67,0 72,-3 C75,-6 78,0 76,8 Q78,0 84,2 C88,6 84,16 78,24 Z" fill="#C8722A" stroke="#1a0800" stroke-width="2.2"/>
+    <path d="M92,64 C104,56 138,62 142,74 C138,86 104,88 92,80 Q88,72 92,64 Z" fill="#C8B47A" stroke="#1a0800" stroke-width="3" stroke-linejoin="round"/>
+    <ellipse cx="130" cy="70" rx="4" ry="3" fill="#1a0800" opacity="0.5"/>
+    <circle cx="52" cy="54" r="17" fill="white" stroke="#1a0800" stroke-width="3"/>
+    <circle cx="53" cy="55" r="12" fill="#7B5A18"/><circle cx="53" cy="55" r="7" fill="#1a0800"/><circle cx="58" cy="49" r="4" fill="white"/>
+    <circle cx="84" cy="54" r="17" fill="white" stroke="#1a0800" stroke-width="3"/>
+    <circle cx="85" cy="55" r="12" fill="#7B5A18"/><circle cx="85" cy="55" r="7" fill="#1a0800"/><circle cx="90" cy="49" r="4" fill="white"/>
+    <ellipse cx="50" cy="155" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+    <line x1="34" y1="154" x2="29" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="46" y1="157" x2="44" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="58" y1="157" x2="60" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <ellipse cx="92" cy="155" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+    <line x1="76" y1="154" x2="71" y2="163" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="88" y1="157" x2="86" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="100" y1="157" x2="102" y2="166" stroke="#1a0800" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+</svg>
+</div><span class="label">Mini Idle</span></div>
+
+<!-- ── MINI Happy ── -->
+<div class="pose"><div class="card">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 178" width="90" height="101">
+  <path d="M74,16 C74,16 62,6 54,13 C50,18 52,26 58,29 L74,42 L90,29 C96,26 98,18 94,13 C86,6 74,16 74,16Z" fill="#EC4899" stroke="#1a0800" stroke-width="2.2"/>
+  <ellipse cx="76" cy="173" rx="36" ry="6" fill="rgba(0,0,0,0.14)"/>
+  <g class="happy-g">
+    <path d="M104,136 C118,138 142,146 146,132 C150,118 140,108 130,114 C120,120 112,128 104,134 Z" fill="#7B3008" stroke="#1a0800" stroke-width="2.6" stroke-linejoin="round"/>
+    <ellipse cx="74" cy="120" rx="48" ry="44" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+    <ellipse cx="70" cy="128" rx="30" ry="32" fill="#D4A870" stroke="#1a0800" stroke-width="1.8"/>
+    <path d="M28,113 C14,106 6,115 9,128 C14,138 28,134 34,125 Z" fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M118,114 C130,108 138,118 133,128 C128,136 118,130 116,123 Z" fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+    <circle cx="74" cy="70" r="42" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+    <path d="M60,32 C56,20 50,12 54,6 C57,2 63,8 65,16 Q67,8 72,5 C75,2 78,8 76,16 Q78,8 84,10 C88,14 84,24 78,32 Z" fill="#C8722A" stroke="#1a0800" stroke-width="2.2"/>
+    <path d="M92,72 C104,64 138,70 142,82 C138,94 104,96 92,88 Q88,80 92,72 Z" fill="#C8B47A" stroke="#1a0800" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M36,62 Q52,50 66,62" fill="none" stroke="#1a0800" stroke-width="5" stroke-linecap="round"/>
+    <path d="M82,62 Q96,50 110,62" fill="none" stroke="#1a0800" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="38" cy="72" rx="14" ry="9" fill="#F87060" opacity="0.5"/>
+    <ellipse cx="112" cy="72" rx="14" ry="9" fill="#F87060" opacity="0.5"/>
+    <ellipse cx="50" cy="163" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+    <ellipse cx="92" cy="163" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+  </g>
+</svg>
+</div><span class="label">Mini Happy</span></div>
+
+<!-- ── MINI Sleep ── -->
+<div class="pose"><div class="card">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 170" width="90" height="96">
+  <ellipse cx="76" cy="165" rx="36" ry="6" fill="rgba(0,0,0,0.14)"/>
+  <g class="sleep-g">
+    <path d="M104,128 C118,130 142,138 146,124 C150,110 140,100 130,106 C120,112 112,120 104,126 Z" fill="#7B3008" stroke="#1a0800" stroke-width="2.6" stroke-linejoin="round"/>
+    <ellipse cx="74" cy="112" rx="48" ry="44" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+    <ellipse cx="70" cy="120" rx="30" ry="32" fill="#D4A870" stroke="#1a0800" stroke-width="1.8"/>
+    <path d="M28,105 C14,98 6,107 9,120 C14,130 28,126 34,117 Z" fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+    <path d="M118,106 C130,100 138,110 133,120 C128,128 118,122 116,115 Z" fill="#A85A1A" stroke="#1a0800" stroke-width="2.8" stroke-linejoin="round"/>
+    <circle cx="74" cy="62" r="42" fill="#C8722A" stroke="#1a0800" stroke-width="3.4"/>
+    <path d="M60,24 C56,12 50,4 54,-2 C57,-6 63,0 65,8 Q67,0 72,-3 C75,-6 78,0 76,8 Q78,0 84,2 C88,6 84,16 78,24 Z" fill="#C8722A" stroke="#1a0800" stroke-width="2.2"/>
+    <path d="M92,64 C104,56 138,62 142,74 C138,86 104,88 92,80 Q88,72 92,64 Z" fill="#C8B47A" stroke="#1a0800" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M35,55 Q52,44 67,55" fill="none" stroke="#1a0800" stroke-width="5" stroke-linecap="round"/>
+    <line x1="38" y1="52" x2="34" y2="44" stroke="#1a0800" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="52" y1="47" x2="51" y2="39" stroke="#1a0800" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="66" y1="52" x2="70" y2="44" stroke="#1a0800" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M82,55 Q96,44 110,55" fill="none" stroke="#1a0800" stroke-width="5" stroke-linecap="round"/>
+    <line x1="84" y1="52" x2="80" y2="44" stroke="#1a0800" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="97" y1="47" x2="96" y2="39" stroke="#1a0800" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="108" y1="52" x2="112" y2="44" stroke="#1a0800" stroke-width="2.5" stroke-linecap="round"/>
+    <g class="zzz-1"><text x="122" y="30" font-family="Arial,sans-serif" font-weight="900" fill="#94A3B8" font-size="14">z</text></g>
+    <g class="zzz-2"><text x="136" y="14" font-family="Arial,sans-serif" font-weight="900" fill="#94A3B8" font-size="19">z</text></g>
+    <ellipse cx="50" cy="155" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+    <ellipse cx="92" cy="155" rx="20" ry="10" fill="#3D7A88" stroke="#1a0800" stroke-width="3"/>
+  </g>
+</svg>
+</div><span class="label">Mini Sleep</span></div>
+
+</div><!-- end row mini -->
+
+</body>
+</html>

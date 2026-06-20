@@ -679,8 +679,14 @@
       try {
         const sessions = JSON.parse(localStorage.getItem('sf_sessions') || '[]');
         const last = sessions[sessions.length - 1];
-        if (last && !last.note) last.note = note;
-        else sessions.push({ date: new Date().toISOString().slice(0,10), note, minutes: typeof cfg !== 'undefined' ? cfg.work : 25 });
+        if (last) {
+          if (!last.note) last.note = note;
+          /* Se l'utente non aveva scritto la materia prima della sessione,
+             usa il testo del banner come subject per le statistiche */
+          if (!last.subject) last.subject = note;
+        } else {
+          sessions.push({ date: new Date().toISOString().slice(0,10), note, subject: note, duration: typeof cfg !== 'undefined' ? cfg.work : 25 });
+        }
         localStorage.setItem('sf_sessions', JSON.stringify(sessions));
       } catch {}
     }
