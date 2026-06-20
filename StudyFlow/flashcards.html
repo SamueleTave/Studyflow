@@ -1128,9 +1128,12 @@ async function _aiGenerate() {
   try {
     const base = (window.SF_API_BASE || '/api').replace(/\/$/, '');
     const res  = await fetch(base + '/generate-flashcards', { method:'POST', headers, body });
-    const json = await res.json();
-    if (!res.ok || json.error) throw new Error(json.error || 'Errore server');
+    let json;
+    try { json = await res.json(); }
+    catch { throw new Error('Risposta server non valida (backend offline o errore interno)'); }
+    if (!res.ok || json.error) throw new Error(json.error || `Errore ${res.status}`);
     _aiCards = json.cards || [];
+    if (!_aiCards.length) throw new Error('Nessuna flashcard generata — prova con un testo più lungo');
     _aiShowPreview();
   } catch(err) {
     _aiShowErr(err.message || 'Errore durante la generazione');

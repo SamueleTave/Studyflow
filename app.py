@@ -1678,12 +1678,19 @@ def generate_flashcards():
             messages=[{'role': 'user', 'content': prompt}]
         )
         raw = response.content[0].text.strip()
-        m = re.search(r'\[.*\]', raw, re.DOTALL)
-        if not m:
-            return jsonify({'error': 'Risposta AI non valida'}), 500
-        cards = json_lib.loads(m.group())
+        # Rimuovi eventuali blocchi markdown ```json ... ```
+        raw = re.sub(r'^```[a-z]*\s*', '', raw)
+        raw = re.sub(r'\s*```$', '', raw).strip()
+        # Estrai l'array JSON usando il primo [ e l'ultimo ]
+        start = raw.find('[')
+        end   = raw.rfind(']')
+        if start == -1 or end == -1:
+            return jsonify({'error': f'Risposta AI non parseable: {raw[:200]}'}), 500
+        cards = json_lib.loads(raw[start:end+1])
         cards = [c for c in cards if isinstance(c, dict) and c.get('front') and c.get('back')]
         return jsonify({'cards': cards, 'total': len(cards)})
+    except json_lib.JSONDecodeError as e:
+        return jsonify({'error': f'JSON non valido dalla AI: {e}'}), 500
     except Exception as e:
         return jsonify({'error': f'Errore generazione AI: {e}'}), 500
 
