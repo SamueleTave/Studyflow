@@ -229,12 +229,25 @@ function setPlatypusHappy() {
 function _onPlatypusClick() {
   clearTimeout(_platypusHappyTmr); clearTimeout(_platypusSleepTmr); _stopPlatypusWalking();
   setPlatypusState('happy'); _startPlatypusWalking();
-  if (typeof earnCoins === 'function') { earnCoins(1); if (typeof checkAchievements === 'function') checkAchievements(); }
-  if (typeof showAnimalBubble === 'function') showAnimalBubble(['Bek bek! 🦆','Sono un platipus!','Nuoto veloce!','Trovato un verme!','Studia bene! 🌟'][Math.floor(Math.random()*5)]);
+
+  /* Limite monete: max 2 al giorno */
+  const today = new Date().toISOString().slice(0, 10);
+  const tapKey = 'sf_plat_tap_' + today;
+  const taps = parseInt(localStorage.getItem(tapKey) || '0', 10);
+  if (taps < 2 && typeof earnCoins === 'function') {
+    earnCoins(1);
+    localStorage.setItem(tapKey, taps + 1);
+    if (typeof checkAchievements === 'function') checkAchievements();
+    if (typeof showAnimalBubble === 'function')
+      showAnimalBubble(['Bek bek! 🦆','Sono un platipus!','Nuoto veloce!','Trovato un verme!','Studia bene! 🌟'][Math.floor(Math.random()*5)]);
+  } else {
+    if (typeof showAnimalBubble === 'function')
+      showAnimalBubble(taps === 0 ? 'Studia ancora! 📚' : 'Già dato oggi! 😄');
+  }
+
   if (typeof checkAnimalMood === 'function') checkAnimalMood(false);
   _platypusHappyTmr = setTimeout(() => {
     if (_platypusState === 'happy') {
-      setRaccoonState && 0; // noop
       _stopPlatypusWalking(); _platypusGoHome(0); setPlatypusState('sitting');
       _platypusSleepTmr = setTimeout(() => { if (_platypusState === 'sitting') setPlatypusState('sleeping'); }, 5000);
     }
@@ -266,36 +279,42 @@ function syncPlatypusToTimer(running, mode) {
 }
 
 /* Entrata/uscita giardino */
-function platypusEnterGarden(targetEl) {
+function platypusEnterGarden() {
   if (!_platypusEl || _platypusEl.classList.contains('platypus-hidden')) return;
   _stopPlatypusWalking();
+  clearTimeout(_platypusSleepTmr);
   _platypusInGarden = true;
-  _platypusScale = 0.45;
-  _platypusEl.style.transform = `translate(${_platypusX}px, ${-_platypusY}px) scale(0.45)`;
-  _platypusEl.style.transformOrigin = 'left bottom';
-  const canvas = document.getElementById('garden-canvas');
-  if (!canvas) return;
-  const rect = canvas.getBoundingClientRect();
-  const minB = Math.max(4, window.innerHeight - rect.bottom + 100);
-  const maxB = Math.max(minB + 10, window.innerHeight - rect.top - 10);
-  const _gstep = () => {
-    if (!_platypusInGarden) return;
-    const margin = 60;
-    const maxX = window.innerWidth - PLATYPUS_W * 0.45 - margin;
-    const tL = margin + Math.random() * (maxX - margin);
-    const tB = minB + Math.random() * (maxB - minB);
-    const dist = Math.abs(tL - _platypusGetLeft());
-    _platypusMoveTo(tL, tB, Math.min(500 + dist * 2.2, 2400));
-    if (Math.random() < 0.25) {
-      setPlatypusState('sitting');
-      setTimeout(() => { if (_platypusInGarden) setPlatypusState('walking'); }, 1200 + Math.random() * 800);
-    }
-  };
   setTimeout(() => {
     if (!_platypusInGarden) return;
+    const canvas = document.getElementById('garden-canvas');
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.height < 10) return;
+    const SCALE   = 0.45;
+    const GRASS_H = 100;
+    const pad     = 14;
+    const minL = rect.left  + pad;
+    const maxL = rect.right - PLATYPUS_W * SCALE - pad;
+    const minB = Math.max(4, window.innerHeight - rect.bottom + GRASS_H);
+    const maxB = minB + 8;
+    _platypusScale = SCALE;
+    _platypusEl.style.transform = `translate(${_platypusX}px, ${-_platypusY}px) scale(${SCALE})`;
+    _platypusEl.style.transformOrigin = 'left bottom';
     setPlatypusState('walking');
+    const _gstep = () => {
+      if (!_platypusInGarden) return;
+      if (Math.random() < 0.18) {
+        setPlatypusState('sitting');
+        setTimeout(() => { if (_platypusInGarden) setPlatypusState('walking'); }, 1000 + Math.random() * 700);
+        return;
+      }
+      const tL = minL + Math.random() * (maxL - minL);
+      const tB = minB + Math.random() * (maxB - minB);
+      const dist = Math.abs(tL - _platypusGetLeft());
+      _platypusMoveTo(tL, tB, Math.min(500 + dist * 2.2, 2000));
+    };
     _gstep();
-    _platypusWalkIv = setInterval(_gstep, 2000 + Math.random() * 700);
+    _platypusWalkIv = setInterval(_gstep, 1900 + Math.random() * 600);
   }, 900);
 }
 
