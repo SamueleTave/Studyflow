@@ -92,8 +92,10 @@ function toggleGarden() {
     if (typeof foxEnterGarden    === 'function') foxEnterGarden();
     if (typeof owlEnterGarden    === 'function') owlEnterGarden();
     if (typeof lionEnterGarden    === 'function') lionEnterGarden();
-    if (typeof raccoonEnterGarden === 'function') raccoonEnterGarden();
-    if (typeof dragonEnterGarden  === 'function') dragonEnterGarden();
+    if (typeof raccoonEnterGarden   === 'function') raccoonEnterGarden();
+    if (typeof dragonEnterGarden    === 'function') dragonEnterGarden();
+    if (typeof platypusEnterGarden  === 'function') platypusEnterGarden();
+    if (typeof giraffeEnterGarden   === 'function') giraffeEnterGarden();
   } else {
     destroyGardenSky();
     _stopNightStars();
@@ -106,6 +108,8 @@ function toggleGarden() {
     if (typeof lionExitGarden    === 'function') lionExitGarden();
     if (typeof raccoonExitGarden  === 'function') raccoonExitGarden();
     if (typeof dragonExitGarden   === 'function') dragonExitGarden();
+    if (typeof platypusExitGarden  === 'function') platypusExitGarden();
+    if (typeof giraffeExitGarden   === 'function') giraffeExitGarden();
   }
 }
 

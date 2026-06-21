@@ -67,30 +67,8 @@ function initTimer() {
     if (e.code === 'KeyA')  toggleAmbient();
   });
 
-  /* ── Correzione standby/sleep: Page Visibility API ──
-     Quando il computer si sveglia dallo standby, l'intervallo
-     riprende dal punto di pausa. Qui ricalcoliamo il tempo
-     residuo reale basandoci sul timestamp salvato. */
-  document.addEventListener('visibilitychange', () => {
-    if (!isRunning || document.visibilityState !== 'visible') return;
-    try {
-      const saved = localStorage.getItem('sf_timer');
-      if (!saved) return;
-      const t = JSON.parse(saved);
-      if (!t.savedAt || !t.running) return;
-      const elapsed = Math.floor((Date.now() - t.savedAt) / 1000);
-      if (elapsed < 3) return; // normale — non era in standby
-      const corrected = Math.max(0, t.timeLeft - elapsed);
-      if (corrected === 0) {
-        clearInterval(timerIv); timerIv = null;
-        isRunning = false; _setRunningStyle(false);
-        _onEnd(false);
-      } else {
-        timeLeft = corrected;
-        _syncUI();
-      }
-    } catch(e) {}
-  });
+  /* Standby: l'intervallo si congela durante il sleep del sistema
+     e riprende da dove era. Nessuna correzione — comportamento voluto. */
 }
 
 /* ── Wake Lock: impedisce lo spegnimento schermo ── */
