@@ -1308,9 +1308,8 @@ let _aiServerKey = null; // null=non ancora caricata, ''=non configurata, 'gsk_.
 async function _aiLoadKey() {
   if (_aiServerKey) return; // solo cache se abbiamo una chiave valida
   try {
-    const r = await apiFetch('/api/user/ai-key');
-    if (r.ok) { const d = await r.json(); _aiServerKey = d.key || ''; }
-    else _aiServerKey = '';
+    const d = await apiGet('/user/ai-key');
+    _aiServerKey = (d && d.key) ? d.key : '';
   } catch { _aiServerKey = ''; }
 }
 
