@@ -369,14 +369,6 @@ def unauthorized(e):
 def forbidden(e):
     return jsonify({"error": "accesso negato"}), 403
 
-@app.errorhandler(404)
-def not_found(e):
-    return jsonify({"error": "endpoint non trovato"}), 404
-
-@app.errorhandler(500)
-def server_error(e):
-    return jsonify({"error": f"errore interno: {e}"}), 500
-
 # ──────────────────────────────────────────
 # STATIC FILES
 # ──────────────────────────────────────────
@@ -1608,6 +1600,14 @@ def set_app_config():
         import traceback
         return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
 
+@app.route("/api/user/ai-key", methods=["GET"])
+def get_ai_key():
+    get_auth_user(required=True)
+    with get_db() as c:
+        row = c.execute("SELECT value FROM app_config WHERE key='groq_key'").fetchone()
+    key = row["value"] if row and row["value"] else ""
+    return jsonify({"ok": True, "key": key})
+
 @app.route("/api/admin/users/<int:uid>/notify", methods=["POST"])
 def admin_notify_user(uid):
     me = get_auth_user(required=True)
@@ -1628,77 +1628,6 @@ def admin_notify_user(uid):
         )
         c.commit()
     return jsonify({"ok": True})
-
-# ──────────────────────────────────────────
-# FLASHCARD AI GENERATION
-# ──────────────────────────────────────────
-
-@app.route('/api/generate-flashcards', methods=['POST'])
-def generate_flashcards():
-    user = get_auth_user(required=True)
-
-    text = ''
-    if 'file' in request.files:
-        f = request.files['file']
-        name = (f.filename or '').lower()
-        if name.endswith('.pdf'):
-            try:
-                import pypdf, io
-                reader = pypdf.PdfReader(io.BytesIO(f.read()))
-                text = '\n'.join(p.extract_text() or '' for p in reader.pages)
-            except Exception as e:
-                return jsonify({'error': f'Errore lettura PDF: {e}'}), 400
-        else:
-            try:
-                text = f.read().decode('utf-8', errors='ignore')
-            except Exception:
-                return jsonify({'error': 'Impossibile leggere il file'}), 400
-    elif request.is_json:
-        text = (request.json or {}).get('text', '')
-
-    text = text.strip()
-    if not text:
-        return jsonify({'error': 'Nessun testo trovato nel documento'}), 400
-
-    text = text[:16000]
-
-    api_key = os.environ.get('GEMINI_API_KEY', '')
-    if not api_key:
-        return jsonify({'error': 'GEMINI_API_KEY non configurata sul server'}), 500
-
-    try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        prompt = (
-            "Sei un assistente per lo studio universitario. "
-            "Analizza il testo seguente e genera flashcard di studio in italiano.\n"
-            "Crea tra 10 e 25 flashcard pertinenti e utili.\n"
-            "Ogni flashcard:\n"
-            '  "front": domanda chiara, termine o concetto chiave\n'
-            '  "back":  risposta precisa, definizione o spiegazione\n\n'
-            "Rispondi SOLO con un array JSON valido, senza markdown ne testo aggiuntivo:\n"
-            '[{"front": "...", "back": "..."}, ...]\n\n'
-            f"Testo:\n{text}"
-        )
-        response = model.generate_content(prompt)
-        raw = response.text.strip()
-        # Rimuovi eventuali blocchi markdown ```json ... ```
-        raw = re.sub(r'^```[a-z]*\s*', '', raw)
-        raw = re.sub(r'\s*```$', '', raw).strip()
-        # Estrai l'array JSON usando il primo [ e l'ultimo ]
-        start = raw.find('[')
-        end   = raw.rfind(']')
-        if start == -1 or end == -1:
-            return jsonify({'error': f'Risposta AI non parseable: {raw[:200]}'}), 500
-        cards = json_lib.loads(raw[start:end+1])
-        cards = [c for c in cards if isinstance(c, dict) and c.get('front') and c.get('back')]
-        return jsonify({'cards': cards, 'total': len(cards)})
-    except json_lib.JSONDecodeError as e:
-        return jsonify({'error': f'JSON non valido dalla AI: {e}'}), 500
-    except Exception as e:
-        return jsonify({'error': f'Errore generazione AI: {e}'}), 500
-
 
 # ──────────────────────────────────────────
 # RUN

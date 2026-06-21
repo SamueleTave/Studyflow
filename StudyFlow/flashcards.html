@@ -335,18 +335,9 @@
       <button class="modal-close" onclick="closeModal('aiModal')">&#10005;</button>
     </div>
 
-    <!-- API Key row -->
-    <div class="fc-ai-key-row" id="aiKeyRow">
-      <div class="fc-ai-key-label">🔑 Groq API Key</div>
-      <div class="fc-ai-key-inputs">
-        <input class="fc-modal-input" id="aiKeyInput" type="password" placeholder="gsk_..." autocomplete="off">
-        <button class="fc-btn fc-btn-ai" onclick="_aiSaveKey()" style="white-space:nowrap">Salva</button>
-      </div>
-      <div class="fc-ai-key-hint">100% gratis su <b>console.groq.com</b> → API Keys (no carta di credito)</div>
-    </div>
-    <div class="fc-ai-key-saved" id="aiKeySaved" style="display:none">
-      <span>🔑 Chiave salvata</span>
-      <button class="fc-ai-select-all" onclick="_aiChangeKey()">Cambia</button>
+    <!-- AI key status (solo admin può configurarla) -->
+    <div class="fc-ai-key-saved" id="aiKeyStatus">
+      <span id="aiKeyStatusText">⏳ Verifica AI...</span>
     </div>
 
     <!-- Tabs -->
@@ -1278,25 +1269,35 @@ let _aiFile   = null;
 let _aiCards  = [];
 let _aiAllSel = true;
 
-/* ── API Key ── */
-function _aiGetKey()    { return localStorage.getItem('sf_gemini_key') || ''; }
-function _aiSaveKey()   {
-  const v = document.getElementById('aiKeyInput').value.trim();
-  if (!v) return;
-  localStorage.setItem('sf_gemini_key', v);
-  _aiRefreshKeyUI();
-}
-function _aiChangeKey() {
-  localStorage.removeItem('sf_gemini_key');
-  _aiRefreshKeyUI();
-}
-function _aiRefreshKeyUI() {
-  const has = !!_aiGetKey();
-  document.getElementById('aiKeyRow').style.display   = has ? 'none' : '';
-  document.getElementById('aiKeySaved').style.display = has ? ''     : 'none';
+/* ── API Key (configurata solo dall'admin) ── */
+let _aiServerKey = null; // null=non ancora caricata, ''=non configurata, 'gsk_...'=pronta
+
+async function _aiLoadKey() {
+  if (_aiServerKey !== null) return;
+  try {
+    const r = await apiFetch('/api/user/ai-key');
+    if (r.ok) { const d = await r.json(); _aiServerKey = d.key || ''; }
+    else _aiServerKey = '';
+  } catch { _aiServerKey = ''; }
 }
 
-function openAiModal() {
+function _aiGetKey() { return _aiServerKey || ''; }
+
+function _aiRefreshKeyUI() {
+  const txt = document.getElementById('aiKeyStatusText');
+  const btn = document.getElementById('aiBtnGenerate');
+  if (_aiServerKey) {
+    txt.textContent  = '✅ AI disponibile';
+    txt.style.color  = '#10b981';
+    if (btn) btn.disabled = false;
+  } else {
+    txt.textContent  = '🔑 AI non configurata — contatta l\'admin';
+    txt.style.color  = '#ef4444';
+    if (btn) btn.disabled = true;
+  }
+}
+
+async function openAiModal() {
   _aiFile   = null;
   _aiCards  = [];
   _aiAllSel = true;
@@ -1307,7 +1308,7 @@ function openAiModal() {
   document.getElementById('aiError').style.display       = 'none';
   document.getElementById('aiBtnGenerate').style.display = '';
   document.getElementById('aiFileInput').value           = '';
-  document.getElementById('aiKeyInput').value            = '';
+  await _aiLoadKey();
   _aiRefreshKeyUI();
   _aiTab('file');
   openModal('aiModal');
@@ -1352,7 +1353,7 @@ async function _aiExtractPdf(file) {
 
 async function _aiGenerate() {
   const apiKey = _aiGetKey();
-  if (!apiKey) { _aiShowErr('Inserisci prima la tua Gemini API Key.'); return; }
+  if (!apiKey) { _aiShowErr('AI non configurata. Contatta l\'admin.'); return; }
 
   const isText = document.getElementById('aiPanelText').style.display !== 'none';
   let text = '';

@@ -1600,6 +1600,14 @@ def set_app_config():
         import traceback
         return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
 
+@app.route("/api/user/ai-key", methods=["GET"])
+def get_ai_key():
+    get_auth_user(required=True)
+    with get_db() as c:
+        row = c.execute("SELECT value FROM app_config WHERE key='groq_key'").fetchone()
+    key = row["value"] if row and row["value"] else ""
+    return jsonify({"ok": True, "key": key})
+
 @app.route("/api/admin/users/<int:uid>/notify", methods=["POST"])
 def admin_notify_user(uid):
     me = get_auth_user(required=True)

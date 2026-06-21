@@ -625,6 +625,23 @@
     </div>
   </div>
 
+  <!-- AI Key management -->
+  <div class="admin-card" style="margin-top:20px">
+    <div class="admin-card-head" style="border-bottom-color:rgba(251,146,60,0.25)">
+      <span class="admin-card-title">🔑 Chiave AI (Groq)</span>
+      <span style="font-size:0.78rem;color:var(--text-soft)">Solo tu puoi impostarla — gli utenti non possono modificarla</span>
+    </div>
+    <div style="padding:18px;display:flex;flex-direction:column;gap:12px">
+      <div id="aiKeyStatus" style="font-size:0.82rem;color:var(--text-soft)">⏳ Caricamento...</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="aiKeyAdminInput" type="password" placeholder="gsk_..." autocomplete="off"
+               style="flex:1;min-width:200px;padding:9px 12px;border-radius:9px;border:1px solid var(--card-border);background:rgba(255,255,255,0.5);font-family:'Poppins',sans-serif;font-size:0.85rem;color:var(--text)">
+        <button class="admin-btn" onclick="saveAiKey()">💾 Salva</button>
+        <button class="admin-btn" style="background:rgba(239,68,68,0.1);color:#dc2626;border:1px solid rgba(239,68,68,0.2)" onclick="clearAiKey()">🗑 Rimuovi</button>
+      </div>
+    </div>
+  </div>
+
   <div class="admin-card">
     <div class="admin-card-head">
       <span class="admin-card-title">🛠️ Segnalazioni <span id="ticketBadge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:2px 7px;font-size:0.65rem;margin-left:6px;font-weight:700"></span></span>
@@ -1468,9 +1485,58 @@
     setTimeout(() => { if (status) status.textContent = ''; }, 5000);
   }
 
+  /* ── AI Key ── */
+  async function loadAiKeyStatus() {
+    const statusEl = document.getElementById('aiKeyStatus');
+    try {
+      const r = await apiFetch('/api/user/ai-key');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const d = await r.json();
+      if (d.key) {
+        statusEl.textContent = '✅ Chiave configurata';
+        statusEl.style.color = '#10b981';
+      } else {
+        statusEl.textContent = '❌ Nessuna chiave impostata — gli utenti non possono usare l\'AI';
+        statusEl.style.color = '#ef4444';
+      }
+    } catch(e) {
+      statusEl.textContent = '⚠️ Errore caricamento: ' + e.message;
+      statusEl.style.color = '#f59e0b';
+    }
+  }
+
+  async function saveAiKey() {
+    const val = document.getElementById('aiKeyAdminInput').value.trim();
+    if (!val) { toast('Inserisci la chiave prima di salvare'); return; }
+    try {
+      const r = await apiFetch('/api/admin/config', {
+        method: 'POST',
+        body: JSON.stringify({ key: 'groq_key', value: val })
+      });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'HTTP ' + r.status); }
+      document.getElementById('aiKeyAdminInput').value = '';
+      toast('Chiave AI salvata ✅');
+      loadAiKeyStatus();
+    } catch(e) { toast('Errore: ' + e.message); }
+  }
+
+  async function clearAiKey() {
+    if (!confirm('Rimuovere la chiave AI? Gli utenti non potranno più usare l\'AI generator.')) return;
+    try {
+      const r = await apiFetch('/api/admin/config', {
+        method: 'POST',
+        body: JSON.stringify({ key: 'groq_key', value: '' })
+      });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'HTTP ' + r.status); }
+      toast('Chiave AI rimossa');
+      loadAiKeyStatus();
+    } catch(e) { toast('Errore: ' + e.message); }
+  }
+
   loadUsers();
   loadTickets();
   loadShopVisibility();
+  loadAiKeyStatus();
 </script>
 </body>
 </html>
