@@ -653,6 +653,31 @@
     </div>
   </div>
 
+  <!-- Banner Novità -->
+  <div class="admin-card" style="margin-top:20px">
+    <div class="admin-card-head" style="border-bottom-color:rgba(99,102,241,0.25)">
+      <span class="admin-card-title">📢 Banner Novità</span>
+      <span style="font-size:0.78rem;color:var(--text-soft)">Appare sulla pagina Timer per tutti gli utenti (una volta sola)</span>
+    </div>
+    <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
+      <div id="bannerStatus" style="font-size:0.82rem;color:var(--text-soft)">⏳ Caricamento...</div>
+      <div>
+        <div style="font-size:0.75rem;font-weight:600;color:var(--text-soft);margin-bottom:6px">Titolo banner</div>
+        <input id="bannerTitle" type="text" placeholder="Es: Novità — 21 Giugno 2026" maxlength="80"
+               style="width:100%;padding:9px 12px;border-radius:9px;border:1px solid var(--card-border);background:rgba(255,255,255,0.5);font-family:'Poppins',sans-serif;font-size:0.85rem;color:var(--text)">
+      </div>
+      <div>
+        <div style="font-size:0.75rem;font-weight:600;color:var(--text-soft);margin-bottom:8px">Voci (max 6)</div>
+        <div id="bannerItemsList" style="display:flex;flex-direction:column;gap:8px"></div>
+        <button onclick="addBannerItem()" style="margin-top:8px;padding:7px 14px;border-radius:9px;border:1.5px dashed var(--card-border);background:none;font-family:'Poppins',sans-serif;font-size:0.8rem;color:var(--accent);cursor:pointer;font-weight:600">+ Aggiungi voce</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:4px;border-top:1px solid var(--card-border)">
+        <button class="admin-btn" onclick="saveBanner()">💾 Pubblica banner</button>
+        <button class="admin-btn" style="background:rgba(239,68,68,0.1);color:#dc2626;border:1px solid rgba(239,68,68,0.2)" onclick="clearBanner()">🗑 Rimuovi banner</button>
+      </div>
+    </div>
+  </div>
+
   <div class="admin-card">
     <div class="admin-card-head">
       <span class="admin-card-title">🛠️ Segnalazioni <span id="ticketBadge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:2px 7px;font-size:0.65rem;margin-left:6px;font-weight:700"></span></span>
@@ -1544,10 +1569,97 @@
     } catch(e) { toast('Errore: ' + e.message); }
   }
 
+  /* ── Banner Novità ── */
+  const _BANNER_COLORS = ['#6366f1','#10b981','#f59e0b','#ec4899','#3b82f6','#ef4444'];
+  let _bannerItems = [];
+
+  async function loadBannerStatus() {
+    const statusEl = document.getElementById('bannerStatus');
+    try {
+      const r = await apiFetch('/api/config');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const cfg = await r.json();
+      if (cfg.banner_json) {
+        const b = JSON.parse(cfg.banner_json);
+        statusEl.textContent = `✅ Banner attivo — versione: ${b.version} — "${b.title}"`;
+        statusEl.style.color = '#10b981';
+        document.getElementById('bannerTitle').value = b.title || '';
+        _bannerItems = b.items || [];
+        _renderBannerItems();
+      } else {
+        statusEl.textContent = '⬜ Nessun banner attivo';
+        statusEl.style.color = 'var(--text-soft)';
+      }
+    } catch(e) {
+      statusEl.textContent = '⚠️ Errore: ' + e.message;
+      statusEl.style.color = '#f59e0b';
+    }
+  }
+
+  function _renderBannerItems() {
+    const list = document.getElementById('bannerItemsList');
+    list.innerHTML = _bannerItems.map((it, i) => `
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input type="color" value="${it.color || '#6366f1'}" onchange="_bannerItems[${i}].color=this.value"
+               style="width:34px;height:34px;border:none;border-radius:8px;cursor:pointer;padding:2px;background:rgba(255,255,255,0.5);flex-shrink:0">
+        <input type="text" value="${_esc2(it.bold||'')}" placeholder="Titolo in grassetto" maxlength="40"
+               oninput="_bannerItems[${i}].bold=this.value"
+               style="width:130px;padding:7px 10px;border-radius:8px;border:1px solid var(--card-border);background:rgba(255,255,255,0.5);font-family:'Poppins',sans-serif;font-size:0.8rem">
+        <input type="text" value="${_esc2(it.text||'')}" placeholder="Descrizione" maxlength="100"
+               oninput="_bannerItems[${i}].text=this.value"
+               style="flex:1;min-width:140px;padding:7px 10px;border-radius:8px;border:1px solid var(--card-border);background:rgba(255,255,255,0.5);font-family:'Poppins',sans-serif;font-size:0.8rem">
+        <button onclick="_removeBannerItem(${i})" style="width:30px;height:30px;border:1px solid rgba(239,68,68,0.3);border-radius:8px;background:rgba(239,68,68,0.08);color:#dc2626;cursor:pointer;font-size:0.85rem;flex-shrink:0">✕</button>
+      </div>`).join('');
+  }
+  function _esc2(s) { return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+  function addBannerItem() {
+    if (_bannerItems.length >= 6) { toast('Massimo 6 voci'); return; }
+    _bannerItems.push({ color: _BANNER_COLORS[_bannerItems.length % _BANNER_COLORS.length], bold: '', text: '' });
+    _renderBannerItems();
+  }
+  function _removeBannerItem(i) {
+    _bannerItems.splice(i, 1);
+    _renderBannerItems();
+  }
+
+  async function saveBanner() {
+    const title = document.getElementById('bannerTitle').value.trim();
+    if (!title) { toast('Inserisci il titolo del banner'); return; }
+    if (_bannerItems.length === 0) { toast('Aggiungi almeno una voce'); return; }
+    const version = 'v' + new Date().toISOString().slice(0,10).replace(/-/g,'');
+    const bannerData = { version, title, items: _bannerItems };
+    try {
+      const r = await apiFetch('/api/admin/config', {
+        method: 'POST',
+        body: JSON.stringify({ key: 'banner_json', value: JSON.stringify(bannerData) })
+      });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'HTTP ' + r.status); }
+      toast('Banner pubblicato ✅ — gli utenti lo vedranno alla prossima visita');
+      loadBannerStatus();
+    } catch(e) { toast('Errore: ' + e.message); }
+  }
+
+  async function clearBanner() {
+    if (!confirm('Rimuovere il banner? Gli utenti non lo vedranno più.')) return;
+    try {
+      const r = await apiFetch('/api/admin/config', {
+        method: 'POST',
+        body: JSON.stringify({ key: 'banner_json', value: '' })
+      });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'HTTP ' + r.status); }
+      toast('Banner rimosso');
+      document.getElementById('bannerTitle').value = '';
+      _bannerItems = [];
+      _renderBannerItems();
+      loadBannerStatus();
+    } catch(e) { toast('Errore: ' + e.message); }
+  }
+
   loadUsers();
   loadTickets();
   loadShopVisibility();
   loadAiKeyStatus();
+  loadBannerStatus();
 </script>
 </body>
 </html>

@@ -66,7 +66,49 @@ function initTimer() {
     if (e.code === 'KeyS')  openSettings();
     if (e.code === 'KeyA')  toggleAmbient();
   });
+
+  /* ── Correzione standby/sleep: Page Visibility API ──
+     Quando il computer si sveglia dallo standby, l'intervallo
+     riprende dal punto di pausa. Qui ricalcoliamo il tempo
+     residuo reale basandoci sul timestamp salvato. */
+  document.addEventListener('visibilitychange', () => {
+    if (!isRunning || document.visibilityState !== 'visible') return;
+    try {
+      const saved = localStorage.getItem('sf_timer');
+      if (!saved) return;
+      const t = JSON.parse(saved);
+      if (!t.savedAt || !t.running) return;
+      const elapsed = Math.floor((Date.now() - t.savedAt) / 1000);
+      if (elapsed < 3) return; // normale — non era in standby
+      const corrected = Math.max(0, t.timeLeft - elapsed);
+      if (corrected === 0) {
+        clearInterval(timerIv); timerIv = null;
+        isRunning = false; _setRunningStyle(false);
+        _onEnd(false);
+      } else {
+        timeLeft = corrected;
+        _syncUI();
+      }
+    } catch(e) {}
+  });
 }
+
+/* ── Wake Lock: impedisce lo spegnimento schermo ── */
+let _wakeLock = null;
+async function _requestWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    _wakeLock = await navigator.wakeLock.request('screen');
+    _wakeLock.addEventListener('release', () => { _wakeLock = null; });
+  } catch(e) {}
+}
+function _releaseWakeLock() {
+  if (_wakeLock) { try { _wakeLock.release(); } catch(e) {} _wakeLock = null; }
+}
+/* Re-acquisisci Wake Lock quando la pagina torna attiva */
+document.addEventListener('visibilitychange', () => {
+  if (isRunning && document.visibilityState === 'visible') _requestWakeLock();
+});
 
 /* ===== RIPRISTINO TIMER (localStorage) ===== */
 function _restoreTimer() {
@@ -209,6 +251,7 @@ function toggleTimer() {
     if (typeof syncPlatypusToTimer === 'function') syncPlatypusToTimer(false);
     if (typeof syncHydroToTimer    === 'function') syncHydroToTimer(false, timerMode);
     if (typeof setPresenceStudying === 'function') setPresenceStudying(false);
+    _releaseWakeLock();
     _saveTimer();
   } else {
     isRunning = true;
@@ -226,6 +269,7 @@ function toggleTimer() {
     if (typeof syncPlatypusToTimer === 'function') syncPlatypusToTimer(true, timerMode);
     if (typeof syncHydroToTimer    === 'function') syncHydroToTimer(true, timerMode);
     if (typeof setPresenceStudying === 'function') setPresenceStudying(timerMode === 'work');
+    _requestWakeLock();
     timerIv = setInterval(() => {
       if (timeLeft > 0) {
         timeLeft--;
@@ -238,6 +282,7 @@ function toggleTimer() {
         clearInterval(timerIv);
         isRunning = false;
         _setRunningStyle(false);
+        _releaseWakeLock();
         _onEnd(false);
       }
     }, 1000);
