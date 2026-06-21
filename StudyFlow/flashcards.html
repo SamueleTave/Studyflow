@@ -134,6 +134,9 @@
           <button class="fc-btn" onclick="openQuizModeModal(_currentDeckId)">
             <i data-feather="help-circle" class="nav-icon"></i> Quiz
           </button>
+          <button class="fc-btn fc-btn-ai" onclick="openMapView(_currentDeckId)">
+            <i data-feather="map" class="nav-icon"></i> Mappa
+          </button>
           <button class="fc-btn primary" onclick="startStudy(_currentDeckId)">
             <i data-feather="play" class="nav-icon"></i> Studia
           </button>
@@ -197,6 +200,28 @@
       <div class="fc-study-wrap" id="quiz-content">
         <!-- Populated by JS -->
       </div>
+    </div>
+
+    <!-- ─── View 5: Mappa AI ─── -->
+    <div id="fc-view-map" style="display:none">
+      <div class="fc-deck-hdr">
+        <button class="fc-back-btn" onclick="showView('deck')" title="Indietro">&#8592;</button>
+        <div class="fc-deck-info">
+          <div class="fc-deck-title" id="map-deck-title">🗺️ Mappa di Studio</div>
+          <div class="fc-deck-meta" id="map-deck-meta"></div>
+        </div>
+        <button class="fc-btn fc-btn-ai" onclick="generateStudyMap()" id="mapRegenerateBtn" style="white-space:nowrap">
+          <i data-feather="refresh-cw" class="nav-icon"></i> Rigenera
+        </button>
+      </div>
+      <div id="map-loading" style="display:none">
+        <div class="fc-loading-wrap">
+          <div class="fc-loading-spinner"></div>
+          <div class="fc-loading-txt">Sto generando la mappa di studio con AI...</div>
+        </div>
+      </div>
+      <div id="map-error" class="fc-ai-error" style="display:none"></div>
+      <div id="map-content" style="display:flex;flex-direction:column;gap:10px"></div>
     </div>
 
   </div><!-- /fc-page -->
@@ -522,7 +547,7 @@ function _shuffle(arr) {
 
 /* ── Viste ── */
 function showView(name) {
-  ['decks','deck','study','quiz'].forEach(v => {
+  ['decks','deck','study','quiz','map'].forEach(v => {
     const el = document.getElementById('fc-view-' + v);
     if (el) el.style.display = (v === name) ? '' : 'none';
   });
@@ -550,11 +575,13 @@ function renderDecks() {
     return;
   }
   grid.innerHTML = rootDecks.map(deck => {
-    const allCards = _getAllDeckCards(deck.id, data);
-    const cards    = allCards;
-    const dueCount = cards.filter(c => !c.sr || c.sr.due <= now).length;
-    const totalStr = cards.length + ' cart' + (cards.length === 1 ? 'a' : 'e');
-    const dueStr   = dueCount > 0
+    const allCards   = _getAllDeckCards(deck.id, data);
+    const cards      = allCards;
+    const dueCount   = cards.filter(c => !c.sr || c.sr.due <= now).length;
+    const mastered   = cards.filter(c => c.sr && c.sr.reps > 0).length;
+    const masteryPct = cards.length > 0 ? Math.round(mastered / cards.length * 100) : 0;
+    const totalStr   = cards.length + ' cart' + (cards.length === 1 ? 'a' : 'e');
+    const dueStr     = dueCount > 0
       ? `<div class="deck-card-due">${dueCount} da ripassare</div>`
       : `<div class="deck-card-due zero">Tutto aggiornato ✓</div>`;
     const c1 = deck.color || _FC_COLORS[0];
@@ -569,6 +596,12 @@ function renderDecks() {
       <div class="deck-card-name">${_esc(deck.name)}</div>
       <div class="deck-card-count">${totalStr}</div>
       ${dueStr}
+      <div class="deck-card-progress-wrap">
+        <div class="deck-card-progress">
+          <div class="deck-card-progress-bar" style="width:${masteryPct}%"></div>
+        </div>
+        <span class="deck-card-pct">${masteryPct}%</span>
+      </div>
     </div>`;
   }).join('');
 
@@ -1480,6 +1513,126 @@ function _aiShowErr(msg) {
   const el = document.getElementById('aiError');
   el.textContent = msg;
   el.style.display = '';
+}
+
+/* ══════════════════════════════════════════
+   MAPPA DI STUDIO — AI-generated study map
+══════════════════════════════════════════ */
+let _mapDeckId = null;
+
+async function openMapView(deckId) {
+  _mapDeckId = deckId;
+  const data = _fcLoad();
+  const deck = data.decks.find(d => d.id === deckId);
+  if (!deck) return;
+  const titleEl = document.getElementById('map-deck-title');
+  const metaEl  = document.getElementById('map-deck-meta');
+  if (titleEl) titleEl.textContent = '🗺️ ' + deck.name;
+  const allCards = _getAllDeckCards(deckId, data);
+  if (metaEl) metaEl.textContent = allCards.length + ' carte';
+  document.getElementById('map-content').innerHTML = '';
+  document.getElementById('map-error').style.display = 'none';
+  showView('map');
+  if (typeof feather !== 'undefined') feather.replace({ width: 17, height: 17, 'stroke-width': 1.8 });
+  await generateStudyMap();
+}
+
+async function generateStudyMap() {
+  const data   = _fcLoad();
+  const deckId = _mapDeckId;
+  if (!deckId) return;
+  const allCards = _getAllDeckCards(deckId, data);
+  if (allCards.length === 0) {
+    document.getElementById('map-error').textContent = 'Il mazzo non ha carte. Aggiungi delle carte prima di generare la mappa.';
+    document.getElementById('map-error').style.display = '';
+    return;
+  }
+  await _aiLoadKey();
+  const apiKey = _aiGetKey();
+  if (!apiKey) {
+    document.getElementById('map-error').textContent = '🔑 AI non configurata. Contatta l\'admin per attivare la funzione.';
+    document.getElementById('map-error').style.display = '';
+    return;
+  }
+
+  const loadEl = document.getElementById('map-loading');
+  const errEl  = document.getElementById('map-error');
+  const contEl = document.getElementById('map-content');
+  const regenBtn = document.getElementById('mapRegenerateBtn');
+  loadEl.style.display = '';
+  errEl.style.display  = 'none';
+  contEl.innerHTML     = '';
+  if (regenBtn) { regenBtn.disabled = true; }
+
+  const cardsSample = allCards.slice(0, 40).map(c => `D: ${c.front} | R: ${c.back}`).join('\n');
+
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        temperature: 0.4,
+        messages: [{
+          role: 'user',
+          content: `Sei un tutor esperto. Analizza queste flashcard e crea una mappa di studio strutturata.\n\nRispondi SOLO con JSON valido (nessun testo aggiuntivo):\n{"title":"...","sections":[{"title":"...","emoji":"...","summary":"...","points":["...","..."]}]}\n\nRegole:\n- 3-6 sezioni tematiche\n- Ogni sezione: 3-5 punti chiave concisi\n- Usa emoji pertinenti per le sezioni\n- In italiano\n- summary: 1 frase che spiega il tema della sezione\n\nFLASHCARD:\n${cardsSample}`
+        }],
+        max_tokens: 1200
+      })
+    });
+    if (!res.ok) throw new Error('API error ' + res.status);
+    const json = await res.json();
+    const raw  = json.choices?.[0]?.message?.content || '';
+
+    let mapData;
+    try {
+      const match = raw.match(/\{[\s\S]*\}/);
+      mapData = JSON.parse(match ? match[0] : raw);
+    } catch {
+      throw new Error('Risposta AI non valida. Riprova.');
+    }
+
+    loadEl.style.display = 'none';
+    _renderStudyMap(mapData);
+  } catch (e) {
+    loadEl.style.display = 'none';
+    errEl.textContent = '❌ ' + (e.message || 'Errore nella generazione. Riprova.');
+    errEl.style.display = '';
+  } finally {
+    if (regenBtn) { regenBtn.disabled = false; }
+  }
+}
+
+function _renderStudyMap(mapData) {
+  const contEl = document.getElementById('map-content');
+  if (!mapData?.sections?.length) {
+    contEl.innerHTML = '<div class="fc-ai-error">Nessuna sezione generata. Riprova.</div>';
+    return;
+  }
+  contEl.innerHTML = `
+    <div class="map-intro">
+      ✨ Mappa generata da AI basata su ${_getAllDeckCards(_mapDeckId, _fcLoad()).length} carte — clicca le sezioni per espandere
+    </div>
+    ${mapData.sections.map((s, i) => `
+    <div class="map-section ${i < 2 ? 'open' : ''}" id="map-sec-${i}">
+      <button class="map-section-hdr" onclick="toggleMapSection(${i})">
+        <span class="map-section-emoji">${s.emoji || '📌'}</span>
+        <span class="map-section-title">${_esc(s.title || 'Sezione')}</span>
+        <span class="map-expand-icon">▾</span>
+      </button>
+      <div class="map-section-body">
+        ${s.summary ? `<p class="map-summary">${_esc(s.summary)}</p>` : ''}
+        <ul class="map-points">
+          ${(s.points || []).map(p => `<li>${_esc(p)}</li>`).join('')}
+        </ul>
+      </div>
+    </div>`).join('')}
+  `;
+}
+
+function toggleMapSection(i) {
+  const el = document.getElementById('map-sec-' + i);
+  if (el) el.classList.toggle('open');
 }
 
 /* ── Init ── */

@@ -478,7 +478,7 @@ body.focus-mode .focus-exit-btn { display: flex !important; }
 @media (max-width: 960px) {
   .app { grid-template-columns: 1fr; z-index: unset; position: static; }
   .clock-quote { display: none; }
-  .app > *:not(aside) { padding-top: 8px; }
+  .app > *:not(aside) { padding-top: 66px; }
   .clock-bar { padding-left: 62px; }
 }
 

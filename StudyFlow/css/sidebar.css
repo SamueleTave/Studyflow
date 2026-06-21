@@ -403,7 +403,7 @@
   .presence-section  { display: block; }
   .sidebar-user-pill { display: flex; }
 
-  .timer-page, .page-content, main, .app-content { padding-top: 0; }
+  /* padding-top gestito da base.css (66px clearance hamburger) */
 }
 
 /* ── Mobile piccolo: sidebar a schermo intero ── */

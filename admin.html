@@ -456,14 +456,25 @@
       border-radius: 8px; transition: width 0.3s;
     }
 
+    /* ── Tablet / resize desktop ── */
+    @media (max-width: 960px) {
+      .admin-layout { padding: 20px 14px 50px; }
+      .admin-card { border-radius: 16px; }
+    }
     /* ── Mobile ── */
     @media (max-width: 680px) {
-      .admin-layout { padding: 16px 12px 40px; }
+      .admin-layout { padding: 16px 10px 40px; }
       .admin-title { font-size: 1.2rem; }
       td.hide-mobile, th.hide-mobile { display: none; }
       .action-cell { flex-wrap: wrap; }
-      .edit-modal-box { max-height: 88vh; }
+      .edit-modal-box { max-height: 90dvh; overflow-y: auto; }
       .modal-box { padding: 20px 16px; }
+      .admin-card-head { flex-wrap: wrap; gap: 4px; }
+      .vis-save-bar { flex-wrap: wrap; }
+    }
+    @media (max-width: 420px) {
+      .admin-layout { padding: 12px 8px 40px; }
+      .admin-table th, .admin-table td { padding: 8px 6px; font-size: 0.75rem; }
     }
   </style>
 </head>
