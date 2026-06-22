@@ -25,10 +25,37 @@ function loadEvents() {
 function saveEvents() { localStorage.setItem('sf_events', JSON.stringify(events)); }
 
 /* ===== INIT ===== */
+function _updateCalStreak() {
+  const ph = document.getElementById('pill-streak');
+  if (!ph) return;
+  try {
+    const s = JSON.parse(localStorage.getItem('sf_stats') || '{}');
+    const streak = s.streak || 0;
+    const _SL = [
+      { min:100, val:'diamond', emoji:'💎' },
+      { min:75,  val:'rainbow', emoji:'🌈' },
+      { min:60,  val:'cosmic',  emoji:'🌌' },
+      { min:50,  val:'teal',    emoji:'🌊' },
+      { min:40,  val:'gold',    emoji:'✨' },
+      { min:30,  val:'fuchsia', emoji:'💫' },
+      { min:21,  val:'violet',  emoji:'⚡' },
+      { min:14,  val:'inferno', emoji:'🔥' },
+      { min:7,   val:'hot',     emoji:'🔥' },
+      { min:3,   val:'warm',    emoji:''   },
+    ];
+    const lv = _SL.find(l => streak >= l.min) || { val:'', emoji:'' };
+    ph.textContent = (streak >= 7 && lv.emoji) ? streak + ' ' + lv.emoji : String(streak);
+    ph.className = 'stat-pill-val' + (lv.val ? ' streak-' + lv.val : '');
+    const pill = ph.closest('.stat-pill');
+    if (pill) pill.className = 'stat-pill' + (lv.val ? ' streak-pill-' + lv.val : '');
+  } catch {}
+}
+
 function initCalendar() {
   loadEvents();
   renderCal();
   renderEventsPanel();
+  _updateCalStreak();
 
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -37,6 +64,11 @@ function initCalendar() {
     if (e.code === 'KeyA') toggleAmbient();
     if (e.code === 'ArrowLeft')  changeMonth(-1);
     if (e.code === 'ArrowRight') changeMonth(1);
+  });
+
+  /* Aggiorna streak al focus per catturare sessioni fatte nel timer */
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) _updateCalStreak();
   });
 }
 

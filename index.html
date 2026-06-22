@@ -1091,8 +1091,7 @@ function _renderRolePanel() {
   const isUnlocked = r => hasOverride ? roles.indexOf(r) <= currentIdx : sessionCount >= r.min;
 
   const nextRole = roles.find(r => !isUnlocked(r));
-  const prevSessions = nextRole ? current.min : 0;
-  const pct = nextRole ? Math.min(100, Math.round(((sessionCount - prevSessions) / (nextRole.min - prevSessions)) * 100)) : 100;
+  const pct = nextRole ? Math.min(100, Math.round((sessionCount / nextRole.min) * 100)) : 100;
 
   // Hero card con gradiente del ruolo corrente
   const heroGrad = current.grad ? current.grad : [current.color, current.color];
