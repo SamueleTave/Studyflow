@@ -1070,7 +1070,7 @@
         <div class="edit-section-title">Ruolo utente</div>
         <div class="edit-row">
           <label>Ruolo forzato</label>
-          <select class="edit-select" id="edit-role">${roleOpts}</select>
+          <select class="edit-select" id="edit-role" onchange="_onRoleChange(this)">${roleOpts}</select>
         </div>
         <div class="role-info">
           Ruolo calcolato automaticamente dalle sessioni: <strong>${currentRole.emoji} ${currentRole.name}</strong> (${sessionsForRole} sessioni).<br>
@@ -1110,6 +1110,23 @@
     document.getElementById('editModalBody').innerHTML = body;
   }
 
+  /* Sessioni minime per ogni ruolo — sincronizzate con SF_ROLES in shared.js */
+  const _ROLE_MIN_SESSIONS = {
+    auto: 0, novizio: 0, studente: 1, applicato: 25,
+    determinato: 75, studioso: 150, esperto: 450, maestro: 800,
+  };
+  function _onRoleChange(sel) {
+    const roleKey = sel.value;
+    if (roleKey === 'auto') return; // auto: lascia invariate le sessioni
+    const minSess = _ROLE_MIN_SESSIONS[roleKey] ?? 0;
+    const sessInput = document.getElementById('edit-sessions');
+    if (sessInput && parseInt(sessInput.value || 0) < minSess) {
+      sessInput.value = minSess;
+      // Feedback visivo
+      sessInput.style.borderColor = '#10b981';
+      setTimeout(() => { sessInput.style.borderColor = ''; }, 1500);
+    }
+  }
   function _toggleChip(checkbox, itemId) {
     const chip = document.getElementById('chip-' + itemId);
     if (checkbox.checked) chip.classList.add('owned');
@@ -1150,6 +1167,10 @@
       const streak   = Math.max(0, parseInt(document.getElementById('edit-streak').value)   || 0);
       const roleOverride = document.getElementById('edit-role')?.value || 'auto';
 
+      /* Se il ruolo è forzato, le sessioni devono essere almeno il minimo richiesto */
+      const _minForRole = _ROLE_MIN_SESSIONS[roleOverride] ?? 0;
+      const effectiveSessions = Math.max(sessions, _minForRole);
+
       const newShop = {};
       _ADMIN_SHOP.forEach(item => {
         const cb = document.getElementById('shop_' + item.id);
@@ -1158,7 +1179,7 @@
 
       const newCoins = {
         ...(_editState.coins || {}),
-        balance, totalEarned: earned, totalSessions: sessions,
+        balance, totalEarned: earned, totalSessions: effectiveSessions,
         totalMinutes: minutes, tasksCompleted: tasks, shop: newShop,
       };
 
@@ -1179,12 +1200,12 @@
       let existingSessions = [];
       try { existingSessions = JSON.parse(((_editState.raw||{})['sf_sessions'])||'[]'); } catch {}
       if (!Array.isArray(existingSessions)) existingSessions = [];
-      const diff = sessions - existingSessions.length;
+      const diff = effectiveSessions - existingSessions.length;
       if (diff > 0) {
         for (let i = 0; i < diff; i++)
           existingSessions.push({ id:'adm_'+Date.now()+'_'+i, mode:'work', mins:25, ts:new Date().toISOString() });
       } else if (diff < 0) {
-        existingSessions = existingSessions.slice(0, sessions);
+        existingSessions = existingSessions.slice(0, effectiveSessions);
       }
       if (diff !== 0) {
         const rSess = await apiFetch('/api/admin/users/' + uid + '/data', {
@@ -1208,7 +1229,7 @@
       const el = document.getElementById('coin-val-' + uid);
       if (el) el.innerHTML = balance + ' ' + COIN_SVG;
       const u = _users.find(x => x.id === uid);
-      if (u) { u.coins = balance; u.session_count = sessions; u.role_override = roleOverride; }
+      if (u) { u.coins = balance; u.session_count = effectiveSessions; u.role_override = roleOverride; }
       renderStats(_users); renderTable(_users);
       sessionStorage.setItem('_sf_admin_users', JSON.stringify(_users));
 
