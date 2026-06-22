@@ -237,6 +237,14 @@ def init_db():
                 FOREIGN KEY (challenge_id) REFERENCES challenges(id) ON DELETE CASCADE,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
+            CREATE TABLE IF NOT EXISTS invite_relations (
+                invitee_id  INTEGER PRIMARY KEY,
+                inviter_id  INTEGER NOT NULL,
+                bonus_given INTEGER DEFAULT 0,
+                created_at  TEXT DEFAULT (datetime('now','localtime')),
+                FOREIGN KEY (invitee_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE
+            );
         """)
 
 def _sf_friends_list(c, user_id):
@@ -314,6 +322,11 @@ def _migrate_db():
                     created_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'),
                     is_read INTEGER DEFAULT 0,
                     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL)""",
+                """CREATE TABLE IF NOT EXISTS invite_relations (
+                    invitee_id INTEGER PRIMARY KEY,
+                    inviter_id INTEGER NOT NULL,
+                    bonus_given INTEGER DEFAULT 0,
+                    created_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'))""",
             ]
             for ddl in _PG_DDL:
                 try:
@@ -609,6 +622,8 @@ def admin_set_coins(uid):
                 coins_data = {"balance": new_coins, "shop": {}, "achievements": [], "activeEffects": {}}
         else:
             coins_data = {"balance": new_coins, "shop": {}, "achievements": [], "activeEffects": {}}
+        # Imposta _adminTs così il sync client non sovrascrive il balance impostato dall'admin
+        coins_data["_adminTs"] = _now()
 
         c.execute("""
             INSERT INTO user_data (user_id, key, value, updated_at)
@@ -765,10 +780,12 @@ def friends_search():
     q  = (request.args.get("q") or "").strip()
     if len(q) < 2:
         return jsonify([])
+    # Escape caratteri speciali LIKE per evitare enumeration con "%" o "_"
+    q_safe = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     with get_db() as c:
         rows = c.execute(
-            "SELECT id, username FROM users WHERE username LIKE ? AND id != ? LIMIT 20",
-            (f"%{q}%", me["id"])
+            "SELECT id, username FROM users WHERE username LIKE ? ESCAPE '\\' AND id != ? LIMIT 20",
+            (f"%{q_safe}%", me["id"])
         ).fetchall()
         # attach friendship status for each result
         result = []
@@ -1032,6 +1049,7 @@ def get_sessions():
 
 @app.route("/api/sessions", methods=["POST"])
 def add_session():
+    get_auth_user(required=True)
     data = request.get_json(silent=True) or {}
     duration = data.get("duration")
     if not duration:
@@ -1166,6 +1184,7 @@ def delete_subject(sid):
 
 @app.route("/api/export/csv")
 def export_csv():
+    get_auth_user(required=True)
     with get_db() as c:
         rows = c.execute(
             "SELECT date, duration, subject, created_at FROM sessions ORDER BY created_at DESC"
@@ -1189,7 +1208,7 @@ def export_csv():
 @app.route("/api/friends/invite-bonus", methods=["POST"])
 def friends_invite_bonus():
     """Chiamato una sola volta quando un nuovo utente si registra via link ?ref=USERNAME.
-    Dà 30 monete all'invitante e 30 monete al nuovo utente."""
+    Registra la relazione di invito — le monete vengono date solo dopo 5 sessioni."""
     me   = get_auth_user(required=True)
     data = request.get_json(silent=True) or {}
     ref_username = (data.get("ref") or "").strip()
@@ -1197,32 +1216,76 @@ def friends_invite_bonus():
         return jsonify({"error": "ref richiesto"}), 400
     with get_db() as c:
         already = c.execute(
-            "SELECT value FROM user_data WHERE user_id=? AND key='sf_invite_used'", (me["id"],)
+            "SELECT invitee_id FROM invite_relations WHERE invitee_id=?", (me["id"],)
         ).fetchone()
         if already:
-            return jsonify({"error": "bonus già usato"}), 400
+            return jsonify({"error": "invito già registrato"}), 400
         inviter = c.execute(
             "SELECT id FROM users WHERE username=? COLLATE NOCASE AND id!=?",
             (ref_username, me["id"])
         ).fetchone()
         if not inviter:
             return jsonify({"error": "invitante non trovato"}), 404
-        # +30 monete a entrambi
-        _add_coins_userdata(c, me["id"], 30)
-        _add_coins_userdata(c, inviter["id"], 30)
-        # Notifica all'invitante
+        c.execute("""
+            INSERT INTO invite_relations (invitee_id, inviter_id, bonus_given)
+            VALUES (?, ?, 0)
+        """, (me["id"], inviter["id"]))
+        c.commit()
+    return jsonify({"ok": True, "pending": True})
+
+@app.route("/api/friends/invite-claim", methods=["POST"])
+def friends_invite_claim():
+    """Chiamato dal client quando l'invitato raggiunge 5 sessioni.
+    Dà 30 monete a invitato e invitante se non già dato."""
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        rel = c.execute(
+            "SELECT inviter_id, bonus_given FROM invite_relations WHERE invitee_id=?", (me["id"],)
+        ).fetchone()
+        if not rel:
+            return jsonify({"error": "nessun invito registrato"}), 404
+        if rel["bonus_given"]:
+            return jsonify({"error": "bonus già dato"}), 400
+        inviter_id = rel["inviter_id"]
+        _add_coins_userdata(c, inviter_id, 30)  # invitato riceve le sue 30 lato client
         c.execute("""
             INSERT INTO notifications (user_id, type, message, emoji)
             VALUES (?, 'invite', ?, '🎉')
-        """, (inviter["id"], f"{me['username']} si è registrato con il tuo invito! +30 🪙"))
-        # Segna bonus usato (anti-exploit)
-        c.execute("""
-            INSERT INTO user_data (user_id, key, value, updated_at)
-            VALUES (?,?,?,datetime('now','localtime'))
-            ON CONFLICT(user_id, key) DO UPDATE SET value=excluded.value
-        """, (me["id"], "sf_invite_used", "1"))
+        """, (inviter_id, f"{me['username']} ha completato 5 sessioni con il tuo invito! +30 🪙"))
+        c.execute("UPDATE invite_relations SET bonus_given=1 WHERE invitee_id=?", (me["id"],))
         c.commit()
     return jsonify({"ok": True, "coins": 30})
+
+@app.route("/api/friends/invite-progress", methods=["GET"])
+def friends_invite_progress():
+    """Restituisce il progresso degli inviti: chi ho invitato e quante sessioni ha fatto."""
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        rels = c.execute("""
+            SELECT ir.invitee_id, u.username, ir.bonus_given
+            FROM invite_relations ir
+            JOIN users u ON u.id = ir.invitee_id
+            WHERE ir.inviter_id = ?
+        """, (me["id"],)).fetchall()
+        result = []
+        for r in rels:
+            # totalSessions è in sf_coins, non in sf_stats
+            coins_row = c.execute(
+                "SELECT value FROM user_data WHERE user_id=? AND key='sf_coins'", (r["invitee_id"],)
+            ).fetchone()
+            sessions = 0
+            if coins_row and coins_row["value"]:
+                try:
+                    coins_d = json_lib.loads(coins_row["value"])
+                    sessions = int(coins_d.get("totalSessions", 0))
+                except Exception:
+                    pass
+            result.append({
+                "username": r["username"],
+                "sessions": min(sessions, 5),
+                "bonus_given": bool(r["bonus_given"])
+            })
+    return jsonify(result)
 
 @app.route("/api/notifications", methods=["GET"])
 def notifications_list():
@@ -1409,13 +1472,13 @@ def _user_weekly_minutes(c, uid, week_start):
 
 def _user_role(sessions):
     s = int(sessions or 0)
-    if s >= 200: return {"label": "Maestro",     "emoji": "🏆", "level": 6}
-    if s >= 100: return {"label": "Esperto",     "emoji": "💎", "level": 5}
-    if s >= 50:  return {"label": "Studioso",    "emoji": "⭐", "level": 4}
-    if s >= 25:  return {"label": "Determinato", "emoji": "🔥", "level": 3}
-    if s >= 10:  return {"label": "Applicato",   "emoji": "🎯", "level": 2}
-    if s >= 1:   return {"label": "Studente",    "emoji": "📖", "level": 1}
-    return {"label": "Novizio", "emoji": "🌱", "level": 0}
+    if s >= 800: return {"key": "maestro",     "label": "Maestro",     "emoji": "🏆", "level": 6}
+    if s >= 450: return {"key": "esperto",     "label": "Esperto",     "emoji": "💎", "level": 5}
+    if s >= 150: return {"key": "studioso",    "label": "Studioso",    "emoji": "⭐", "level": 4}
+    if s >= 75:  return {"key": "determinato", "label": "Determinato", "emoji": "🔥", "level": 3}
+    if s >= 25:  return {"key": "applicato",   "label": "Applicato",   "emoji": "🎯", "level": 2}
+    if s >= 1:   return {"key": "studente",    "label": "Studente",    "emoji": "📖", "level": 1}
+    return {"key": "novizio", "label": "Novizio", "emoji": "🌱", "level": 0}
 
 def _get_friend_ids(c, uid):
     fs_rows = c.execute(
@@ -1452,6 +1515,13 @@ def leaderboard():
             except: pass
             sessions = int(coins_data.get("totalSessions") or stats_data.get("sessions") or 0)
             role = _user_role(sessions)
+            # Rispetta sf_role_override: se l'admin ha forzato un ruolo più alto, usalo
+            ov_row = c.execute("SELECT value FROM user_data WHERE user_id=? AND key='sf_role_override'", (uid,)).fetchone()
+            ov = ov_row["value"].strip() if ov_row and ov_row["value"] else "auto"
+            if ov and ov not in ("auto", ""):
+                ov_role = _user_role({"maestro":800,"esperto":450,"studioso":150,"determinato":75,"applicato":25,"studente":1}.get(ov, 0))
+                if ov_role["level"] > role["level"]:
+                    role = ov_role
             result.append({
                 "user_id":  uid,
                 "username": u2["username"],
@@ -1554,18 +1624,35 @@ def join_challenge(cid):
 def update_challenge_progress(cid):
     me = get_auth_user(required=True)
     data = request.get_json(force=True) or {}
-    minutes = int(data.get("minutes") or 0)
+    try:
+        minutes = int(data.get("minutes") or 0)
+        add_delta = int(data.get("add") or 0)
+    except (ValueError, TypeError):
+        return jsonify({"error": "invalid minutes"}), 400
     with get_db() as c:
         ch = c.execute("SELECT target_min FROM challenges WHERE id=?", (cid,)).fetchone()
         if not ch:
             return jsonify({"error": "sfida non trovata"}), 404
+        if add_delta > 0:
+            # Modalità incrementale: +delta atomico, evita race condition su sessioni ravvicinate
+            c.execute("""
+                INSERT INTO challenge_members (challenge_id, user_id, minutes_done, completed)
+                VALUES (?,?,?,0)
+                ON CONFLICT(challenge_id, user_id)
+                DO UPDATE SET minutes_done = challenge_members.minutes_done + ?
+            """, (cid, me["id"], add_delta, add_delta))
+            row = c.execute("SELECT minutes_done FROM challenge_members WHERE challenge_id=? AND user_id=?", (cid, me["id"])).fetchone()
+            minutes = row["minutes_done"] if row else 0
         completed = 1 if minutes >= ch["target_min"] else 0
-        c.execute("""
-            INSERT INTO challenge_members (challenge_id, user_id, minutes_done, completed)
-            VALUES (?,?,?,?)
-            ON CONFLICT(challenge_id, user_id)
-            DO UPDATE SET minutes_done=excluded.minutes_done, completed=excluded.completed
-        """, (cid, me["id"], minutes, completed))
+        if add_delta > 0:
+            c.execute("UPDATE challenge_members SET completed=? WHERE challenge_id=? AND user_id=?", (completed, cid, me["id"]))
+        else:
+            c.execute("""
+                INSERT INTO challenge_members (challenge_id, user_id, minutes_done, completed)
+                VALUES (?,?,?,?)
+                ON CONFLICT(challenge_id, user_id)
+                DO UPDATE SET minutes_done=excluded.minutes_done, completed=excluded.completed
+            """, (cid, me["id"], minutes, completed))
         c.commit()
     return jsonify({"ok": True, "completed": bool(completed)})
 

@@ -13,6 +13,17 @@ let totalTime  = 0;
 let isRunning  = false;
 let cycleCount = 0;      // sessioni di lavoro completate nel ciclo corrente
 let timerIv    = null;
+let _coinBlocksDone    = 0;
+let _sessionCoinEnabled = false; // false dopo le prime 10 sessioni della giornata
+
+function _todayCoinSessions() {
+  const k = 'sf_coin_sess_' + new Date().toISOString().slice(0, 10);
+  return parseInt(localStorage.getItem(k) || '0', 10);
+}
+function _incTodayCoinSessions() {
+  const k = 'sf_coin_sess_' + new Date().toISOString().slice(0, 10);
+  localStorage.setItem(k, _todayCoinSessions() + 1);
+}
 
 /* ===== ELEMENTI DOM ===== */
 let _ring, _glow, _display, _badge, _dots, _playBtn, _ringWrap;
@@ -101,7 +112,9 @@ function _restoreTimer() {
         const elapsed = Math.floor((Date.now() - t.savedAt) / 1000);
         timeLeft = Math.max(0, t.timeLeft - elapsed);
         if (timeLeft === 0) {
-          /* Il timer è scaduto mentre eravamo via */
+          /* Il timer è scaduto mentre eravamo via — abilita monete prima di _onEnd */
+          _sessionCoinEnabled = (t.mode || 'work') === 'work' && _todayCoinSessions() < 10;
+          _coinBlocksDone     = Math.floor((totalTime - 0) / 1500);
           _onEnd(true);
           return;
         }
@@ -267,12 +280,25 @@ function toggleTimer() {
     if (typeof syncHydroToTimer    === 'function') syncHydroToTimer(true, timerMode);
     if (typeof setPresenceStudying === 'function') setPresenceStudying(timerMode === 'work');
     _requestWakeLock();
+    /* Al resume, ripristina i blocchi già premiati per evitare doppie monete su pausa+ripresa */
+    _coinBlocksDone = Math.floor((totalTime - timeLeft) / 1500);
+    _sessionCoinEnabled = timerMode === 'work' && _todayCoinSessions() < 10;
     timerIv = setInterval(() => {
       if (timeLeft > 0) {
         timeLeft--;
         /* Tick idratazione ogni minuto intero in modalità lavoro */
         if (timerMode === 'work' && timeLeft % 60 === 0 && typeof tickHydration === 'function') {
           tickHydration(true);
+        }
+        /* Monete ogni 25 minuti completati (1500 secondi) */
+        if (timerMode === 'work' && _sessionCoinEnabled) {
+          const elapsed = totalTime - timeLeft;
+          const blocksNow = Math.floor(elapsed / 1500);
+          if (blocksNow > _coinBlocksDone && elapsed >= 1500) {
+            _coinBlocksDone = blocksNow;
+            const _lvl = typeof getRoleLevel === 'function' ? getRoleLevel() : 0;
+            if (typeof earnCoins === 'function') earnCoins(5 + Math.max(0, _lvl - 1));
+          }
         }
         _syncUI();
       } else {
@@ -354,9 +380,15 @@ function _onEnd(silent) {
     }
     /* Monete + sfida + stats cumulative */
     if (typeof addSessionStats === 'function') addSessionStats(cfg.work);
-    /* Monete proporzionali alla durata — minimo 5 min per ricevere qualcosa */
-    const _sessionCoins = cfg.work < 5 ? 0 : Math.max(3, Math.round(15 * cfg.work / 25));
-    if (_sessionCoins > 0 && typeof earnCoins === 'function') earnCoins(_sessionCoins);
+    /* Monete per sessioni brevi < 25 min (i blocchi >25 min già premiati mid-session) */
+    if (_sessionCoinEnabled && cfg.work >= 5 && _coinBlocksDone === 0) {
+      const _lvl = typeof getRoleLevel === 'function' ? getRoleLevel() : 0;
+      const _base = 5 + Math.max(0, _lvl - 1);
+      if (typeof earnCoins === 'function') earnCoins(Math.max(1, Math.round(_base * cfg.work / 25)));
+    }
+    if (_sessionCoinEnabled) _incTodayCoinSessions();
+    _coinBlocksDone = 0;
+    _sessionCoinEnabled = false;
     if (typeof updateChallengeProgress === 'function') {
       updateChallengeProgress('sessionsToday', stats.sessions);
       updateChallengeProgress('minutesToday', stats.minutes);
@@ -401,11 +433,13 @@ function _onEnd(silent) {
       });
     } else {
       switchMode(nextMode);
-      if (cfg.autoBreak) setTimeout(() => toggleTimer(), 800);
+      /* Non avviare il break automaticamente se il timer è scaduto in background (silent):
+         l'utente non ha visto la notifica e potrebbe non voler studiare ancora */
+      if (!silent && cfg.autoBreak) setTimeout(() => toggleTimer(), 800);
     }
   } else {
     switchMode('work');
-    if (cfg.autoWork) setTimeout(() => toggleTimer(), 800);
+    if (!silent && cfg.autoWork) setTimeout(() => toggleTimer(), 800);
   }
 }
 
@@ -468,13 +502,14 @@ async function _updateFriendChallengesProgress(sessionMins) {
     if (!r.ok) return;
     const challenges = await r.json();
     const active = challenges.filter(ch => !ch.my_completed && ch.am_member);
-    for (const ch of active) {
-      const newMins = (ch.my_minutes || 0) + sessionMins;
-      await fetch(api + '/challenges/' + ch.id + '/progress', {
-        method: 'PUT',
+    /* Le sfide vengono aggiornate in parallelo con +delta per evitare race condition
+       su sessioni ravvicinate (valore stale dal GET) */
+    await Promise.all(active.map(ch =>
+      fetch(api + '/challenges/' + ch.id + '/progress', {
+        method: 'POST',
         headers: { 'Authorization': 'Bearer ' + auth.token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ minutes: newMins })
-      });
-    }
+        body: JSON.stringify({ minutes: (ch.my_minutes || 0) + sessionMins, add: sessionMins })
+      }).catch(() => {})
+    ));
   } catch {}
 }

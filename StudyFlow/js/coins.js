@@ -5,17 +5,22 @@
 
 const COIN_KEY = 'sf_coins';
 let _shopDisabledItems = [];
+let _shopPriceOverrides = {};
 try { const _c = sessionStorage.getItem('_sfDisabled'); if (_c) _shopDisabledItems = JSON.parse(_c); } catch {}
+try { const _p = sessionStorage.getItem('_sfPrices');   if (_p) _shopPriceOverrides = JSON.parse(_p); } catch {}
 async function _loadShopDisabled() {
   try {
     const _base = (typeof SF_API_BASE !== 'undefined' && SF_API_BASE) ? SF_API_BASE : '/api';
-    const api = _base + '/config';
-    const r = await fetch(api);
+    const r = await fetch(_base + '/config');
     const cfg = await r.json();
-    _shopDisabledItems = JSON.parse(cfg.shop_disabled_items || '[]');
+    _shopDisabledItems   = JSON.parse(cfg.shop_disabled_items || '[]');
+    _shopPriceOverrides  = JSON.parse(cfg.shop_prices || '{}');
     try { sessionStorage.setItem('_sfDisabled', JSON.stringify(_shopDisabledItems)); } catch {}
-  } catch { _shopDisabledItems = []; }
+    try { sessionStorage.setItem('_sfPrices',   JSON.stringify(_shopPriceOverrides)); } catch {}
+  } catch { _shopDisabledItems = []; _shopPriceOverrides = {}; }
 }
+
+function _itemPrice(item) { return _shopPriceOverrides[item.id] ?? item.price; }
 
 /* Ruolo — costanti globali usate da buyItem, renderShopPage, initCoins */
 /* ── Sistema slot dinamico compagni ──────────────────── */
@@ -180,8 +185,8 @@ const SHOP_ITEMS = [
 
 const ACHIEVEMENTS = [
   { id:'first_session',  name:'Prima Sessione!',   desc:'Completa la tua prima sessione Pomodoro',    coins:10,  icon:'play',         check: (c) => c.totalSessions >= 1 },
-  { id:'sessions_10',    name:'Focus Intenso',     desc:'10 sessioni Pomodoro completate',             coins:30,  icon:'zap',          check: (c) => c.totalSessions >= 10 },
-  { id:'sessions_50',    name:'Maestro del Focus', desc:'50 sessioni completate, sei imbattibile!',    coins:100, icon:'award',        check: (c) => c.totalSessions >= 50 },
+  { id:'sessions_25',    name:'Focus Intenso',     desc:'25 sessioni Pomodoro completate',             coins:30,  icon:'zap',          check: (c) => c.totalSessions >= 25 },
+  { id:'sessions_150',   name:'Studioso Serio',    desc:'150 sessioni completate, sei imbattibile!',   coins:100, icon:'award',        check: (c) => c.totalSessions >= 150 },
   { id:'streak_3',       name:'3 Giorni di Fila',  desc:'Studia per 3 giorni consecutivi',             coins:25,  icon:'trending-up',  check: (c) => (c.bestStreak || 0) >= 3 },
   { id:'streak_7',       name:'Una Settimana!',    desc:'Studia per 7 giorni di fila',                 coins:50,  icon:'star',         check: (c) => (c.bestStreak || 0) >= 7 },
   { id:'tasks_20',       name:'Task Hunter',       desc:'Completa 20 task in totale',                  coins:40,  icon:'check-square', check: (c) => (c.tasksCompleted || 0) >= 20 },
@@ -190,11 +195,9 @@ const ACHIEVEMENTS = [
 ];
 
 const CHALLENGES = [
-  { id:'sessions_3',    text:'Completa 3 sessioni Pomodoro oggi',  reward:30, key:'sessionsToday',   target:3 },
-  { id:'tasks_5',       text:'Finisci 5 task oggi',                reward:25, key:'tasksToday',      target:5 },
-  { id:'study_60min',   text:'Studia per 60 minuti oggi',          reward:20, key:'minutesToday',    target:60 },
-  { id:'streak_keep',   text:'Studia almeno 1 sessione oggi',      reward:15, key:'sessionsToday',   target:1 },
-  { id:'study_tasks_3', text:'Completa 3 task di studio',          reward:20, key:'studyTasksToday', target:3 },
+  { id:'streak_keep', text:'Studia almeno 1 sessione oggi',      reward:10, key:'sessionsToday', target:1 },
+  { id:'sessions_3',  text:'Completa 3 sessioni Pomodoro oggi',  reward:20, key:'sessionsToday', target:3 },
+  { id:'tasks_5',     text:'Finisci 5 task oggi',                reward:15, key:'tasksToday',    target:5 },
 ];
 
 let coinData = {
@@ -289,6 +292,19 @@ function saveCoinData() {
   localStorage.setItem(COIN_KEY, JSON.stringify(coinData));
 }
 
+/* ── Livello ruolo basato su totalSessions (0-6) ── */
+function getRoleLevel() {
+  loadCoinData();
+  const s = coinData.totalSessions || 0;
+  if (s >= 800) return 6;
+  if (s >= 450) return 5;
+  if (s >= 150) return 4;
+  if (s >= 75)  return 3;
+  if (s >= 25)  return 2;
+  if (s >= 1)   return 1;
+  return 0;
+}
+
 /* ── Guadagna monete ── */
 function earnCoins(amount) {
   loadCoinData();
@@ -320,12 +336,18 @@ function tryEarnTaskCoins(taskId, createdAt) {
     coinData.taskCoinToday = 0;
   }
 
-  /* Pulizia IDs più vecchi di 30 giorni */
+  /* Pulizia IDs più vecchi di 30 giorni — compatibile con ID non-timestamp */
   const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  coinData.rewardedTaskIds = coinData.rewardedTaskIds.filter(id => id > cutoff);
+  coinData.rewardedTaskIds = coinData.rewardedTaskIds.filter(entry => {
+    if (typeof entry === 'object' && entry !== null) return entry.ts > cutoff;
+    return typeof entry === 'number' && entry > cutoff; // legacy: ID=timestamp
+  });
 
   /* 1. Questo task ha già dato monete? */
-  if (coinData.rewardedTaskIds.includes(taskId)) return false;
+  const alreadyRewarded = coinData.rewardedTaskIds.some(entry =>
+    typeof entry === 'object' ? entry.id === taskId : entry === taskId
+  );
+  if (alreadyRewarded) return false;
 
   /* 2. Cap giornaliero: max 8 task/giorno danno monete */
   if (coinData.taskCoinToday >= 8) return false;
@@ -334,7 +356,7 @@ function tryEarnTaskCoins(taskId, createdAt) {
   if (createdAt && (Date.now() - new Date(createdAt).getTime()) < 60000) return false;
 
   /* Tutto ok — premia */
-  coinData.rewardedTaskIds.push(taskId);
+  coinData.rewardedTaskIds.push({ id: taskId, ts: Date.now() });
   coinData.taskCoinToday++;
   saveCoinData();
   earnCoins(5);
@@ -424,13 +446,31 @@ function addSessionStats(minutes) {
   loadCoinData();
   coinData.totalSessions = (coinData.totalSessions || 0) + 1;
   coinData.totalMinutes  = (coinData.totalMinutes  || 0) + minutes;
-  /* Aggiorna bestStreak leggendo il valore corrente dallo stats */
   try {
     const s = JSON.parse(localStorage.getItem('sf_stats') || '{}');
     const streak = s.streak || 0;
     if (streak > (coinData.bestStreak || 0)) coinData.bestStreak = streak;
   } catch {}
   saveCoinData();
+  /* Bonus invito: 5 sessioni completate → claim monete */
+  if (coinData.totalSessions === 5 && !localStorage.getItem('sf_invite_claimed')) {
+    _claimInviteBonus();
+  }
+}
+
+async function _claimInviteBonus() {
+  try {
+    const base = window.SF_API_BASE || '/api';
+    const r = await fetch(base + '/friends/invite-claim', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('sf_token') }
+    });
+    if (r.ok) {
+      localStorage.setItem('sf_invite_claimed', '1');
+      setTimeout(() => _showAchievNotif('🎁 Bonus sbloccato!', 'Invito completato', '+30 monete per te e il tuo amico!'), 1200);
+      earnCoins(30);
+    }
+  } catch {}
 }
 
 function checkAchievements() {
@@ -493,16 +533,17 @@ function buyItem(id) {
     return;
   }
 
-  if (coinData.balance < item.price) {
+  const _price = _itemPrice(item);
+  if (coinData.balance < _price) {
     _showAchievNotif(
       'Monete insufficienti',
-      'Ti mancano ' + (item.price - coinData.balance) + ' monete',
+      'Ti mancano ' + (_price - coinData.balance) + ' monete',
       'Completa sessioni e task per guadagnarne altre!'
     );
     return;
   }
 
-  if (!spendCoins(item.price)) return;
+  if (!spendCoins(_price)) return;
   loadCoinData();
   coinData.shop[id] = true;
   saveCoinData();
@@ -1117,7 +1158,7 @@ async function renderShopPage() {
     const roleReqIdx   = item.roleRequired ? _ROLE_ORDER.indexOf(item.roleRequired) : -1;
     const roleUnlocked = roleReqIdx === -1 || _currentRoleIdx >= roleReqIdx;
     const roleMeta     = item.roleRequired ? _ROLE_META[item.roleRequired] : null;
-    const canBuy = coinData.balance >= item.price && reqMet;
+    const canBuy = coinData.balance >= _itemPrice(item) && reqMet;
     let btnLabel, btnClass;
 
     if (!owned) {
@@ -1214,7 +1255,7 @@ async function renderShopPage() {
       <div class="shop-desc" style="position:relative;z-index:3">${item.desc}</div>
       <div class="shop-footer" style="position:relative;z-index:3">
         <div class="shop-price">
-          ${owned ? '' : item.price === 0 && roleMeta ? `<span style="color:${roleMeta.color};font-size:0.72rem;font-weight:700">Gratis con ruolo</span>` : `<svg width="14" height="14" viewBox="0 0 16 16" fill="#F59E0B"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg> ${item.price}`}
+          ${owned ? '' : item.price === 0 && roleMeta ? `<span style="color:${roleMeta.color};font-size:0.72rem;font-weight:700">Gratis con ruolo</span>` : `<svg width="14" height="14" viewBox="0 0 16 16" fill="#F59E0B"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg> ${_itemPrice(item)}`}
           ${owned ? '<span style="color:var(--accent);font-size:0.75rem">In possesso</span>' : ''}
         </div>
         <button class="${btnClass}" onclick="buyItem('${item.id}')"${disabledAttr}>${btnLabel}</button>

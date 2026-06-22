@@ -1093,46 +1093,64 @@ const _SKY_ROLE_TINT = {
 };
 
 let _skyUpdateInterval = null;
+/* Orari reali alba/tramonto da Open-Meteo (ore decimali, es. 5.5 = 05:30) */
+let _gSunriseH = null;
+let _gSunsetH  = null;
 
 function _getSkyPhase(hour) {
-  let phase = _SKY_TIMES[0];
-  for (const t of _SKY_TIMES) { if (hour >= t.h) phase = t; }
-  return phase;
+  const t  = hour;
+  const sr = _gSunriseH ?? 6;
+  const ss = _gSunsetH  ?? 20;
+  if (t >= ss + 1) return _SKY_TIMES[11]; // notte0
+  if (t >= ss)     return _SKY_TIMES[10]; // sera
+  if (t >= ss - 1) return _SKY_TIMES[9];  // crepusc
+  if (t >= ss - 2) return _SKY_TIMES[8];  // tramonto
+  if (t >= ss - 3) return _SKY_TIMES[7];  // dorata
+  if (t >= ss - 4) return _SKY_TIMES[6];  // pomeri
+  if (t >= 12)     return _SKY_TIMES[5];  // mezzodì
+  if (t >= sr + 2) return _SKY_TIMES[4];  // mattina
+  if (t >= sr + 1) return _SKY_TIMES[3];  // mattina0
+  if (t >= sr)     return _SKY_TIMES[2];  // alba
+  if (t >= sr - 1) return _SKY_TIMES[1];  // alba0
+  return _SKY_TIMES[0]; // notte
 }
 
 function _getSunPosition(hour, minute) {
-  const t = hour + minute / 60;
-  // Sole: alba 6h → affondata sotto l'orizzonte entro le 20h
-  if (t < 6 || t > 20.5) return { x: 50, y: 400 };
-  const elapsed = t - 6;
-  const pct     = elapsed / 14; // 0→1 su 14h (6→20)
+  const sr = _gSunriseH ?? 6;
+  const ss = _gSunsetH  ?? 20.5;
+  const t  = hour + minute / 60;
+  if (t < sr || t > ss) return { x: 50, y: 400 };
+  const dayLen  = ss - sr;
+  const elapsed = t - sr;
+  const pct     = elapsed / dayLen;
   const x       = 5 + pct * 84;
-  // Arco parabolico ampio: 20px al culmine (13h), 230px all'orizzonte (6h/20h)
-  const arc = 1 - (2 * pct - 1) ** 2;
+  const arc     = 1 - (2 * pct - 1) ** 2;
   let y = 20 + (1 - arc) * 210;
-  // Affondamento accelerato sotto l'orizzonte dopo le 18:30h
-  if (t > 18.5) {
-    const s = (t - 18.5) / 1.5; // 0→1 in 1.5h
+  const sinkStart = ss - 1.5;
+  if (t > sinkStart) {
+    const s = (t - sinkStart) / 1.5;
     y += s * s * 300;
   }
   return { x, y };
 }
 
 function _getMoonPosition(hour, minute) {
+  const sr = _gSunriseH ?? 6;
+  const ss = _gSunsetH  ?? 20;
   const t  = hour + minute / 60;
-  const mt = t < 6 ? t + 24 : t; // 0-5h → 24-29h per il confronto continuo
-  // Luna: sorge verso le 20:30h, tramonta verso le 6h del mattino
-  if (mt < 20.5 || mt > 30) return { x: 50, y: 400 };
-  const elapsed = mt - 20.5;
-  const pct     = elapsed / 9.5; // 0→1 su 9.5h (20:30→6h)
-  // X: da destra (86%) a sinistra (10%)
-  const x   = 86 - pct * 76;
-  const arc = 1 - (2 * pct - 1) ** 2;
-  let y = 20 + (1 - arc) * 180; // 20px al culmine, 200px ai bordi
-  // Salita da sotto all'inizio
-  if (pct < 0.14) { const r = pct / 0.14; y += (1 - r) * (1 - r) * 260; }
-  // Discesa sotto l'orizzonte alla fine
-  if (pct > 0.86) { const s = (pct - 0.86) / 0.14; y += s * s * 260; }
+  const mr = ss;       // luna sorge al tramonto
+  const ms = sr + 24;  // luna tramonta all'alba del giorno dopo
+  const mt = t < sr ? t + 24 : t;
+  if (mt < mr || mt > ms) return { x: 50, y: 400 };
+  const nightLen = ms - mr;
+  const elapsed  = mt - mr;
+  const pct      = elapsed / nightLen;
+  const x        = 86 - pct * 76;
+  const arc      = 1 - (2 * pct - 1) ** 2;
+  let y = 20 + (1 - arc) * 180;
+  // Breve salita da sotto orizzonte all'inizio (~15 min)
+  if (pct < 0.03) { const r = pct / 0.03; y += (1 - r) * (1 - r) * 260; }
+  if (pct > 0.97) { const s = (pct - 0.97) / 0.03; y += s * s * 260; }
   return { x, y };
 }
 
@@ -1195,16 +1213,24 @@ function updateGardenSky() {
   }
 
   if (moon) {
-    const moonVis = moonPos.y < SKY_H;
-    moon.style.display = moonVis ? 'block' : 'none';
-    if (moonVis) {
+    if (phase.night) {
       const mSize = 44;
+      moon.style.display  = 'block';
       moon.style.position = 'absolute';
-      moon.style.left     = `calc(${moonPos.x}% - ${mSize/2}px)`;
-      moon.style.top      = moonPos.y + 'px';
-      moon.style.right    = 'auto';
       moon.style.width    = mSize + 'px';
       moon.style.height   = mSize + 'px';
+      if (moonPos.y < SKY_H) {
+        moon.style.left  = `calc(${moonPos.x}% - ${mSize/2}px)`;
+        moon.style.top   = moonPos.y + 'px';
+        moon.style.right = 'auto';
+      } else {
+        // Pre-alba o post-tramonto: posizione decorativa in alto a destra
+        moon.style.right = '60px';
+        moon.style.left  = 'auto';
+        moon.style.top   = '20px';
+      }
+    } else {
+      moon.style.display = 'none';
     }
   }
 
@@ -1265,16 +1291,28 @@ async function _fetchGardenWeather() {
   } catch {}
 
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(2)}&longitude=${lon.toFixed(2)}&current=weathercode,precipitation,cloudcover&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(2)}&longitude=${lon.toFixed(2)}&current=weathercode,precipitation,cloudcover&daily=sunrise,sunset&timezone=auto`;
     const r   = await fetch(url);
     const d   = await r.json();
-    const data = { code: d.current?.weathercode || 0, precip: d.current?.precipitation || 0, clouds: d.current?.cloudcover || 0 };
+    const _ph = s => { if (!s) return null; const t = s.split('T')[1]; if (!t) return null; const [h,m] = t.split(':'); return +h + (+m)/60; };
+    const data = {
+      code: d.current?.weathercode || 0,
+      precip: d.current?.precipitation || 0,
+      clouds: d.current?.cloudcover || 0,
+      sunriseH: _ph(d.daily?.sunrise?.[0]),
+      sunsetH:  _ph(d.daily?.sunset?.[0]),
+    };
     try { localStorage.setItem(_WEATHER_KEY, JSON.stringify({ ts: Date.now(), data })); } catch {}
     _applyGardenWeather(data);
   } catch {}
 }
 
 function _applyGardenWeather(data) {
+  // Aggiorna orari reali se disponibili, poi ricalcola il cielo subito
+  if (data.sunriseH != null) _gSunriseH = data.sunriseH;
+  if (data.sunsetH  != null) _gSunsetH  = data.sunsetH;
+  updateGardenSky();
+
   const sky = document.querySelector('.g-sky');
   if (!sky) return;
   sky.querySelectorAll('.g-weather-overlay, .g-rain-layer, .g-storm-layer').forEach(el => el.remove());

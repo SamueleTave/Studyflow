@@ -346,6 +346,9 @@ body.focus-mode .focus-exit-btn { display: flex !important; }
   flex-direction: column;
 }
 #qnote-panel.qnote-open { bottom: 0; }
+@media (max-width: 600px) {
+  #qnote-panel { right: 0; left: 0; width: 100%; border-radius: 20px 20px 0 0; }
+}
 .qnote-hdr {
   display: flex;
   align-items: center;
@@ -642,6 +645,9 @@ body.focus-mode .focus-exit-btn { display: flex !important; }
 }
 .animal-bubble.ab-show { opacity: 1; transform: translateY(0) scale(1); }
 .animal-bubble.ab-hide { opacity: 0; transform: translateY(-8px) scale(0.93); }
+@media (max-width: 600px) {
+  .animal-bubble { right: 12px; bottom: 100px; max-width: 160px; }
+}
 
 /* ══════════════════════════════════════
    CHECK-IN COMPRENSIONE

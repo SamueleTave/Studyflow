@@ -655,7 +655,7 @@
     const dayMap = {};
     sessions.forEach(s => {
       const d = (s.date || s.endedAt || '').slice(0, 10);
-      if (d) dayMap[d] = (dayMap[d] || 0) + (s.minutes || 25);
+      if (d) dayMap[d] = (dayMap[d] || 0) + (s.minutes || s.duration || 25);
     });
     const today = new Date(); today.setHours(0,0,0,0);
     // Trova il lunedì della settimana che contiene (oggi - 34 giorni)
@@ -697,10 +697,14 @@
     if (!modal) { callback && callback(); return; }
     if (inp)     inp.value = '';
     if (subInfo) subInfo.textContent = subject ? '📚 Materia: ' + subject : '';
-    /* Aggiorna le monete ricevute */
+    /* Aggiorna le monete ricevute usando la formula reale (ruolo + durata) */
     const coinsEl = document.getElementById('scb-coins');
-    if (coinsEl && typeof coinData !== 'undefined') {
-      const c = Math.max(3, Math.round(15 * (typeof cfg !== 'undefined' ? cfg.work : 25) / 25));
+    if (coinsEl) {
+      const _lvl  = typeof getRoleLevel === 'function' ? getRoleLevel() : 0;
+      const _base = 5 + Math.max(0, _lvl - 1);
+      const _mins = typeof cfg !== 'undefined' ? cfg.work : 25;
+      const _blks = Math.floor(_mins / 25);
+      const c = _blks > 0 ? _base * _blks : Math.max(1, Math.round(_base * _mins / 25));
       coinsEl.innerHTML = '+' + c + ' monete <svg width="13" height="13" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>';
     }
     modal.classList.add('active');
@@ -1077,7 +1081,16 @@ function closeRolePanel() {
 }
 function _renderRolePanel() {
   let sessionCount = 0;
-  try { const s = JSON.parse(localStorage.getItem('sf_sessions')||'[]'); sessionCount = s.length; } catch {}
+  try {
+    // sf_coins.totalSessions è il contatore cumulativo affidabile (non si tronca)
+    const coins = JSON.parse(localStorage.getItem('sf_coins') || '{}');
+    sessionCount = parseInt(coins.totalSessions || 0);
+    // Fallback: conta i record salvati (può essere troncato a 500)
+    if (!sessionCount) {
+      const s = JSON.parse(localStorage.getItem('sf_sessions') || '[]');
+      sessionCount = s.length;
+    }
+  } catch {}
 
   const roles = typeof SF_ROLES !== 'undefined' ? SF_ROLES : [];
   const _ov = localStorage.getItem('sf_role_override');
@@ -1091,8 +1104,7 @@ function _renderRolePanel() {
   const isUnlocked = r => hasOverride ? roles.indexOf(r) <= currentIdx : sessionCount >= r.min;
 
   const nextRole = roles.find(r => !isUnlocked(r));
-  const prevSessions = nextRole ? current.min : 0;
-  const pct = nextRole ? Math.min(100, Math.round(((sessionCount - prevSessions) / (nextRole.min - prevSessions)) * 100)) : 100;
+  const pct = nextRole ? Math.min(100, Math.round((sessionCount / nextRole.min) * 100)) : 100;
 
   // Hero card con gradiente del ruolo corrente
   const heroGrad = current.grad ? current.grad : [current.color, current.color];
