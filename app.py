@@ -1515,6 +1515,13 @@ def leaderboard():
             except: pass
             sessions = int(coins_data.get("totalSessions") or stats_data.get("sessions") or 0)
             role = _user_role(sessions)
+            # Rispetta sf_role_override: se l'admin ha forzato un ruolo più alto, usalo
+            ov_row = c.execute("SELECT value FROM user_data WHERE user_id=? AND key='sf_role_override'", (uid,)).fetchone()
+            ov = ov_row["value"].strip() if ov_row and ov_row["value"] else "auto"
+            if ov and ov not in ("auto", ""):
+                ov_role = _user_role({"maestro":800,"esperto":450,"studioso":150,"determinato":75,"applicato":25,"studente":1}.get(ov, 0))
+                if ov_role["level"] > role["level"]:
+                    role = ov_role
             result.append({
                 "user_id":  uid,
                 "username": u2["username"],

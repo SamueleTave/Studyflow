@@ -960,9 +960,17 @@
       const medals = ['🥇','🥈','🥉'];
       el.innerHTML = data.map(function(u, i) {
         let role = u.role || {emoji:'🌱', label:'Novizio', key:'novizio', level:0};
+        /* Ricalcola sempre da SF_ROLES per tutti (soglie aggiornate lato client) */
+        if (typeof SF_ROLES !== 'undefined' && u.sessions != null) {
+          const lr = SF_ROLES.reduce(function(acc, r) { return u.sessions >= r.min ? r : acc; }, SF_ROLES[0]);
+          role = {emoji: lr.emoji, label: lr.name, key: lr.key, level: SF_ROLES.indexOf(lr)};
+        }
+        /* Override ruolo solo per me (dati localStorage disponibili) */
         if (u.is_me && myRoleKey && typeof SF_ROLES !== 'undefined') {
           const localRole = SF_ROLES.find(function(r){ return r.key === myRoleKey; });
-          if (localRole) role = {emoji: localRole.emoji, label: localRole.name, key: localRole.key, level: SF_ROLES.indexOf(localRole)};
+          if (localRole && SF_ROLES.indexOf(localRole) > role.level) {
+            role = {emoji: localRole.emoji, label: localRole.name, key: localRole.key, level: SF_ROLES.indexOf(localRole)};
+          }
         }
         const roleKey = role.key || 'novizio';
         const rc = ROLE_CFG[roleKey] || ROLE_CFG.novizio;
