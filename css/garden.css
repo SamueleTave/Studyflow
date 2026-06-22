@@ -337,6 +337,10 @@
 }
 .garden-item:hover .g-remove-btn { opacity: 1; pointer-events: all; }
 .g-remove-btn:hover { background: #B71C1C; }
+/* Su touch screen (no hover) il bottone × è sempre visibile */
+@media (hover: none) {
+  .g-remove-btn { opacity: 0.7; pointer-events: all; }
+}
 
 /* ── Stato vuoto ── */
 .garden-empty {

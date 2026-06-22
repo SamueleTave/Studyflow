@@ -292,7 +292,7 @@
 
     /* ── Toast ── */
     .toast {
-      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+      position: fixed; bottom: max(28px, calc(18px + env(safe-area-inset-bottom, 0px))); left: 50%; transform: translateX(-50%);
       background: var(--text); color: white; padding: 10px 22px;
       border-radius: 12px; font-size: 0.83rem; font-weight: 500;
       z-index: 999; opacity: 0; transition: opacity 0.25s;
@@ -471,7 +471,8 @@
       .admin-layout { padding: 16px 10px 40px; }
       .admin-title { font-size: 1.2rem; }
       td.hide-mobile, th.hide-mobile { display: none; }
-      .action-cell { flex-wrap: wrap; }
+      .action-cell { flex-wrap: wrap; gap: 4px; }
+      .act-btn { min-height: 36px; padding: 6px 10px; font-size: 0.78rem; }
       .edit-modal-box { max-height: 90dvh; overflow-y: auto; }
       .modal-box { padding: 20px 16px; }
       .admin-card-head { flex-wrap: wrap; gap: 4px; }
