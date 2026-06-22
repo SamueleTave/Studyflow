@@ -922,9 +922,26 @@
           if (d >= weekStartStr) localMins += parseInt(s.duration || 25);
         }
         const me = data.find(u => u.is_me);
-        if (me && localMins > me.minutes) {
-          me.minutes = localMins;
-          me.hours = Math.round(localMins / 60 * 10) / 10;
+        if (me) {
+          if (localMins > me.minutes) {
+            me.minutes = localMins;
+            me.hours = Math.round(localMins / 60 * 10) / 10;
+          }
+          /* Streak: usa il valore locale se più aggiornato */
+          try {
+            const localStats = JSON.parse(localStorage.getItem('sf_stats') || '{}');
+            const localStreak = parseInt(localStats.streak || 0);
+            if (localStreak > (me.streak || 0)) me.streak = localStreak;
+          } catch {}
+          /* Ruolo: ricalcola client-side con soglie aggiornate */
+          if (typeof SF_ROLES !== 'undefined') {
+            const localCoins = JSON.parse(localStorage.getItem('sf_coins') || '{}');
+            const localSessions2 = parseInt(localCoins.totalSessions || 0);
+            if (localSessions2 > 0) {
+              const lr = SF_ROLES.reduce((acc, r) => localSessions2 >= r.min ? r : acc, SF_ROLES[0]);
+              me.role = { emoji: lr.emoji, label: lr.name, key: lr.key, level: SF_ROLES.indexOf(lr) };
+            }
+          }
         }
         data.sort((a,b) => b.minutes - a.minutes);
       } catch(e) {}

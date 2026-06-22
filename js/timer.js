@@ -500,7 +500,7 @@ async function _updateFriendChallengesProgress(sessionMins) {
     for (const ch of active) {
       const newMins = (ch.my_minutes || 0) + sessionMins;
       await fetch(api + '/challenges/' + ch.id + '/progress', {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Authorization': 'Bearer ' + auth.token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ minutes: newMins })
       });

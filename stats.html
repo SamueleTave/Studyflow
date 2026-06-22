@@ -624,14 +624,15 @@
       el.innerHTML = '<div style="font-size:0.78rem;color:var(--text-soft);padding:6px 0">Nessuna materia</div>';
       return;
     }
-    const maxMin = Math.max(..._subjects.map(s => s.goal_min), 1);
+    const _goalMin = s => parseInt(s.goal_min ?? s.goalMin ?? s.goal ?? 60);
+    const maxMin = Math.max(..._subjects.map(_goalMin), 1);
     el.innerHTML = _subjects.map(s => `
       <div class="subject-row">
         <div class="subject-color-dot" style="background:${esc(s.color)}"></div>
         <div class="subject-name">${esc(s.name)}</div>
-        <div class="subject-min">${s.goal_min} min/g</div>
+        <div class="subject-min">${_goalMin(s)} min/g</div>
         <div class="subject-bar-wrap">
-          <div class="subject-bar-fill" style="width:${(s.goal_min/maxMin)*100}%;background:${esc(s.color)}"></div>
+          <div class="subject-bar-fill" style="width:${(_goalMin(s)/maxMin)*100}%;background:${esc(s.color)}"></div>
         </div>
         <button class="subject-del" onclick="removeSubject(${s.id})" title="Rimuovi">✕</button>
       </div>
@@ -756,6 +757,10 @@
 
   /* Avvio iniziale con dati locali; auth.js chiama loadPage() di nuovo dopo loadFromServer() */
   loadPage();
+
+  /* Re-render grafici quando il tema cambia */
+  new MutationObserver(() => { loadPage(); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 </script>
 </body>
 </html>
