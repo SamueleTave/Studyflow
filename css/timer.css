@@ -535,7 +535,7 @@
   color: white; font-size: 0.82rem; font-weight: 700;
   padding: 4px 14px; border-radius: 20px;
 }
-.scb-label { font-size: 0.8rem; color: var(--text-soft); margin-top: 4px; }
+.scb-label { font-size: 0.82rem; font-weight: 600; color: var(--text); margin-top: 6px; margin-bottom: 2px; }
 .scb-input {
   width: 100%; padding: 10px 16px;
   background: rgba(255,255,255,0.5);

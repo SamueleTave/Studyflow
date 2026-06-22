@@ -697,10 +697,14 @@
     if (!modal) { callback && callback(); return; }
     if (inp)     inp.value = '';
     if (subInfo) subInfo.textContent = subject ? '📚 Materia: ' + subject : '';
-    /* Aggiorna le monete ricevute */
+    /* Aggiorna le monete ricevute usando la formula reale (ruolo + durata) */
     const coinsEl = document.getElementById('scb-coins');
-    if (coinsEl && typeof coinData !== 'undefined') {
-      const c = Math.max(3, Math.round(15 * (typeof cfg !== 'undefined' ? cfg.work : 25) / 25));
+    if (coinsEl) {
+      const _lvl  = typeof getRoleLevel === 'function' ? getRoleLevel() : 0;
+      const _base = 5 + Math.max(0, _lvl - 1);
+      const _mins = typeof cfg !== 'undefined' ? cfg.work : 25;
+      const _blks = Math.floor(_mins / 25);
+      const c = _blks > 0 ? _base * _blks : Math.max(1, Math.round(_base * _mins / 25));
       coinsEl.innerHTML = '+' + c + ' monete <svg width="13" height="13" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>';
     }
     modal.classList.add('active');
