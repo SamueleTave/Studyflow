@@ -216,18 +216,23 @@
 
 
     /* ── Shop Visibility ── */
-    .vis-grid { display: flex; flex-direction: column; gap: 16px; }
-    .vis-group-title { font-size: 0.72rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-    .vis-items { display: flex; flex-wrap: wrap; gap: 8px; }
-    .vis-toggle { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 10px; background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.35); cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: all 0.18s; user-select: none; }
-    .vis-toggle:hover { background: rgba(255,255,255,0.32); }
-    .vis-toggle.disabled { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); color: #ef4444; }
-    .vis-toggle.enabled  { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.3); }
-    .vis-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-    .vis-toggle.enabled  .vis-dot { background: #10b981; }
-    .vis-toggle.disabled .vis-dot { background: #ef4444; }
     .vis-save-bar { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); }
     .vis-status { font-size: 0.78rem; color: var(--text-soft); }
+    /* ── Shop Manager ── */
+    .sm-group-title { font-size:0.68rem; font-weight:800; color:var(--text-soft); text-transform:uppercase; letter-spacing:0.1em; padding:10px 0 5px; border-bottom:1px solid rgba(255,255,255,0.12); margin-bottom:4px; }
+    .sm-row { display:flex; align-items:center; gap:10px; padding:7px 4px; border-bottom:1px solid rgba(255,255,255,0.05); }
+    .sm-row:last-child { border:none; }
+    .sm-toggle { width:36px; height:20px; border-radius:10px; border:none; cursor:pointer; transition:background 0.2s; position:relative; flex-shrink:0; }
+    .sm-toggle::after { content:''; position:absolute; top:3px; left:3px; width:14px; height:14px; border-radius:50%; background:#fff; transition:transform 0.2s; }
+    .sm-toggle.on  { background:#10b981; }
+    .sm-toggle.on::after  { transform:translateX(16px); }
+    .sm-toggle.off { background:rgba(239,68,68,0.5); }
+    .sm-name { flex:1; font-size:0.83rem; font-weight:600; color:var(--text); }
+    .sm-type { font-size:0.62rem; font-weight:700; padding:2px 7px; border-radius:5px; background:rgba(255,255,255,0.1); color:var(--text-soft); text-transform:uppercase; letter-spacing:0.04em; flex-shrink:0; }
+    .sm-price-wrap { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+    .sm-price-inp { width:64px; padding:4px 8px; border-radius:7px; border:1px solid rgba(255,255,255,0.22); background:rgba(255,255,255,0.1); color:var(--text); font-size:0.82rem; text-align:center; font-family:inherit; }
+    .sm-price-inp:focus { outline:none; border-color:var(--accent); background:rgba(255,255,255,0.18); }
+    .sm-coin { font-size:0.78rem; color:var(--text-soft); }
 
     /* ── Template annunci ── */
     .ann-tpl {
@@ -619,19 +624,19 @@
 
   <!-- Segnalazioni -->
 
-  <!-- ══ VISIBILITÀ SHOP ══ -->
+  <!-- ══ GESTIONE SHOP ══ -->
   <div class="admin-card" style="margin-top:20px">
     <div class="admin-card-head" style="border-bottom-color:rgba(99,102,241,0.25)">
-      <span class="admin-card-title">🛒 Visibilità Shop</span>
-      <span style="font-size:0.78rem;color:var(--text-soft)">Attiva/disattiva cosa vedono gli utenti nello shop</span>
+      <span class="admin-card-title">🛒 Gestione Shop</span>
+      <span style="font-size:0.78rem;color:var(--text-soft)">Attiva/disattiva articoli e modifica i prezzi</span>
     </div>
     <div style="padding:18px">
-      <div class="vis-grid" id="vis-grid">
+      <div id="shop-mgr-grid">
         <div style="text-align:center;color:var(--text-soft);font-size:0.85rem">⏳ Caricamento...</div>
       </div>
       <div class="vis-save-bar">
-        <button class="admin-btn" onclick="saveShopVisibility()" id="visSaveBtn">💾 Salva visibilità</button>
-        <span class="vis-status" id="vis-status"></span>
+        <button class="admin-btn" onclick="saveShopMgr()" id="shopMgrSaveBtn">💾 Salva tutto</button>
+        <span class="vis-status" id="shop-mgr-status"></span>
       </div>
     </div>
   </div>
@@ -1415,111 +1420,145 @@
   }
 
 
-  /* ══ VISIBILITÀ SHOP ══ */
-  const _VIS_ITEMS = [
-    { id:'cat',        name:'🐱 Gatto',                group:'Compagni' },
-    { id:'dog',        name:'🐶 Cane',                 group:'Compagni' },
-    { id:'rabbit',     name:'🐰 Coniglietto',          group:'Compagni' },
-    { id:'parrot',     name:'🦜 Pappagallo',           group:'Compagni' },
-    { id:'fox',        name:'🦊 Volpe',                group:'Compagni' },
-    { id:'owl',        name:'🦉 Gufo',                 group:'Compagni' },
-    { id:'raccoon',    name:'🦝 Procione',             group:'Compagni' },
-    { id:'lion',       name:'🦁 Leone',                group:'Compagni' },
-    { id:'dragon',     name:'🐉 Drago',                group:'Compagni' },
-    { id:'platypus',   name:'Ornitorinco',               group:'Compagni' },
-    { id:'cat4legs',   name:'🐱 Gatto Cartoon',        group:'Extra Gatto' },
-    { id:'catWhite',   name:'🤍 Gatto Bianco',         group:'Extra Gatto' },
-    { id:'catBlack',   name:'🖤 Gatto Nero',           group:'Extra Gatto' },
-    { id:'catGrey',    name:'🩶 Gatto Grigio',         group:'Extra Gatto' },
-    { id:'campfire',   name:'🔥 Falò',                 group:'Ambiente' },
-    { id:'stars',      name:'⭐ Stelle',               group:'Effetti' },
-    { id:'bubbles',    name:'🫧 Bolle',                group:'Effetti' },
-    { id:'glow',       name:'✨ Timer Glow',           group:'Effetti' },
-    { id:'pulsePro',   name:'💫 Pulse Pro',            group:'Effetti' },
-    { id:'soundCafe',  name:'☕ Cafe',                 group:'Suoni' },
-    { id:'soundOcean', name:'🌊 Mare',                 group:'Suoni' },
-    { id:'soundForest',name:'🌲 Foresta',              group:'Suoni' },
-    { id:'themeNight', name:'🌙 Tema Notte',           group:'Temi' },
-    { id:'themeSunset',name:'🌅 Tema Tramonto',        group:'Temi' },
-    { id:'themeGold',  name:'✨ Tema Oro',             group:'Temi' },
-    { id:'aurora',     name:'🌌 Aurora',               group:'Temi' },
-    { id:'catHouse',   name:'🏠 Casa Gatto',           group:'Casette' },
-    { id:'dogHouse',   name:'🏠 Casa Cane',            group:'Casette' },
-    { id:'rabbitHouse',name:'🏠 Casa Coniglio',        group:'Casette' },
-    { id:'parrotHouse',name:'🏠 Posatoi Pappag.',      group:'Casette' },
-    { id:'foxHouse',   name:'🏠 Casa Volpe',           group:'Casette' },
-    { id:'owlHouse',   name:'🏠 Posatoi Gufo',         group:'Casette' },
-    { id:'lionHouse',  name:'🏠 Grotta Leone',         group:'Casette' },
-    { id:'raccoonHouse',name:'🏠 Tana Procione',       group:'Casette' },
-    { id:'dragonHouse',name:'🏠 Tana Drago',           group:'Casette' },
+  /* ══ GESTIONE SHOP ══ */
+  const _SM_ITEMS = [
+    { id:'cat',          name:'🐱 Gatto',              g:'Compagni',    p:50  },
+    { id:'dog',          name:'🐶 Cagnolino',          g:'Compagni',    p:250 },
+    { id:'rabbit',       name:'🐰 Coniglietto',        g:'Compagni',    p:180 },
+    { id:'raccoon',      name:'🦝 Procione',           g:'Compagni',    p:280 },
+    { id:'parrot',       name:'🦜 Pappagallo',         g:'Compagni',    p:220 },
+    { id:'fox',          name:'🦊 Volpe',              g:'Compagni',    p:200 },
+    { id:'owl',          name:'🦉 Gufo',               g:'Compagni',    p:190 },
+    { id:'lion',         name:'🦁 Leone',              g:'Compagni',    p:400 },
+    { id:'dragon',       name:'🐉 Drago',              g:'Compagni',    p:500 },
+    { id:'platypus',     name:'🦆 Ornitorinco',        g:'Compagni',    p:320 },
+    { id:'cat4legs',     name:'🐱 Gatto Cartoon',      g:'Colori',      p:200 },
+    { id:'catWhite',     name:'🤍 Gatto Bianco',       g:'Colori',      p:40  },
+    { id:'catBlack',     name:'🖤 Gatto Nero',         g:'Colori',      p:50  },
+    { id:'catGrey',      name:'🩶 Gatto Grigio',       g:'Colori',      p:30  },
+    { id:'dogGolden',    name:'🟡 Pelo Dorato',        g:'Colori',      p:60  },
+    { id:'dogBlack',     name:'🖤 Pelo Nero',          g:'Colori',      p:60  },
+    { id:'dogWhite',     name:'🤍 Pelo Bianco',        g:'Colori',      p:50  },
+    { id:'rabbitBrown',  name:'🟤 Pelo Marrone',       g:'Colori',      p:35  },
+    { id:'rabbitGrey',   name:'🩶 Pelo Grigio',        g:'Colori',      p:35  },
+    { id:'rabbitBlack',  name:'🖤 Pelo Nero',          g:'Colori',      p:40  },
+    { id:'catHouse',     name:'🏠 Casa Gatto',         g:'Casette',     p:80  },
+    { id:'dogHouse',     name:'🏠 Casa Cane',          g:'Casette',     p:80  },
+    { id:'rabbitHouse',  name:'🏠 Casa Coniglio',      g:'Casette',     p:70  },
+    { id:'raccoonHouse', name:'🏠 Tana Procione',      g:'Casette',     p:80  },
+    { id:'parrotHouse',  name:'🏠 Posatoi Pappag.',    g:'Casette',     p:70  },
+    { id:'foxHouse',     name:'🏠 Casa Volpe',         g:'Casette',     p:80  },
+    { id:'owlHouse',     name:'🏠 Posatoi Gufo',       g:'Casette',     p:70  },
+    { id:'lionHouse',    name:'🏠 Grotta Leone',       g:'Casette',     p:90  },
+    { id:'dragonHouse',  name:'🏠 Tana Drago',         g:'Casette',     p:100 },
+    { id:'campfire',     name:'🔥 Falò',               g:'Ambiente',    p:150 },
+    { id:'stars',        name:'⭐ Stelle Cadenti',     g:'Effetti',     p:30  },
+    { id:'bubbles',      name:'🫧 Bolle di Sapone',    g:'Effetti',     p:30  },
+    { id:'glow',         name:'✨ Timer Glow',         g:'Effetti',     p:60  },
+    { id:'pulsePro',     name:'💫 Pulse Pro',          g:'Effetti',     p:60  },
+    { id:'soundCafe',    name:'☕ Suono Cafe',         g:'Suoni',       p:40  },
+    { id:'soundOcean',   name:'🌊 Onde del Mare',      g:'Suoni',       p:40  },
+    { id:'soundForest',  name:'🌲 Foresta',            g:'Suoni',       p:40  },
+    { id:'timerBell',    name:'🔔 Campanella',         g:'Suono Timer', p:35  },
+    { id:'timerChime',   name:'🎵 Carillon',           g:'Suono Timer', p:35  },
+    { id:'timerGong',    name:'🪘 Gong Zen',           g:'Suono Timer', p:45  },
+    { id:'timerSoft',    name:'🔕 Ding Soft',          g:'Suono Timer', p:25  },
+    { id:'themeNight',   name:'🌙 Tema Notte',         g:'Temi',        p:80  },
+    { id:'themeSunset',  name:'🌅 Tema Tramonto',      g:'Temi',        p:80  },
+    { id:'widgetMusic',  name:'🎵 Widget Suoni',       g:'Widget',      p:80  },
+    { id:'widgetStats',  name:'📊 Widget Statistiche', g:'Widget',      p:50  },
+    { id:'widgetMood',   name:'😊 Widget Mood',        g:'Widget',      p:60  },
+    { id:'widgetCountdown',name:'⏳ Widget Countdown', g:'Widget',      p:70  },
+    { id:'tree',         name:'🌳 Albero',             g:'Giardino',    p:80  },
+    { id:'cherryTree',   name:'🌸 Ciliegio',           g:'Giardino',    p:120 },
+    { id:'mushroom',     name:'🍄 Funghetti',          g:'Giardino',    p:40  },
+    { id:'fountain',     name:'⛲ Fontana',            g:'Giardino',    p:180 },
+    { id:'bench',        name:'🪑 Panchina',           g:'Giardino',    p:90  },
+    { id:'rainbow',      name:'🌈 Arcobaleno',         g:'Giardino',    p:100 },
+    { id:'butterfly',    name:'🦋 Farfalle',           g:'Giardino',    p:60  },
+    { id:'pond',         name:'🪷 Laghetto',           g:'Giardino',    p:150 },
+    { id:'lantern',      name:'🏮 Lanterna',           g:'Giardino',    p:70  },
+    { id:'cactus',       name:'🌵 Cactus',             g:'Giardino',    p:35  },
+    { id:'bamboo',       name:'🎋 Bambù',              g:'Giardino',    p:55  },
+    { id:'birdhouse',    name:'🏡 Casetta Uccelli',    g:'Giardino',    p:110 },
+    { id:'windmill',     name:'💨 Mulino a Vento',     g:'Giardino',    p:95  },
+    { id:'waterfall',    name:'💦 Cascata',            g:'Giardino',    p:160 },
+    { id:'nest',         name:'🪹 Nido',               g:'Giardino',    p:45  },
+    { id:'ball',         name:'⚽ Pallina',            g:'Giardino',    p:40  },
+    { id:'hole',         name:'🕳️ Tana',               g:'Giardino',    p:50  },
   ];
-  let _visDisabled = new Set();
 
-  async function loadShopVisibility() {
+  let _smDisabled = new Set();
+  let _smPrices   = {};
+
+  async function loadShopMgr() {
     try {
-      const r = await apiFetch('/api/config');
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const cfg = await r.json();
-      _visDisabled = new Set(JSON.parse(cfg.shop_disabled_items || '[]'));
-    } catch(e) {
-      console.warn('[ShopVis] load error:', e);
-      _visDisabled = new Set();
-    }
-    _renderVisGrid();
+      const r = await fetch((window.SF_API_BASE||'/api') + '/config');
+      const cfg = r.ok ? await r.json() : {};
+      _smDisabled = new Set(JSON.parse(cfg.shop_disabled_items || '[]'));
+      _smPrices   = JSON.parse(cfg.shop_prices || '{}');
+    } catch { _smDisabled = new Set(); _smPrices = {}; }
+    _renderShopMgr();
   }
 
-  function _renderVisGrid() {
+  function _renderShopMgr() {
     const groups = {};
-    _VIS_ITEMS.forEach(item => {
-      if (!groups[item.group]) groups[item.group] = [];
-      groups[item.group].push(item);
+    _SM_ITEMS.forEach(item => {
+      if (!groups[item.g]) groups[item.g] = [];
+      groups[item.g].push(item);
     });
     let html = '';
     Object.entries(groups).forEach(([grp, items]) => {
-      html += `<div><div class="vis-group-title">${grp}</div><div class="vis-items">`;
+      html += `<div class="sm-group-title">${grp}</div>`;
       items.forEach(item => {
-        const on = !_visDisabled.has(item.id);
-        html += `<div class="vis-toggle ${on?'enabled':'disabled'}" id="vis-${item.id}" onclick="_toggleVis('${item.id}')">
-          <span class="vis-dot"></span>${item.name}
+        const on = !_smDisabled.has(item.id);
+        const price = _smPrices[item.id] ?? item.p;
+        html += `<div class="sm-row" id="smr-${item.id}">
+          <button class="sm-toggle ${on?'on':'off'}" onclick="_smToggle('${item.id}')" title="${on?'Visibile — clicca per nascondere':'Nascosto — clicca per mostrare'}"></button>
+          <span class="sm-name">${item.name}</span>
+          <span class="sm-type">${item.g}</span>
+          <div class="sm-price-wrap">
+            <input class="sm-price-inp" type="number" min="1" max="9999" value="${price}" id="smp-${item.id}" title="Prezzo in monete">
+            <span class="sm-coin">🪙</span>
+          </div>
         </div>`;
       });
-      html += '</div></div>';
     });
-    document.getElementById('vis-grid').innerHTML = html;
+    document.getElementById('shop-mgr-grid').innerHTML = html;
   }
 
-  function _toggleVis(id) {
-    if (_visDisabled.has(id)) _visDisabled.delete(id);
-    else _visDisabled.add(id);
-    const el = document.getElementById('vis-' + id);
-    if (!el) return;
-    el.classList.toggle('enabled',  !_visDisabled.has(id));
-    el.classList.toggle('disabled',  _visDisabled.has(id));
+  function _smToggle(id) {
+    if (_smDisabled.has(id)) _smDisabled.delete(id);
+    else _smDisabled.add(id);
+    const btn = document.querySelector(`#smr-${id} .sm-toggle`);
+    if (btn) { btn.classList.toggle('on', !_smDisabled.has(id)); btn.classList.toggle('off', _smDisabled.has(id)); }
   }
 
-  async function saveShopVisibility() {
-    const btn = document.getElementById('visSaveBtn');
-    const status = document.getElementById('vis-status');
+  async function saveShopMgr() {
+    const btn = document.getElementById('shopMgrSaveBtn');
+    const status = document.getElementById('shop-mgr-status');
     btn.disabled = true; btn.textContent = '⏳ Salvataggio...';
+    // Raccoglie i prezzi modificati
+    const prices = {};
+    _SM_ITEMS.forEach(item => {
+      const inp = document.getElementById('smp-' + item.id);
+      if (!inp) return;
+      const v = parseInt(inp.value);
+      if (!isNaN(v) && v > 0 && v !== item.p) prices[item.id] = v;
+    });
     try {
-      const r = await apiFetch('/api/admin/config', {
-        method: 'POST',
-        body: JSON.stringify({ key: 'shop_disabled_items', value: JSON.stringify([..._visDisabled]) })
-      });
-      if (!r.ok) {
-        let errMsg = 'HTTP ' + r.status;
-        try { const d = await r.json(); errMsg += ' — ' + (d.error || JSON.stringify(d)); } catch {}
-        throw new Error(errMsg);
-      }
-      status.textContent = '✅ Salvato! Gli utenti vedranno le modifiche al prossimo caricamento.';
-      status.style.color = '#10b981';
-      toast('Visibilità shop aggiornata ✅');
-    } catch (e) {
-      status.textContent = '❌ Errore: ' + e.message;
-      status.style.color = '#ef4444';
+      await Promise.all([
+        apiFetch('/api/admin/config', { method:'POST', body: JSON.stringify({ key:'shop_disabled_items', value: JSON.stringify([..._smDisabled]) }) }),
+        apiFetch('/api/admin/config', { method:'POST', body: JSON.stringify({ key:'shop_prices', value: JSON.stringify(prices) }) }),
+      ]);
+      _smPrices = prices;
+      status.textContent = '✅ Salvato!'; status.style.color = '#10b981';
+      toast('Shop aggiornato ✅');
+    } catch(e) {
+      status.textContent = '❌ ' + e.message; status.style.color = '#ef4444';
     }
-    btn.disabled = false; btn.textContent = '💾 Salva visibilità';
-    setTimeout(() => { if (status) status.textContent = ''; }, 5000);
+    btn.disabled = false; btn.textContent = '💾 Salva tutto';
+    setTimeout(() => { if (status) status.textContent = ''; }, 4000);
   }
 
   /* ── AI Key ── */
@@ -1658,7 +1697,7 @@
 
   loadUsers();
   loadTickets();
-  loadShopVisibility();
+  loadShopMgr();
   loadAiKeyStatus();
   loadBannerStatus();
 </script>

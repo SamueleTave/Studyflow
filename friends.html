@@ -598,9 +598,9 @@
 
       <!-- INVITA UN AMICO -->
       <div class="friends-section">
-        <div class="friends-section-title">🔗 Invita un amico <span style="background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:8px;vertical-align:middle">+50 monete</span></div>
+        <div class="friends-section-title">🔗 Invita un amico <span style="background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:8px;vertical-align:middle">+30 monete</span></div>
         <div style="font-size:0.82rem;color:var(--text-soft);line-height:1.55">
-          Condividi il link — quando il tuo amico completa la prima sessione di studio ricevi <strong>50 monete</strong>!
+          Condividi il link e invita i tuoi amici a studiare con te!
         </div>
         <div style="display:flex;gap:10px;align-items:center;margin-top:4px">
           <div id="invite-url-box" style="
@@ -616,6 +616,7 @@
             font-weight:600; transition:opacity 0.15s; white-space:nowrap;
           ">Copia link</button>
         </div>
+        <div id="invite-progress-list" style="margin-top:10px;display:flex;flex-direction:column;gap:8px"></div>
       </div>
 
     </div><!-- /tab-amici -->
@@ -785,6 +786,30 @@
     });
   }
 
+  /* ── Progresso inviti ── */
+  function loadInviteProgress() {
+    var container = document.getElementById('invite-progress-list');
+    if (!container) return;
+    _apiCall('GET', '/friends/invite-progress', null, function(err, data) {
+      if (err || !Array.isArray(data) || data.length === 0) return;
+      container.innerHTML = data.map(function(inv) {
+        var pct = (inv.sessions / 5) * 100;
+        var done = inv.bonus_given;
+        return '<div style="background:rgba(0,0,0,0.04);border:1.5px solid var(--card-border);border-radius:12px;padding:10px 14px">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+            '<span style="font-size:0.82rem;font-weight:600;color:var(--text)">' + inv.username + '</span>' +
+            '<span style="font-size:0.75rem;color:var(--text-soft)">' + (done ? '🎁' : inv.sessions + ' / 5') + '</span>' +
+          '</div>' +
+          '<div style="height:6px;border-radius:99px;background:rgba(0,0,0,0.1);overflow:hidden">' +
+            '<div style="height:100%;border-radius:99px;width:' + (done ? 100 : pct) + '%;background:' +
+              (done ? 'linear-gradient(90deg,#34d399,#10b981)' : 'linear-gradient(90deg,var(--accent),var(--accent-2))') +
+              ';transition:width 0.5s"></div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    });
+  }
+
   /* ── Notifiche ── */
   function loadNotifications() {
     _apiCall('GET', '/notifications', null, function(err, data) {
@@ -859,6 +884,7 @@
 
   /* Carica notifiche subito */
   loadNotifications();
+  loadInviteProgress();
 
   /* ── Tab switching ── */
   function switchTab(name) {
@@ -902,41 +928,55 @@
         }
         data.sort((a,b) => b.minutes - a.minutes);
       } catch(e) {}
-      // Mappa ruolo → colore (sincronizzata con SF_ROLES in shared.js)
-      const ROLE_COLORS = {
-        novizio:'#6b7280', studente:'#3b82f6', applicato:'#8b5cf6',
-        determinato:'#f97316', studioso:'#10b981', esperto:'#06b6d4', maestro:'#f59e0b'
+      const ROLE_CFG = {
+        novizio:     { from:'#94a3b8', to:'#64748b', glow:null },
+        studente:    { from:'#60a5fa', to:'#3b82f6', glow:'rgba(96,165,250,0.4)' },
+        applicato:   { from:'#a78bfa', to:'#7c3aed', glow:'rgba(167,139,250,0.45)' },
+        determinato: { from:'#fb923c', to:'#ea580c', glow:'rgba(251,146,60,0.45)' },
+        studioso:    { from:'#34d399', to:'#059669', glow:'rgba(52,211,153,0.45)' },
+        esperto:     { from:'#22d3ee', to:'#0891b2', glow:'rgba(34,211,238,0.5)' },
+        maestro:     { from:'#fbbf24', to:'#f59e0b', glow:'rgba(251,191,36,0.6)' },
       };
-      // Per "me": usa il ruolo dal localStorage (aggiornato dall'admin prima del server)
       const myRoleOv = localStorage.getItem('sf_role_override');
       const myRoleKey = myRoleOv && myRoleOv !== 'auto' ? myRoleOv : null;
 
       const medals = ['🥇','🥈','🥉'];
       el.innerHTML = data.map(function(u, i) {
         let role = u.role || {emoji:'🌱', label:'Novizio', key:'novizio', level:0};
-        // Per l'utente corrente, usa ruolo locale se disponibile
         if (u.is_me && myRoleKey && typeof SF_ROLES !== 'undefined') {
           const localRole = SF_ROLES.find(function(r){ return r.key === myRoleKey; });
           if (localRole) role = {emoji: localRole.emoji, label: localRole.name, key: localRole.key, level: SF_ROLES.indexOf(localRole)};
         }
         const roleKey = role.key || 'novizio';
-        const roleColor = ROLE_COLORS[roleKey] || '#6b7280';
-        const roleLevel = role.level || 0;
-        // Bordo speciale per ruoli alti
-        const borderStyle = roleLevel >= 6
-          ? 'border:2px solid #f59e0b;box-shadow:0 2px 12px rgba(245,158,11,0.25)'
-          : roleLevel >= 5
-          ? 'border:2px solid #06b6d4;box-shadow:0 2px 10px rgba(6,182,212,0.2)'
-          : roleLevel >= 4
-          ? 'border:1.5px solid #10b98144'
+        const rc = ROLE_CFG[roleKey] || ROLE_CFG.novizio;
+        const lvl = role.level || 0;
+
+        // Card border per ruoli alti
+        const cardBorder = lvl >= 6
+          ? 'border:1.5px solid #fbbf2466;box-shadow:0 0 0 1px #fbbf2422,0 4px 20px rgba(251,191,36,0.18)'
+          : lvl >= 5
+          ? 'border:1.5px solid #22d3ee55;box-shadow:0 4px 16px rgba(34,211,238,0.12)'
+          : lvl >= 4
+          ? 'border:1.5px solid #34d39944'
           : '';
-        return '<div class="lb-card '+(u.is_me?'lb-me':'')+'" style="'+borderStyle+'">' +
-          '<div class="lb-rank">'+(medals[i]||'#'+(i+1))+'</div>' +
-          '<div class="lb-avatar" style="background:linear-gradient(135deg,'+roleColor+'33,'+roleColor+'66);color:'+roleColor+';border:1.5px solid '+roleColor+'44">'+u.username.charAt(0).toUpperCase()+'</div>' +
+
+        // Avatar: gradiente pieno colore ruolo
+        const avatarShadow = rc.glow ? 'box-shadow:0 0 0 3px '+rc.from+'33,0 4px 14px '+rc.glow : '';
+        const avatarStyle = 'background:linear-gradient(135deg,'+rc.from+','+rc.to+');color:#fff;font-weight:800;font-size:1.05rem;border:2px solid '+rc.from+'99;'+avatarShadow;
+
+        // Badge ruolo
+        const badgeBg = lvl >= 5
+          ? 'background:linear-gradient(90deg,'+rc.from+','+rc.to+');color:#fff;border:none;'
+          : 'background:linear-gradient(90deg,'+rc.from+'28,'+rc.to+'18);color:'+rc.from+';border:1.5px solid '+rc.from+'66;';
+        const badgeStyle = 'display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:0.69rem;font-weight:700;letter-spacing:0.01em;'+badgeBg;
+
+        return '<div class="lb-card '+(u.is_me?'lb-me':'')+'" style="'+cardBorder+'">' +
+          '<div class="lb-rank">'+(medals[i]||'<span style="font-size:0.85rem;color:var(--text-soft)">#'+(i+1)+'</span>')+'</div>' +
+          '<div class="lb-avatar" style="'+avatarStyle+'">'+u.username.charAt(0).toUpperCase()+'</div>' +
           '<div class="lb-info">' +
             '<div class="lb-name">'+(u.is_me?'<strong>'+u.username+'</strong>':u.username)+'</div>' +
-            '<div class="lb-role" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
-              '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:700;background:'+roleColor+'18;color:'+roleColor+';border:1px solid '+roleColor+'33">'+role.emoji+' '+role.label+'</span>' +
+            '<div class="lb-role" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px">' +
+              '<span style="'+badgeStyle+'">'+role.emoji+' '+role.label+'</span>' +
               '<span style="font-size:0.68rem;color:var(--text-soft)">🔥 '+u.streak+' giorni</span>' +
             '</div>' +
           '</div>' +

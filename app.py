@@ -237,6 +237,14 @@ def init_db():
                 FOREIGN KEY (challenge_id) REFERENCES challenges(id) ON DELETE CASCADE,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
+            CREATE TABLE IF NOT EXISTS invite_relations (
+                invitee_id  INTEGER PRIMARY KEY,
+                inviter_id  INTEGER NOT NULL,
+                bonus_given INTEGER DEFAULT 0,
+                created_at  TEXT DEFAULT (datetime('now','localtime')),
+                FOREIGN KEY (invitee_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE
+            );
         """)
 
 def _sf_friends_list(c, user_id):
@@ -314,6 +322,11 @@ def _migrate_db():
                     created_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'),
                     is_read INTEGER DEFAULT 0,
                     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL)""",
+                """CREATE TABLE IF NOT EXISTS invite_relations (
+                    invitee_id INTEGER PRIMARY KEY,
+                    inviter_id INTEGER NOT NULL,
+                    bonus_given INTEGER DEFAULT 0,
+                    created_at TEXT DEFAULT to_char(NOW(),'YYYY-MM-DD HH24:MI:SS'))""",
             ]
             for ddl in _PG_DDL:
                 try:
@@ -1189,7 +1202,7 @@ def export_csv():
 @app.route("/api/friends/invite-bonus", methods=["POST"])
 def friends_invite_bonus():
     """Chiamato una sola volta quando un nuovo utente si registra via link ?ref=USERNAME.
-    Dà 30 monete all'invitante e 30 monete al nuovo utente."""
+    Registra la relazione di invito — le monete vengono date solo dopo 5 sessioni."""
     me   = get_auth_user(required=True)
     data = request.get_json(silent=True) or {}
     ref_username = (data.get("ref") or "").strip()
@@ -1197,32 +1210,75 @@ def friends_invite_bonus():
         return jsonify({"error": "ref richiesto"}), 400
     with get_db() as c:
         already = c.execute(
-            "SELECT value FROM user_data WHERE user_id=? AND key='sf_invite_used'", (me["id"],)
+            "SELECT invitee_id FROM invite_relations WHERE invitee_id=?", (me["id"],)
         ).fetchone()
         if already:
-            return jsonify({"error": "bonus già usato"}), 400
+            return jsonify({"error": "invito già registrato"}), 400
         inviter = c.execute(
             "SELECT id FROM users WHERE username=? COLLATE NOCASE AND id!=?",
             (ref_username, me["id"])
         ).fetchone()
         if not inviter:
             return jsonify({"error": "invitante non trovato"}), 404
-        # +30 monete a entrambi
-        _add_coins_userdata(c, me["id"], 30)
-        _add_coins_userdata(c, inviter["id"], 30)
-        # Notifica all'invitante
+        c.execute("""
+            INSERT INTO invite_relations (invitee_id, inviter_id, bonus_given)
+            VALUES (?, ?, 0)
+        """, (me["id"], inviter["id"]))
+        c.commit()
+    return jsonify({"ok": True, "pending": True})
+
+@app.route("/api/friends/invite-claim", methods=["POST"])
+def friends_invite_claim():
+    """Chiamato dal client quando l'invitato raggiunge 5 sessioni.
+    Dà 30 monete a invitato e invitante se non già dato."""
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        rel = c.execute(
+            "SELECT inviter_id, bonus_given FROM invite_relations WHERE invitee_id=?", (me["id"],)
+        ).fetchone()
+        if not rel:
+            return jsonify({"error": "nessun invito registrato"}), 404
+        if rel["bonus_given"]:
+            return jsonify({"error": "bonus già dato"}), 400
+        inviter_id = rel["inviter_id"]
+        _add_coins_userdata(c, inviter_id, 30)  # invitato riceve le sue 30 lato client
         c.execute("""
             INSERT INTO notifications (user_id, type, message, emoji)
             VALUES (?, 'invite', ?, '🎉')
-        """, (inviter["id"], f"{me['username']} si è registrato con il tuo invito! +30 🪙"))
-        # Segna bonus usato (anti-exploit)
-        c.execute("""
-            INSERT INTO user_data (user_id, key, value, updated_at)
-            VALUES (?,?,?,datetime('now','localtime'))
-            ON CONFLICT(user_id, key) DO UPDATE SET value=excluded.value
-        """, (me["id"], "sf_invite_used", "1"))
+        """, (inviter_id, f"{me['username']} ha completato 5 sessioni con il tuo invito! +30 🪙"))
+        c.execute("UPDATE invite_relations SET bonus_given=1 WHERE invitee_id=?", (me["id"],))
         c.commit()
     return jsonify({"ok": True, "coins": 30})
+
+@app.route("/api/friends/invite-progress", methods=["GET"])
+def friends_invite_progress():
+    """Restituisce il progresso degli inviti: chi ho invitato e quante sessioni ha fatto."""
+    me = get_auth_user(required=True)
+    with get_db() as c:
+        rels = c.execute("""
+            SELECT ir.invitee_id, u.username, ir.bonus_given
+            FROM invite_relations ir
+            JOIN users u ON u.id = ir.invitee_id
+            WHERE ir.inviter_id = ?
+        """, (me["id"],)).fetchall()
+        result = []
+        for r in rels:
+            stats_row = c.execute(
+                "SELECT value FROM user_data WHERE user_id=? AND key='sf_stats'", (r["invitee_id"],)
+            ).fetchone()
+            sessions = 0
+            if stats_row and stats_row["value"]:
+                try:
+                    stats = json_lib.loads(stats_row["value"])
+                    sessions = int(stats.get("totalSessions", 0))
+                except Exception:
+                    pass
+            result.append({
+                "username": r["username"],
+                "sessions": min(sessions, 5),
+                "bonus_given": bool(r["bonus_given"])
+            })
+    return jsonify(result)
 
 @app.route("/api/notifications", methods=["GET"])
 def notifications_list():
@@ -1409,13 +1465,13 @@ def _user_weekly_minutes(c, uid, week_start):
 
 def _user_role(sessions):
     s = int(sessions or 0)
-    if s >= 200: return {"label": "Maestro",     "emoji": "🏆", "level": 6}
-    if s >= 100: return {"label": "Esperto",     "emoji": "💎", "level": 5}
-    if s >= 50:  return {"label": "Studioso",    "emoji": "⭐", "level": 4}
-    if s >= 25:  return {"label": "Determinato", "emoji": "🔥", "level": 3}
-    if s >= 10:  return {"label": "Applicato",   "emoji": "🎯", "level": 2}
-    if s >= 1:   return {"label": "Studente",    "emoji": "📖", "level": 1}
-    return {"label": "Novizio", "emoji": "🌱", "level": 0}
+    if s >= 200: return {"key": "maestro",     "label": "Maestro",     "emoji": "🏆", "level": 6}
+    if s >= 100: return {"key": "esperto",     "label": "Esperto",     "emoji": "💎", "level": 5}
+    if s >= 50:  return {"key": "studioso",    "label": "Studioso",    "emoji": "⭐", "level": 4}
+    if s >= 25:  return {"key": "determinato", "label": "Determinato", "emoji": "🔥", "level": 3}
+    if s >= 10:  return {"key": "applicato",   "label": "Applicato",   "emoji": "🎯", "level": 2}
+    if s >= 1:   return {"key": "studente",    "label": "Studente",    "emoji": "📖", "level": 1}
+    return {"key": "novizio", "label": "Novizio", "emoji": "🌱", "level": 0}
 
 def _get_friend_ids(c, uid):
     fs_rows = c.execute(
