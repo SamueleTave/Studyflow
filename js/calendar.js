@@ -115,7 +115,9 @@ function renderCal() {
     const ds       = `${calYear}-${mm}-${dd}`;
     const isToday  = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
     const isSel    = selDate === ds;
-    const dayTasks = tasks.filter(t => (t.dueDate === ds || t.date === ds) && !t.done);
+    /* Se la task ha dueDate, appare SOLO nel giorno della scadenza.
+       Se non ha dueDate, appare nel giorno di assegnazione (date). */
+    const dayTasks = tasks.filter(t => (t.dueDate ? t.dueDate === ds : t.date === ds) && !t.done);
     const dayEvts  = events.filter(e => e.date === ds);
     const hasItems = dayTasks.length > 0 || dayEvts.length > 0;
 
@@ -171,7 +173,7 @@ function renderEventsPanel() {
   }
 
   const dayEvts  = events.filter(e => e.date === selDate);
-  const dayTasks = tasks.filter(t => t.dueDate === selDate || t.date === selDate);
+  const dayTasks = tasks.filter(t => t.dueDate ? t.dueDate === selDate : t.date === selDate);
 
   if (dayEvts.length === 0 && dayTasks.length === 0) {
     el.innerHTML = `<div class="tasks-empty">Nessun evento per questo giorno</div>`;
