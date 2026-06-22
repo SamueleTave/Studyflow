@@ -1077,7 +1077,16 @@ function closeRolePanel() {
 }
 function _renderRolePanel() {
   let sessionCount = 0;
-  try { const s = JSON.parse(localStorage.getItem('sf_sessions')||'[]'); sessionCount = s.length; } catch {}
+  try {
+    // sf_coins.totalSessions è il contatore cumulativo affidabile (non si tronca)
+    const coins = JSON.parse(localStorage.getItem('sf_coins') || '{}');
+    sessionCount = parseInt(coins.totalSessions || 0);
+    // Fallback: conta i record salvati (può essere troncato a 500)
+    if (!sessionCount) {
+      const s = JSON.parse(localStorage.getItem('sf_sessions') || '[]');
+      sessionCount = s.length;
+    }
+  } catch {}
 
   const roles = typeof SF_ROLES !== 'undefined' ? SF_ROLES : [];
   const _ov = localStorage.getItem('sf_role_override');
