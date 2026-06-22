@@ -35,6 +35,11 @@ function requireAdmin() {
 
 /* ── Logout ── */
 async function logout() {
+  /* Backup sessioni — sopravvivono al logout in caso il sync fallisca */
+  try {
+    const sessBak = localStorage.getItem('sf_sessions');
+    if (sessBak) sessionStorage.setItem('_sf_sess_bak', sessBak);
+  } catch {}
   /* Salva subito al server prima di pulire — evita perdita tema/sfida/impostazioni */
   if (_sfSyncTimer) { clearTimeout(_sfSyncTimer); _sfSyncTimer = null; }
   try { await syncToServer(); } catch {}
@@ -104,6 +109,24 @@ async function loadFromServer() {
       if (!isFirstLoad && (k === 'sf_timer' || k === 'sf_garden') && localVal != null) return;
       // Per sf_coins: merge intelligente — se admin ha aggiornato (_adminTs diverso), server vince su shop/balance.
       // Altrimenti gli acquisti locali recenti vengono preservati.
+      /* sf_sessions: merge con backup pre-logout per non perdere sessioni se sync fallisce */
+      if (k === 'sf_sessions') {
+        try {
+          const serverSess = JSON.parse(data[k] || '[]');
+          const bak = sessionStorage.getItem('_sf_sess_bak');
+          if (bak) {
+            sessionStorage.removeItem('_sf_sess_bak');
+            const bakSess = JSON.parse(bak);
+            const serverTs = new Set(serverSess.map(s => s.ts));
+            const extra = bakSess.filter(s => s.ts && !serverTs.has(s.ts));
+            if (extra.length) {
+              const merged = [...serverSess, ...extra].sort((a, b) => (a.ts||0) - (b.ts||0));
+              _sfOrigSetItem('sf_sessions', JSON.stringify(merged));
+              return;
+            }
+          }
+        } catch {}
+      }
       if (k === 'sf_coins' && localVal) {
         try {
           const local  = JSON.parse(localVal);
