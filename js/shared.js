@@ -525,6 +525,7 @@ function _loadQuickNote() {
 const _MOODS = ['😫','😕','😐','😊','🤩'];
 
 function _initCheckin() {
+  if (document.getElementById('checkin-overlay')) return;
   const overlay = document.createElement('div');
   overlay.id = 'checkin-overlay';
   overlay.innerHTML = `

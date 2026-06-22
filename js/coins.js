@@ -336,12 +336,18 @@ function tryEarnTaskCoins(taskId, createdAt) {
     coinData.taskCoinToday = 0;
   }
 
-  /* Pulizia IDs più vecchi di 30 giorni */
+  /* Pulizia IDs più vecchi di 30 giorni — compatibile con ID non-timestamp */
   const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  coinData.rewardedTaskIds = coinData.rewardedTaskIds.filter(id => id > cutoff);
+  coinData.rewardedTaskIds = coinData.rewardedTaskIds.filter(entry => {
+    if (typeof entry === 'object' && entry !== null) return entry.ts > cutoff;
+    return typeof entry === 'number' && entry > cutoff; // legacy: ID=timestamp
+  });
 
   /* 1. Questo task ha già dato monete? */
-  if (coinData.rewardedTaskIds.includes(taskId)) return false;
+  const alreadyRewarded = coinData.rewardedTaskIds.some(entry =>
+    typeof entry === 'object' ? entry.id === taskId : entry === taskId
+  );
+  if (alreadyRewarded) return false;
 
   /* 2. Cap giornaliero: max 8 task/giorno danno monete */
   if (coinData.taskCoinToday >= 8) return false;
@@ -350,7 +356,7 @@ function tryEarnTaskCoins(taskId, createdAt) {
   if (createdAt && (Date.now() - new Date(createdAt).getTime()) < 60000) return false;
 
   /* Tutto ok — premia */
-  coinData.rewardedTaskIds.push(taskId);
+  coinData.rewardedTaskIds.push({ id: taskId, ts: Date.now() });
   coinData.taskCoinToday++;
   saveCoinData();
   earnCoins(5);

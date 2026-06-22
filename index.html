@@ -655,7 +655,7 @@
     const dayMap = {};
     sessions.forEach(s => {
       const d = (s.date || s.endedAt || '').slice(0, 10);
-      if (d) dayMap[d] = (dayMap[d] || 0) + (s.minutes || 25);
+      if (d) dayMap[d] = (dayMap[d] || 0) + (s.minutes || s.duration || 25);
     });
     const today = new Date(); today.setHours(0,0,0,0);
     // Trova il lunedì della settimana che contiene (oggi - 34 giorni)

@@ -112,7 +112,9 @@ function _restoreTimer() {
         const elapsed = Math.floor((Date.now() - t.savedAt) / 1000);
         timeLeft = Math.max(0, t.timeLeft - elapsed);
         if (timeLeft === 0) {
-          /* Il timer è scaduto mentre eravamo via */
+          /* Il timer è scaduto mentre eravamo via — abilita monete prima di _onEnd */
+          _sessionCoinEnabled = (t.mode || 'work') === 'work' && _todayCoinSessions() < 10;
+          _coinBlocksDone     = Math.floor((totalTime - 0) / 1500);
           _onEnd(true);
           return;
         }
@@ -278,7 +280,8 @@ function toggleTimer() {
     if (typeof syncHydroToTimer    === 'function') syncHydroToTimer(true, timerMode);
     if (typeof setPresenceStudying === 'function') setPresenceStudying(timerMode === 'work');
     _requestWakeLock();
-    _coinBlocksDone = 0;
+    /* Al resume, ripristina i blocchi già premiati per evitare doppie monete su pausa+ripresa */
+    _coinBlocksDone = Math.floor((totalTime - timeLeft) / 1500);
     _sessionCoinEnabled = timerMode === 'work' && _todayCoinSessions() < 10;
     timerIv = setInterval(() => {
       if (timeLeft > 0) {
@@ -430,11 +433,13 @@ function _onEnd(silent) {
       });
     } else {
       switchMode(nextMode);
-      if (cfg.autoBreak) setTimeout(() => toggleTimer(), 800);
+      /* Non avviare il break automaticamente se il timer è scaduto in background (silent):
+         l'utente non ha visto la notifica e potrebbe non voler studiare ancora */
+      if (!silent && cfg.autoBreak) setTimeout(() => toggleTimer(), 800);
     }
   } else {
     switchMode('work');
-    if (cfg.autoWork) setTimeout(() => toggleTimer(), 800);
+    if (!silent && cfg.autoWork) setTimeout(() => toggleTimer(), 800);
   }
 }
 
@@ -497,13 +502,14 @@ async function _updateFriendChallengesProgress(sessionMins) {
     if (!r.ok) return;
     const challenges = await r.json();
     const active = challenges.filter(ch => !ch.my_completed && ch.am_member);
-    for (const ch of active) {
-      const newMins = (ch.my_minutes || 0) + sessionMins;
-      await fetch(api + '/challenges/' + ch.id + '/progress', {
+    /* Le sfide vengono aggiornate in parallelo con +delta per evitare race condition
+       su sessioni ravvicinate (valore stale dal GET) */
+    await Promise.all(active.map(ch =>
+      fetch(api + '/challenges/' + ch.id + '/progress', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + auth.token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ minutes: newMins })
-      });
-    }
+        body: JSON.stringify({ minutes: (ch.my_minutes || 0) + sessionMins, add: sessionMins })
+      }).catch(() => {})
+    ));
   } catch {}
 }

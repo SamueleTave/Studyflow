@@ -622,6 +622,8 @@ def admin_set_coins(uid):
                 coins_data = {"balance": new_coins, "shop": {}, "achievements": [], "activeEffects": {}}
         else:
             coins_data = {"balance": new_coins, "shop": {}, "achievements": [], "activeEffects": {}}
+        # Imposta _adminTs così il sync client non sovrascrive il balance impostato dall'admin
+        coins_data["_adminTs"] = _now()
 
         c.execute("""
             INSERT INTO user_data (user_id, key, value, updated_at)
@@ -778,10 +780,12 @@ def friends_search():
     q  = (request.args.get("q") or "").strip()
     if len(q) < 2:
         return jsonify([])
+    # Escape caratteri speciali LIKE per evitare enumeration con "%" o "_"
+    q_safe = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     with get_db() as c:
         rows = c.execute(
-            "SELECT id, username FROM users WHERE username LIKE ? AND id != ? LIMIT 20",
-            (f"%{q}%", me["id"])
+            "SELECT id, username FROM users WHERE username LIKE ? ESCAPE '\\' AND id != ? LIMIT 20",
+            (f"%{q_safe}%", me["id"])
         ).fetchall()
         # attach friendship status for each result
         result = []
@@ -1045,6 +1049,7 @@ def get_sessions():
 
 @app.route("/api/sessions", methods=["POST"])
 def add_session():
+    get_auth_user(required=True)
     data = request.get_json(silent=True) or {}
     duration = data.get("duration")
     if not duration:
@@ -1179,6 +1184,7 @@ def delete_subject(sid):
 
 @app.route("/api/export/csv")
 def export_csv():
+    get_auth_user(required=True)
     with get_db() as c:
         rows = c.execute(
             "SELECT date, duration, subject, created_at FROM sessions ORDER BY created_at DESC"
@@ -1263,14 +1269,15 @@ def friends_invite_progress():
         """, (me["id"],)).fetchall()
         result = []
         for r in rels:
-            stats_row = c.execute(
-                "SELECT value FROM user_data WHERE user_id=? AND key='sf_stats'", (r["invitee_id"],)
+            # totalSessions è in sf_coins, non in sf_stats
+            coins_row = c.execute(
+                "SELECT value FROM user_data WHERE user_id=? AND key='sf_coins'", (r["invitee_id"],)
             ).fetchone()
             sessions = 0
-            if stats_row and stats_row["value"]:
+            if coins_row and coins_row["value"]:
                 try:
-                    stats = json_lib.loads(stats_row["value"])
-                    sessions = int(stats.get("totalSessions", 0))
+                    coins_d = json_lib.loads(coins_row["value"])
+                    sessions = int(coins_d.get("totalSessions", 0))
                 except Exception:
                     pass
             result.append({
@@ -1610,18 +1617,35 @@ def join_challenge(cid):
 def update_challenge_progress(cid):
     me = get_auth_user(required=True)
     data = request.get_json(force=True) or {}
-    minutes = int(data.get("minutes") or 0)
+    try:
+        minutes = int(data.get("minutes") or 0)
+        add_delta = int(data.get("add") or 0)
+    except (ValueError, TypeError):
+        return jsonify({"error": "invalid minutes"}), 400
     with get_db() as c:
         ch = c.execute("SELECT target_min FROM challenges WHERE id=?", (cid,)).fetchone()
         if not ch:
             return jsonify({"error": "sfida non trovata"}), 404
+        if add_delta > 0:
+            # Modalità incrementale: +delta atomico, evita race condition su sessioni ravvicinate
+            c.execute("""
+                INSERT INTO challenge_members (challenge_id, user_id, minutes_done, completed)
+                VALUES (?,?,?,0)
+                ON CONFLICT(challenge_id, user_id)
+                DO UPDATE SET minutes_done = challenge_members.minutes_done + ?
+            """, (cid, me["id"], add_delta, add_delta))
+            row = c.execute("SELECT minutes_done FROM challenge_members WHERE challenge_id=? AND user_id=?", (cid, me["id"])).fetchone()
+            minutes = row["minutes_done"] if row else 0
         completed = 1 if minutes >= ch["target_min"] else 0
-        c.execute("""
-            INSERT INTO challenge_members (challenge_id, user_id, minutes_done, completed)
-            VALUES (?,?,?,?)
-            ON CONFLICT(challenge_id, user_id)
-            DO UPDATE SET minutes_done=excluded.minutes_done, completed=excluded.completed
-        """, (cid, me["id"], minutes, completed))
+        if add_delta > 0:
+            c.execute("UPDATE challenge_members SET completed=? WHERE challenge_id=? AND user_id=?", (completed, cid, me["id"]))
+        else:
+            c.execute("""
+                INSERT INTO challenge_members (challenge_id, user_id, minutes_done, completed)
+                VALUES (?,?,?,?)
+                ON CONFLICT(challenge_id, user_id)
+                DO UPDATE SET minutes_done=excluded.minutes_done, completed=excluded.completed
+            """, (cid, me["id"], minutes, completed))
         c.commit()
     return jsonify({"ok": True, "completed": bool(completed)})
 
