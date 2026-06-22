@@ -182,7 +182,26 @@ function _syncUI() {
   /* Header pills */
   const ph = document.getElementById('pill-streak');
   const pm = document.getElementById('pill-minutes');
-  if (ph) ph.textContent = stats.streak;
+  if (ph) {
+    const s = stats.streak || 0;
+    const _SL = [
+      { min:100, val:'diamond', emoji:'💎' },
+      { min:75,  val:'rainbow', emoji:'🌈' },
+      { min:60,  val:'cosmic',  emoji:'🌌' },
+      { min:50,  val:'teal',    emoji:'🌊' },
+      { min:40,  val:'gold',    emoji:'✨' },
+      { min:30,  val:'fuchsia', emoji:'💫' },
+      { min:21,  val:'violet',  emoji:'⚡' },
+      { min:14,  val:'inferno', emoji:'🔥' },
+      { min:7,   val:'hot',     emoji:'🔥' },
+      { min:3,   val:'warm',    emoji:''   },
+    ];
+    const lv = _SL.find(l => s >= l.min) || { val:'', emoji:'' };
+    ph.textContent = (s >= 7 && lv.emoji) ? s + ' ' + lv.emoji : String(s);
+    ph.className = 'stat-pill-val' + (lv.val ? ' streak-' + lv.val : '');
+    const pill = ph.closest('.stat-pill');
+    if (pill) pill.className = 'stat-pill' + (lv.val ? ' streak-pill-' + lv.val : '');
+  }
   if (pm) pm.textContent = stats.minutes + 'm';
 
   /* Tab titolo */

@@ -772,6 +772,20 @@
         is_admin: data.is_admin,
       }));
 
+      /* Nuovo utente: pre-dismisso banner e notifiche storiche */
+      if (data.new_user) {
+        try {
+          const _cfgR = await fetch((window.SF_API_BASE || '/api') + '/config');
+          if (_cfgR.ok) {
+            const _cfgD = await _cfgR.json();
+            if (_cfgD.banner_json) {
+              const _b = JSON.parse(_cfgD.banner_json);
+              if (_b?.version) localStorage.setItem('sf_banner_' + _b.version, '1');
+            }
+          }
+        } catch {}
+      }
+
       /* Carica dati dal server */
       const overlay = document.getElementById('loadingOverlay');
       const loadTx  = document.getElementById('loadingText');

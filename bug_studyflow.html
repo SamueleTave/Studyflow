@@ -155,13 +155,178 @@
 <body>
 
 <h1>🐛 Bug StudyFlow — Registro Completo</h1>
-<p class="subtitle">Aggiornato: 2026-06-20 — Sessione 14 &nbsp;|&nbsp; ⚡ Priorità: Netlify (online) &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
+<p class="subtitle">Aggiornato: 2026-06-21 — Sessione 17 &nbsp;|&nbsp; ⚡ Priorità: Netlify (online) &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
 
 <!-- STATO DEPLOY -->
 <div class="status-row">
-  <div class="status-chip"><div class="dot green"></div> GitHub: pushato (b464816)</div>
-  <div class="status-chip"><div class="dot green"></div> Netlify: ⚡ PRIORITÀ — auto-deploy da GitHub</div>
-  <div class="status-chip"><div class="dot green"></div> Render: OK — app.py non toccato</div>
+  <div class="status-chip"><div class="dot green"></div> GitHub: pushato (eca3ffe)</div>
+  <div class="status-chip"><div class="dot green"></div> Netlify: ⚡ incredible-scone-e3d69d.netlify.app</div>
+  <div class="status-chip"><div class="dot green"></div> Render: Manual Deploy — app.py modificato (s17)</div>
+</div>
+
+<!-- ===== SESSIONE 17 — FIX ===== -->
+<div class="section">
+  <div class="section-title">✅ Sessione 17 (2026-06-21) — Fix e funzionalità</div>
+
+  <div class="bug-card critico">
+    <div class="bug-header">
+      <span class="badge critico">Critico</span>
+      <div>
+        <div class="bug-title">AI Key bug — apiFetch non definita in flashcards</div>
+        <div class="bug-file">flashcards.html · _aiLoadKey()</div>
+      </div>
+      <span class="commit">67ad130</span>
+    </div>
+    <p class="bug-desc"><code>apiFetch</code> è definita localmente solo in <code>admin.html</code>. In <code>flashcards.html</code> la chiamata causava <code>ReferenceError</code> silenzioso (catch) → <code>_aiServerKey = ''</code> → "AI non configurata" per tutti gli utenti anche con chiave impostata.</p>
+    <div class="bug-fix"><strong>Fix:</strong> sostituita <code>apiFetch('/api/user/ai-key')</code> → <code>apiGet('/user/ai-key')</code> (funzione di api.js sempre disponibile). Cache solo se chiave truthy → si aggiorna dopo che admin la imposta.</div>
+  </div>
+
+  <div class="bug-card critico">
+    <div class="bug-header">
+      <span class="badge critico">Critico</span>
+      <div>
+        <div class="bug-title">Ornitorinco dava monete infinite al tap</div>
+        <div class="bug-file">js/platypus.js · _onPlatypusClick()</div>
+      </div>
+      <span class="commit">eca3ffe</span>
+    </div>
+    <p class="bug-desc">Ogni click sull'ornitorinco chiamava <code>earnCoins(1)</code> senza alcun limite. Farming illimitato.</p>
+    <div class="bug-fix"><strong>Fix:</strong> max 2 monete/giorno via chiave localStorage <code>sf_plat_tap_YYYY-MM-DD</code>. Al 3° tap mostra bubble "Già dato oggi! 😄" senza dare monete. Solo il platipus dava monete al tap (tutti gli altri animali no).</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Ornitorinco usciva fuori dal canvas nel giardino</div>
+        <div class="bug-file">js/platypus.js · platypusEnterGarden()</div>
+      </div>
+      <span class="commit">eca3ffe</span>
+    </div>
+    <p class="bug-desc">Il garden walk usava <code>window.innerWidth</code> come maxX invece dei bounds reali del canvas. Risultato: l'ornitorinco camminava fuori dal giardino. Mancava anche il delay 900ms e il posizionamento sull'erba.</p>
+    <div class="bug-fix"><strong>Fix:</strong> riscritto come <code>catEnterGarden</code>: delay 900ms, <code>rect.left/right</code> del canvas per bounds X, <code>GRASS_H=100</code> per Y (sull'erba), variazione Y stretta (minB/maxB con range 8px).</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Ornitorinco non si rimpiccioliva nel giardino</div>
+        <div class="bug-file">js/garden.js · toggleGarden()</div>
+      </div>
+      <span class="commit">56a23ad</span>
+    </div>
+    <p class="bug-desc"><code>garden.js</code> chiamava enter/exit garden per tutti gli animali tranne platipus e giraffa. Le funzioni esistevano ma non erano invocate.</p>
+    <div class="bug-fix"><strong>Fix:</strong> aggiunte chiamate <code>platypusEnterGarden/Exit</code> e <code>giraffeEnterGarden/Exit</code> (con guard <code>typeof === 'function'</code>). Giraffe non ha le funzioni garden → la guard salta silenziosamente.</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Modal non scrollava (mobile + desktop)</div>
+        <div class="bug-file">css/calendar.css · .overlay / .modal</div>
+      </div>
+      <span class="commit">18f9367</span>
+    </div>
+    <p class="bug-desc">Overlay con <code>display:flex; align-items:center</code> centrando il modal, ma <code>overflow-y:auto</code> sul modal dentro <code>position:fixed</code> non funziona su iOS Safari. Modal con <code>max-height:88vh</code> e overflow interno non scrollava correttamente.</p>
+    <div class="bug-fix"><strong>Fix:</strong> overlay scrollabile (<code>overflow-y:auto; -webkit-overflow-scrolling:touch</code>) con <code>::before</code>/<code>::after</code> flex spacers (<code>flex:1; min-height:16px</code>) per centrare. Quando modal supera viewport i spacer collassano e l'overlay scrolla. Rimosso <code>max-height</code> dal modal.</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge minore">Minore</span>
+      <div>
+        <div class="bug-title">Double-tap zoom su login PIN (iOS)</div>
+        <div class="bug-file">login.html · &lt;style&gt;</div>
+      </div>
+      <span class="commit">18f9367</span>
+    </div>
+    <p class="bug-desc"><code>user-scalable=no</code> ignorato da iOS 10+ per accessibilità. Doppio tap sui tasti PIN allargava la pagina.</p>
+    <div class="bug-fix"><strong>Fix:</strong> <code>touch-action: manipulation</code> su <code>button, input, a, label</code> in login.html. Impedisce il doppio-tap zoom senza disabilitare lo scroll. <code>-webkit-tap-highlight-color: transparent</code> per rimuovere il flash blu al tap.</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge minore">Minore</span>
+      <div>
+        <div class="bug-title">Hamburger copriva il contenuto delle pagine</div>
+        <div class="bug-file">css/base.css + css/sidebar.css · @media ≤960px</div>
+      </div>
+      <span class="commit">18f9367</span>
+    </div>
+    <p class="bug-desc">L'hamburger è <code>position:fixed; top:14px; height:44px</code>. Le pagine non avevano clearance sufficiente. sidebar.css sovrascriveva il padding a 0 esplicitamente.</p>
+    <div class="bug-fix"><strong>Fix:</strong> <code>padding-top:66px</code> su <code>.app > *:not(aside)</code> a ≤960px in base.css. Rimossa la riga che sovrascriveva a 0 in sidebar.css.</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge risolto">Funzionalità</span>
+      <div>
+        <div class="bug-title">Timer standby — comportamento scelto</div>
+        <div class="bug-file">js/timer.js · initTimer()</div>
+      </div>
+      <span class="commit">56a23ad</span>
+    </div>
+    <p class="bug-desc">Il timer si congelava durante lo standby e riprendeva da dove era (setInterval si ferma durante sleep). Era stata aggiunta una correzione che calcolava il tempo trascorso — ma il comportamento voluto è che il timer si congeli.</p>
+    <div class="bug-fix"><strong>Decisione:</strong> rimossa la correzione elapsed. Timer = congela durante sleep, riprende da dove era. <strong>Wake Lock API</strong> aggiunto: impedisce allo schermo di spegnersi mentre il timer gira (<code>navigator.wakeLock.request('screen')</code>).</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge risolto">Funzionalità</span>
+      <div>
+        <div class="bug-title">Chiave AI spostata in admin — solo kiwi07</div>
+        <div class="bug-file">app.py · /api/user/ai-key &nbsp;|&nbsp; admin.html · flashcards.html</div>
+      </div>
+      <span class="commit">18f9367</span>
+    </div>
+    <p class="bug-desc">In precedenza la chiave Groq era inserita dall'utente in localStorage. Accesso non controllato.</p>
+    <div class="bug-fix"><strong>Fix:</strong> chiave salvata in <code>app_config</code> DB con key <code>groq_key</code>. Solo admin può impostare/rimuovere. Nuovo endpoint <code>GET /api/user/ai-key</code> (auth required) ritorna la chiave a tutti gli utenti autenticati. UI inserimento rimossa da flashcards.html.</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge risolto">Funzionalità</span>
+      <div>
+        <div class="bug-title">Banner Novità — sistema admin dinamico</div>
+        <div class="bug-file">admin.html · index.html · app_config(banner_json)</div>
+      </div>
+      <span class="commit">18f9367</span>
+    </div>
+    <p class="bug-desc">Il banner "Novità" in index.html era hardcoded. L'admin non poteva aggiornarlo senza toccare il codice.</p>
+    <div class="bug-fix"><strong>Fix:</strong> banner dinamico. Admin pubblica da pannello (titolo + max 6 voci con colore, grassetto, testo). Salvato in <code>app_config</code> key <code>banner_json</code>. <code>_loadBanner()</code> in index.html lo carica da <code>GET /api/config</code>. Ogni utente vede il banner una sola volta (<code>sf_banner_vYYYYMMDD</code> in localStorage). Nuova pubblicazione = tutti lo rivedono.</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge risolto">Funzionalità</span>
+      <div>
+        <div class="bug-title">Mappa di Studio AI + Admin responsive</div>
+        <div class="bug-file">flashcards.html · css/flashcards.css · admin.html</div>
+      </div>
+      <span class="commit">18f9367</span>
+    </div>
+    <p class="bug-desc">Nuove funzionalità aggiunte in sessione 17.</p>
+    <div class="bug-fix">
+      <strong>Mappa AI:</strong> nuova view <code>fc-view-map</code> in flashcards.html. Accordion con sezioni emoji+titolo+punti. Generata da Groq <code>llama-3.1-8b-instant</code>. JSON <code>{title, sections:[{title,emoji,summary,points:[]}]}</code>.<br><br>
+      <strong>Flashcard UI:</strong> progress bar mastery % sui deck card. Pulsanti azioni sempre visibili su touch (opacity:1 a ≤600px). Grid 2 colonne pulsanti mobile.<br><br>
+      <strong>Admin responsive:</strong> media queries ≤960px e ≤420px per layout tablet/mobile del pannello admin.
+    </div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge risolto">Deploy</span>
+      <div>
+        <div class="bug-title">Nuovo URL Netlify (vecchio esaurito)</div>
+        <div class="bug-file">—</div>
+      </div>
+      <span class="commit">2026-06-21</span>
+    </div>
+    <p class="bug-desc">Vecchio sito Netlify (rainbow-daifuku-58caa0) aveva esaurito i crediti.</p>
+    <div class="bug-fix"><strong>Nuovo URL:</strong> <code>https://incredible-scone-e3d69d.netlify.app/login.html</code><br>Auto-deploy da GitHub attivo. Messaggio inviato agli utenti del vecchio sito via admin notifiche.</div>
+  </div>
 </div>
 
 <!-- ===== SESSIONE 10 — BUG FIXATI ===== -->
@@ -583,7 +748,7 @@
   <div class="bug-card minore">
     <div class="bug-title" style="margin-bottom:8px">Deploy flow (importante)</div>
     <p class="bug-desc">
-      • <strong>Frontend:</strong> Netlify Drop manuale → caricare la cartella <code>/Users/samutave/Desktop/StudyFlow/StudyFlow/</code> (cartella INTERNA, non quella root)<br>
+      • <strong>Frontend:</strong> Netlify → <code>https://incredible-scone-e3d69d.netlify.app</code> — auto-deploy da GitHub (push → deploy automatico)<br>
       • <strong>Backend:</strong> ogni modifica a <code>app.py</code> → <code>cp StudyFlow/app.py app.py</code> → push → Manual Deploy su Render<br>
       • <strong>File doppi:</strong> il repo ha <code>app.py</code> (root) e <code>StudyFlow/app.py</code>. Render usa <code>StudyFlow/</code>. Stesso per tutti i file JS/CSS/HTML.<br>
       • <strong>SF_API_BASE:</strong> sempre hardcoded inline in ogni HTML: <code>&lt;script&gt;window.SF_API_BASE = 'https://studyflow-backend-5zy6.onrender.com/api';&lt;/script&gt;</code>
@@ -601,7 +766,7 @@
 </div>
 
 <p style="color:#475569;font-size:0.72rem;text-align:center;margin-top:40px">
-  Generato automaticamente — Sessione 13 · 2026-06-19 · Claude Sonnet 4.6
+  Aggiornato — Sessione 17 · 2026-06-21 · Claude Sonnet 4.6
 </p>
 
 </body>

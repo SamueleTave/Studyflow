@@ -786,6 +786,14 @@
           <span class="sp-t sp-t-serif">25:00</span>
           <span class="sp-tile-lbl">Elegante</span>
         </div>
+        <div class="sp-tile" data-sp-type="timer" data-sp-val="spacemono" onclick="pickTimerStyle('spacemono')">
+          <span class="sp-t sp-t-spacemono">25:00</span>
+          <span class="sp-tile-lbl">Terminale</span>
+        </div>
+        <div class="sp-tile" data-sp-type="timer" data-sp-val="neon" onclick="pickTimerStyle('neon')">
+          <span class="sp-t sp-t-neon" style="background:#081828;padding:3px 7px;border-radius:5px;display:inline-block">25:00</span>
+          <span class="sp-tile-lbl">Neon</span>
+        </div>
       </div>
     </div>
 
@@ -928,11 +936,6 @@
     root.style.setProperty('--accent',   a.a);
     root.style.setProperty('--accent-2', a.b);
   }
-  function pickAccentColor(idx) {
-    localStorage.setItem('sf_accent', idx);
-    _applyAccent(idx);
-    document.querySelectorAll('.sp-swatch').forEach((s, i) => s.classList.toggle('sp-active', i === idx));
-  }
   function _buildSwatches() {
     const row = document.getElementById('sp-swatches');
     if (!row || row.children.length > 0) return;
@@ -947,11 +950,22 @@
     });
   }
 
+  /* ── Feedback "Salvato" ── */
+  let _spSaveTimer = null;
+  function _showSpSaved() {
+    const ttl = document.querySelector('.sp-title');
+    if (!ttl) return;
+    clearTimeout(_spSaveTimer);
+    ttl.dataset.saved = '1';
+    _spSaveTimer = setTimeout(() => { delete ttl.dataset.saved; }, 1400);
+  }
+
   /* ── Duration ── */
   function pickDuration(mins) {
     localStorage.setItem('sf_work_dur', mins);
     if (typeof setWorkDuration === 'function') setWorkDuration(mins);
     document.querySelectorAll('[data-sp-type="dur"]').forEach(t => t.classList.toggle('sp-active', Number(t.dataset.spVal) === mins));
+    _showSpSaved();
   }
 
   /* ── Styles ── */
@@ -1025,12 +1039,20 @@
     const rw = document.getElementById('ring-wrap');
     if (rw) rw.dataset.ts = val;
     _refreshSpTiles();
+    _showSpSaved();
   }
   function pickClockStyle(val) {
     localStorage.setItem('sf_cs', val);
     const cc = document.getElementById('clock-card');
     if (cc) cc.dataset.cs = val;
     _refreshSpTiles();
+    _showSpSaved();
+  }
+  function pickAccentColor(idx) {
+    localStorage.setItem('sf_accent', idx);
+    _applyAccent(idx);
+    document.querySelectorAll('.sp-swatch').forEach((s, i) => s.classList.toggle('sp-active', i === idx));
+    _showSpSaved();
   }
   initStyles();
 </script>
@@ -1137,7 +1159,7 @@ function _renderRolePanel() {
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
           <span style="font-weight:800;font-size:0.88rem;color:${isCurrent ? r.color : unlocked ? '#1f2937' : '#6b7280'}">${r.name}</span>
           ${isCurrent ? `<span style="font-size:0.6rem;background:${r.color};color:#fff;border-radius:6px;padding:1px 7px;font-weight:700;letter-spacing:0.03em">TU</span>` : ''}
-          ${!unlocked ? `<span style="font-size:0.62rem;color:#9ca3af;font-weight:600">🔒 ${r.min} sessioni</span>` : r.coinBonus > 0 ? `<span style="font-size:0.62rem;color:${r.color};font-weight:700">+${r.coinBonus}🪙</span>` : ''}
+          ${!unlocked ? `<span style="font-size:0.62rem;color:#9ca3af;font-weight:600">🔒 ${r.min} sessioni</span>` : r.coinBonus > 0 ? `<span style="font-size:0.62rem;color:${r.color};font-weight:700">+${r.coinBonus}<svg width="11" height="11" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle;display:inline-block;margin-left:1px"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg></span>` : ''}
         </div>
         <div>${perksChips}</div>
       </div>

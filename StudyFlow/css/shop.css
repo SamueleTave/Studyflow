@@ -533,7 +533,7 @@ body.pulse-mode .ring-wrap.running { animation: timer-pulse 1.5s ease-in-out inf
   font-family:'Poppins',sans-serif;
 }
 .btn-buy:hover { transform:scale(1.05); box-shadow:0 4px 12px rgba(0,0,0,.12); }
-.btn-buy:disabled, .disabled-buy { background:rgba(0,0,0,0.12) !important; color:var(--text-soft) !important; cursor:not-allowed; transform:none !important; box-shadow:none !important; }
+.btn-buy:disabled, .disabled-buy { background:rgba(0,0,0,0.12) !important; color:var(--text-soft) !important; cursor:not-allowed; pointer-events:none; transform:none !important; box-shadow:none !important; }
 
 .btn-toggle-on  { background:linear-gradient(135deg,var(--accent-2),#00ACC1); }
 .btn-toggle-off { background:transparent; color:var(--accent); border:1.5px solid var(--accent); }

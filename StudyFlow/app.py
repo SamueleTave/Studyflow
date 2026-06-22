@@ -12,7 +12,7 @@ import io
 import uuid
 import hashlib
 import json as json_lib
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 from flask import Flask, jsonify, request, send_from_directory, make_response, abort
 from flask_cors import CORS
 
@@ -38,7 +38,7 @@ else:
 
 
 def _now():
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def _parse_dt(v):
@@ -89,7 +89,8 @@ class _Conn:
                     try:
                         p = off.group(1).strip().split()
                         kw  = {'minute':'minutes','hour':'hours','day':'days'}.get(p[1].rstrip('s'),'minutes')
-                        new_params.append((datetime.now() + timedelta(**{kw: int(p[0])})).strftime('%Y-%m-%d %H:%M:%S'))
+                        base = datetime.now(timezone.utc)
+                        new_params.append((base + timedelta(**{kw: int(p[0])})).strftime('%Y-%m-%d %H:%M:%S'))
                     except Exception:
                         new_params.append(_now())
                 else:
@@ -1227,14 +1228,15 @@ def friends_invite_bonus():
 def notifications_list():
     me = get_auth_user(required=True)
     with get_db() as c:
-        # Inietta annunci globali non ancora ricevuti (match sul messaggio)
+        # Inietta solo annunci creati DOPO la registrazione dell'utente
         missing = c.execute("""
-            SELECT id, message, emoji FROM announcements
-            WHERE message NOT IN (
+            SELECT a.id, a.message, a.emoji FROM announcements a
+            WHERE a.message NOT IN (
                 SELECT message FROM notifications
                 WHERE user_id = ? AND type = 'announce'
             )
-        """, (me["id"],)).fetchall()
+            AND a.created_at >= (SELECT created_at FROM users WHERE id = ?)
+        """, (me["id"], me["id"])).fetchall()
         for ann in missing:
             c.execute(
                 "INSERT INTO notifications (user_id, type, message, emoji) VALUES (?, 'announce', ?, ?)",

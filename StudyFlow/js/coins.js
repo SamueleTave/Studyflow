@@ -136,6 +136,16 @@ const SHOP_ITEMS = [
   { id:'themeSunset',name:'Tema Tramonto',     desc:'Caldi colori arancio e rosa del tramonto.',          price:80,  type:'theme' },
   { id:'glow',       name:'Timer Glow',        desc:'Il ring del timer splende intensamente.',            price:60,  type:'timer' },
   { id:'pulsePro',   name:'Pulse Pro',         desc:'Pulsazione ritmica mentre sei in focus.',            price:60,  type:'timer' },
+  /* ── Suoni fine timer ── */
+  { id:'timerBell',  name:'Campanella',        desc:'Una dolce campanella che chiude ogni sessione con grazia.',    price:35, type:'timerSound' },
+  { id:'timerChime', name:'Carillon',          desc:'Quattro note pure in sequenza — melodioso e rilassante.',      price:35, type:'timerSound' },
+  { id:'timerGong',  name:'Gong Zen',          desc:'Un gong profondo che risuona come in un tempio zen.',          price:45, type:'timerSound' },
+  { id:'timerSoft',  name:'Ding Soft',         desc:'Un ding morbido e discreto per non interrompere il flusso.',  price:25, type:'timerSound' },
+  /* ── Widget premium ── */
+  { id:'widgetMusic',     name:'Widget Suoni',        desc:'Controllo suoni ambientali direttamente dal timer.',    price:80, type:'widget' },
+  { id:'widgetStats',     name:'Widget Statistiche',  desc:'Mini statistiche di sessione nella colonna timer.',     price:50, type:'widget' },
+  { id:'widgetMood',      name:'Widget Mood',         desc:'Traccia il tuo umore ogni giorno dalla pagina timer.',  price:60, type:'widget' },
+  { id:'widgetCountdown', name:'Widget Countdown',    desc:'Conto alla rovescia verso una scadenza importante.',    price:70, type:'widget' },
   /* ── Giardino 🌿 ── */
   { id:'tree',       name:'Albero',            desc:'Un albero frondoso sempreverde per il tuo giardino.',   price:80,  type:'garden' },
   { id:'cherryTree', name:'Ciliegio in Fiore', desc:'Un ciliegio rosa, sboccia mentre studi!',               price:120, type:'garden' },
@@ -196,7 +206,7 @@ let coinData = {
   challengesCompleted: 0,
   achievements: [],
   shop: {},
-  activeEffects: { stars:false, bubbles:false, catVisible:false, activeSound:'', glow:false, pulsePro:false, cat4legs:false, dogVisible:false, activeDogColor:'', campfire:false, rabbitVisible:false, activeRabbitColor:'', parrotVisible:false, foxVisible:false, owlVisible:false, lionVisible:false, giraffeVisible:false, raccoonVisible:false, dragonVisible:false, platypusVisible:false, gardenActive:{}, catHouseVisible:false, dogHouseVisible:false, rabbitHouseVisible:false, parrotHouseVisible:false, foxHouseVisible:false, owlHouseVisible:false, lionHouseVisible:false, giraffeHouseVisible:false, raccoonHouseVisible:false, dragonHouseVisible:false },
+  activeEffects: { stars:false, bubbles:false, catVisible:false, activeSound:'', activeTimerSound:'', glow:false, pulsePro:false, cat4legs:false, dogVisible:false, activeDogColor:'', campfire:false, rabbitVisible:false, activeRabbitColor:'', parrotVisible:false, foxVisible:false, owlVisible:false, lionVisible:false, giraffeVisible:false, raccoonVisible:false, dragonVisible:false, platypusVisible:false, gardenActive:{}, catHouseVisible:false, dogHouseVisible:false, rabbitHouseVisible:false, parrotHouseVisible:false, foxHouseVisible:false, owlHouseVisible:false, lionHouseVisible:false, giraffeHouseVisible:false, raccoonHouseVisible:false, dragonHouseVisible:false },
   challenge: null,
   challengeDate: '',
   challengeProgress: 0,
@@ -229,7 +239,9 @@ const SHOP_ICONS = {
   rabbitcolor: `<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>`,
   ambient:   `<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="4"/>`,
   effect:    `<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>`,
-  sound:     `<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>`,
+  sound:      `<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>`,
+  timerSound: `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>`,
+  widget:     `<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>`,
   theme:     `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`,
   timer:     `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>`,
   garden:    `<path d="M12 22V12"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M8 6h.01M12 2v4"/><path d="M16 6h.01"/><path d="M8 6c0-2.21 1.79-4 4-4s4 1.79 4 4c0 1.1-2 4-4 4S8 7.1 8 6z"/>`,
@@ -249,7 +261,7 @@ function loadCoinData() {
     coinData.shop          = coinData.shop || {};
     coinData.achievements  = coinData.achievements || [];
     coinData.activeEffects    = Object.assign(
-      { stars:false, bubbles:false, catVisible:false, activeSound:'', glow:false, pulsePro:false, cat4legs:false, dogVisible:false, activeDogColor:'', campfire:false, rabbitVisible:false, activeRabbitColor:'', parrotVisible:false, foxVisible:false, owlVisible:false, lionVisible:false, giraffeVisible:false, raccoonVisible:false, dragonVisible:false, platypusVisible:false, gardenActive:{}, catHouseVisible:false, dogHouseVisible:false, rabbitHouseVisible:false, parrotHouseVisible:false, foxHouseVisible:false, owlHouseVisible:false, lionHouseVisible:false, giraffeHouseVisible:false, raccoonHouseVisible:false, dragonHouseVisible:false },
+      { stars:false, bubbles:false, catVisible:false, activeSound:'', activeTimerSound:'', glow:false, pulsePro:false, cat4legs:false, dogVisible:false, activeDogColor:'', campfire:false, rabbitVisible:false, activeRabbitColor:'', parrotVisible:false, foxVisible:false, owlVisible:false, lionVisible:false, giraffeVisible:false, raccoonVisible:false, dragonVisible:false, platypusVisible:false, gardenActive:{}, catHouseVisible:false, dogHouseVisible:false, rabbitHouseVisible:false, parrotHouseVisible:false, foxHouseVisible:false, owlHouseVisible:false, lionHouseVisible:false, giraffeHouseVisible:false, raccoonHouseVisible:false, dragonHouseVisible:false },
       coinData.activeEffects || {}
     );
     coinData.rewardedTaskIds  = coinData.rewardedTaskIds || [];
@@ -471,7 +483,7 @@ function buyItem(id) {
   }
 
   if (item.req && !coinData.shop[item.req]) {
-    const reqNames = { cat:'Gatto', dog:'Cagnolino', rabbit:'Coniglietto' };
+    const reqNames = { cat:'Gatto', dog:'Cagnolino', rabbit:'Coniglietto', raccoon:'Procione', fox:'Volpe', parrot:'Pappagallo', owl:'Gufo', lion:'Leone', giraffe:'Giraffa', dragon:'Drago', platypus:'Ornitorinco' };
     const reqName  = reqNames[item.req] || item.req;
     _showAchievNotif(
       'Requisito mancante',
@@ -538,6 +550,20 @@ function _activateShopEffect(id) {
       coinData.activeEffects.activeSound = 'forest';
       _playAmbientCoin('forest');
       break;
+    case 'timerBell': case 'timerChime': case 'timerGong': case 'timerSoft': {
+      const _snd = id.replace('timer','').toLowerCase();
+      coinData.activeEffects.activeTimerSound = _snd;
+      if (typeof playBeep === 'function') playBeep();
+      break;
+    }
+    case 'widgetMusic': case 'widgetStats': case 'widgetMood': case 'widgetCountdown': {
+      const _wid = id.replace('widget','').toLowerCase();
+      const _ws = JSON.parse(localStorage.getItem('sf_widgets') || '{}');
+      _ws.unlocked = _ws.unlocked || [];
+      if (!_ws.unlocked.includes(_wid)) _ws.unlocked.push(_wid);
+      localStorage.setItem('sf_widgets', JSON.stringify(_ws));
+      break;
+    }
     case 'themeNight':
       applyTheme('night', true);
       break;
@@ -696,6 +722,19 @@ function _toggleShopEffect(id) {
       }
       break;
     }
+    case 'timerBell': case 'timerChime': case 'timerGong': case 'timerSoft': {
+      const _tsnd = id.replace('timer','').toLowerCase();
+      if (coinData.activeEffects.activeTimerSound === _tsnd) {
+        coinData.activeEffects.activeTimerSound = '';
+      } else {
+        coinData.activeEffects.activeTimerSound = _tsnd;
+        if (typeof playBeep === 'function') playBeep();
+      }
+      break;
+    }
+    case 'widgetMusic': case 'widgetStats': case 'widgetMood': case 'widgetCountdown':
+      location.href = 'index.html';
+      break;
     case 'themeNight': {
       const cur = document.documentElement.getAttribute('data-theme');
       applyTheme(cur === 'night' ? 'ocean' : 'night', true);
@@ -999,20 +1038,28 @@ function restoreActiveEffects() {
   if (coinData.activeEffects.foxVisible && coinData.shop.fox && typeof showFox === 'function') showFox();
   if (coinData.activeEffects.owlVisible && coinData.shop.owl && typeof showOwl === 'function') showOwl();
   if (coinData.activeEffects.lionVisible && coinData.shop.lion && typeof showLion === 'function') showLion();
-  if (coinData.activeEffects.catHouseVisible    && coinData.shop.catHouse    && typeof showCatHouse    === 'function') showCatHouse();
-  if (coinData.activeEffects.dogHouseVisible    && coinData.shop.dogHouse    && typeof showDogHouse    === 'function') showDogHouse();
-  if (coinData.activeEffects.rabbitHouseVisible && coinData.shop.rabbitHouse && typeof showRabbitHouse === 'function') showRabbitHouse();
-  if (coinData.activeEffects.parrotHouseVisible && coinData.shop.parrotHouse && typeof showParrotHouse === 'function') showParrotHouse();
-  if (coinData.activeEffects.foxHouseVisible    && coinData.shop.foxHouse    && typeof showFoxHouse    === 'function') showFoxHouse();
-  if (coinData.activeEffects.owlHouseVisible    && coinData.shop.owlHouse    && typeof showOwlHouse    === 'function') showOwlHouse();
-  if (coinData.activeEffects.lionHouseVisible   && coinData.shop.lionHouse   && typeof showLionHouse   === 'function') showLionHouse();
-  if (coinData.activeEffects.giraffeVisible     && coinData.shop.giraffe    && typeof showGiraffe     === 'function') showGiraffe();
-  if (coinData.activeEffects.giraffeHouseVisible && coinData.shop.giraffeHouse && typeof showGiraffeHouse === 'function') showGiraffeHouse();
-  if (coinData.activeEffects.raccoonVisible    && coinData.shop.raccoon    && typeof showRaccoon    === 'function') showRaccoon();
-  if (coinData.activeEffects.dragonVisible      && coinData.shop.dragon      && typeof showDragon     === 'function') showDragon();
-  if (coinData.activeEffects.platypusVisible    && coinData.shop.platypus    && typeof showPlatypus   === 'function') showPlatypus();
-  if (coinData.activeEffects.raccoonHouseVisible && coinData.shop.raccoonHouse && typeof showRaccoonHouse === 'function') showRaccoonHouse();
-  if (coinData.activeEffects.dragonHouseVisible  && coinData.shop.dragonHouse  && typeof showDragonHouse  === 'function') showDragonHouse();
+  /* Casette: se la casa è attiva ma l'animale non lo è, attivalo (serve per il ciclo sonno) */
+  let _houseNeedsSave = false;
+  function _ensureAnimalVisible(visKey, shopKey, showFnName) {
+    if (!coinData.activeEffects[visKey] && coinData.shop[shopKey] && typeof window[showFnName] === 'function') {
+      coinData.activeEffects[visKey] = true; window[showFnName](); _houseNeedsSave = true;
+    }
+  }
+  if (coinData.activeEffects.giraffeVisible  && coinData.shop.giraffe  && typeof showGiraffe  === 'function') showGiraffe();
+  if (coinData.activeEffects.raccoonVisible  && coinData.shop.raccoon  && typeof showRaccoon  === 'function') showRaccoon();
+  if (coinData.activeEffects.dragonVisible   && coinData.shop.dragon   && typeof showDragon   === 'function') showDragon();
+  if (coinData.activeEffects.platypusVisible && coinData.shop.platypus && typeof showPlatypus === 'function') showPlatypus();
+  if (coinData.activeEffects.catHouseVisible    && coinData.shop.catHouse)    { _ensureAnimalVisible('catVisible','cat','showCat');         if (typeof showCatHouse    === 'function') showCatHouse(); }
+  if (coinData.activeEffects.dogHouseVisible    && coinData.shop.dogHouse)    { _ensureAnimalVisible('dogVisible','dog','showDog');         if (typeof showDogHouse    === 'function') showDogHouse(); }
+  if (coinData.activeEffects.rabbitHouseVisible && coinData.shop.rabbitHouse) { _ensureAnimalVisible('rabbitVisible','rabbit','showRabbit'); if (typeof showRabbitHouse === 'function') showRabbitHouse(); }
+  if (coinData.activeEffects.parrotHouseVisible && coinData.shop.parrotHouse) { _ensureAnimalVisible('parrotVisible','parrot','showParrot'); if (typeof showParrotHouse === 'function') showParrotHouse(); }
+  if (coinData.activeEffects.foxHouseVisible    && coinData.shop.foxHouse)    { _ensureAnimalVisible('foxVisible','fox','showFox');         if (typeof showFoxHouse    === 'function') showFoxHouse(); }
+  if (coinData.activeEffects.owlHouseVisible    && coinData.shop.owlHouse)    { _ensureAnimalVisible('owlVisible','owl','showOwl');         if (typeof showOwlHouse    === 'function') showOwlHouse(); }
+  if (coinData.activeEffects.lionHouseVisible   && coinData.shop.lionHouse)   { _ensureAnimalVisible('lionVisible','lion','showLion');       if (typeof showLionHouse   === 'function') showLionHouse(); }
+  if (coinData.activeEffects.giraffeHouseVisible && coinData.shop.giraffeHouse) { _ensureAnimalVisible('giraffeVisible','giraffe','showGiraffe'); if (typeof showGiraffeHouse === 'function') showGiraffeHouse(); }
+  if (coinData.activeEffects.raccoonHouseVisible && coinData.shop.raccoonHouse) { _ensureAnimalVisible('raccoonVisible','raccoon','showRaccoon'); if (typeof showRaccoonHouse === 'function') showRaccoonHouse(); }
+  if (coinData.activeEffects.dragonHouseVisible  && coinData.shop.dragonHouse)  { _ensureAnimalVisible('dragonVisible','dragon','showDragon');   if (typeof showDragonHouse  === 'function') showDragonHouse(); }
+  if (_houseNeedsSave) saveCoinData();
   if (coinData.activeEffects.aurora             && coinData.shop.aurora)     _showAurora();
   /* Ripristina oggetti giardino — solo quelli non esplicitamente disattivati */
   if (typeof GARDEN_CATALOG !== 'undefined' && typeof placeGardenItem === 'function') {
@@ -1132,9 +1179,18 @@ async function renderShopPage() {
       if (item.id === 'lionHouse')   active = !!coinData.activeEffects.lionHouseVisible;
       if (item.id === 'giraffe')      active = !!coinData.activeEffects.giraffeVisible;
       if (item.id === 'giraffeHouse') active = !!coinData.activeEffects.giraffeHouseVisible;
+      if (item.type === 'timerSound') {
+        const _ts = item.id.replace('timer','').toLowerCase();
+        active = coinData.activeEffects.activeTimerSound === _ts;
+      }
       const _colorTypes = ['catcolor', 'dogcolor', 'rabbitcolor'];
-      btnLabel = active ? 'Attivo' : (_colorTypes.includes(item.type) ? 'Applica' : 'Attiva');
-      btnClass = 'btn-buy ' + (active ? 'btn-toggle-on' : 'btn-toggle-off');
+      if (item.type === 'widget') {
+        btnLabel = '→ Timer';
+        btnClass = 'btn-buy btn-toggle-off';
+      } else {
+        btnLabel = active ? 'Attivo' : (_colorTypes.includes(item.type) ? 'Applica' : 'Attiva');
+        btnClass = 'btn-buy ' + (active ? 'btn-toggle-on' : 'btn-toggle-off');
+      }
     }
 
     const disabledAttr = (!owned && (!roleUnlocked || !canBuy || (item.req && !reqMet))) ? ' disabled' : '';
@@ -1166,12 +1222,14 @@ async function renderShopPage() {
     </div>`;
   }
 
-  const gardenItems    = SHOP_ITEMS.filter(i => i.type === 'garden' && !_shopDisabledItems.includes(i.id));
-  const companionItems = SHOP_ITEMS.filter(i => i.type === 'companion' && !_shopDisabledItems.includes(i.id));
-  const houseItems     = SHOP_ITEMS.filter(i => (i.type === 'house' || i.type === 'ambient') && !_shopDisabledItems.includes(i.id));
-  const colorItems     = SHOP_ITEMS.filter(i => ['catcolor','dogcolor','rabbitcolor'].includes(i.type) && !_shopDisabledItems.includes(i.id));
-  const effectItems    = SHOP_ITEMS.filter(i => (i.type === 'effect' || i.type === 'timer') && !_shopDisabledItems.includes(i.id));
-  const soundItems     = SHOP_ITEMS.filter(i => (i.type === 'sound' || i.type === 'theme') && !_shopDisabledItems.includes(i.id));
+  const gardenItems     = SHOP_ITEMS.filter(i => i.type === 'garden' && !_shopDisabledItems.includes(i.id));
+  const companionItems  = SHOP_ITEMS.filter(i => i.type === 'companion' && !_shopDisabledItems.includes(i.id));
+  const houseItems      = SHOP_ITEMS.filter(i => (i.type === 'house' || i.type === 'ambient') && !_shopDisabledItems.includes(i.id));
+  const colorItems      = SHOP_ITEMS.filter(i => ['catcolor','dogcolor','rabbitcolor'].includes(i.type) && !_shopDisabledItems.includes(i.id));
+  const effectItems     = SHOP_ITEMS.filter(i => (i.type === 'effect' || i.type === 'timer') && !_shopDisabledItems.includes(i.id));
+  const soundItems      = SHOP_ITEMS.filter(i => (i.type === 'sound' || i.type === 'theme') && !_shopDisabledItems.includes(i.id));
+  const timerSoundItems = SHOP_ITEMS.filter(i => i.type === 'timerSound' && !_shopDisabledItems.includes(i.id));
+  const widgetItems     = SHOP_ITEMS.filter(i => i.type === 'widget' && !_shopDisabledItems.includes(i.id));
 
   const _fill = (id, items) => {
     const el = document.getElementById(id);
@@ -1180,11 +1238,13 @@ async function renderShopPage() {
 
   if (document.getElementById('shop-companions-grid')) {
     /* Nuova struttura a sezioni */
-    _fill('shop-companions-grid', companionItems);
-    _fill('shop-houses-grid',     houseItems);
-    _fill('shop-colors-grid',     colorItems);
-    _fill('shop-effects-grid',    effectItems);
-    _fill('shop-sounds-grid',     soundItems);
+    _fill('shop-companions-grid',   companionItems);
+    _fill('shop-houses-grid',       houseItems);
+    _fill('shop-colors-grid',       colorItems);
+    _fill('shop-effects-grid',      effectItems);
+    _fill('shop-sounds-grid',       soundItems);
+    _fill('shop-timer-sounds-grid', timerSoundItems);
+    _fill('shop-widgets-grid',      widgetItems);
   } else if (grid) {
     /* Fallback vecchia struttura */
     const mainItems = SHOP_ITEMS.filter(i => i.type !== 'garden' && !_shopDisabledItems.includes(i.id));
@@ -1296,7 +1356,7 @@ function renderDailyDeal() {
         <div class="deal-desc">${item.desc}</div>
         <div class="deal-price">
           <span class="deal-original">${item.price}</span>${coinSvg}
-          <span class="deal-save-badge">-${saved} 🪙</span>
+          <span class="deal-save-badge">-${saved} ${coinSvg}</span>
           <span class="deal-sale">${salePrice}</span>${coinSvg}
         </div>
       </div>
@@ -1304,7 +1364,7 @@ function renderDailyDeal() {
     <div class="deal-foot">
       <button class="deal-btn ${owned ? 'deal-owned' : canBuy ? '' : 'deal-poor'}"
         onclick="buyDailyDeal()" ${owned || !canBuy ? 'disabled' : ''}>
-        ${owned ? '✓ Già in tuo possesso' : canBuy ? `🛒 Acquista ora — ${salePrice} ${coinSvg}` : '🪙 Monete insufficienti'}
+        ${owned ? '✓ Già in tuo possesso' : canBuy ? `🛒 Acquista ora — ${salePrice} ${coinSvg}` : `${coinSvg} Monete insufficienti`}
       </button>
     </div>`;
 }

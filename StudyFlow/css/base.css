@@ -153,6 +153,68 @@ a { text-decoration: none; color: inherit; touch-action: manipulation; }
 .stat-pill-val   { font-size: 1.15rem; font-weight: 700; line-height: 1; }
 .stat-pill-label { font-size: 0.58rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
 
+/* ── Streak: scala colore per giorni consecutivi ──────────────────────────
+   3-6   warm    arancione caldo
+   7-13  hot     rosso fuoco  🔥
+   14-20 inferno rosso intenso 🔥
+   21-29 violet  viola elettrico ⚡
+   30-39 fuchsia fucsia luminoso 💫
+   40-49 gold    dorato ✨
+   50-59 teal    ciano elettrico 🌊
+   60-74 cosmic  indaco cosmico 🌌
+   75-99 rainbow arcobaleno animato 🌈
+   100+  diamond platino diamante 💎
+──────────────────────────────────────────────────────────────────────── */
+.streak-warm    { color: #F97316; }
+.streak-hot     { color: #EF4444; }
+.streak-inferno { color: #DC2626; text-shadow: 0 0 8px rgba(220,38,38,0.5); }
+.streak-violet  { color: #A78BFA; text-shadow: 0 0 10px rgba(139,92,246,0.5); }
+.streak-fuchsia { color: #F472B6; text-shadow: 0 0 10px rgba(236,72,153,0.5); }
+.streak-gold    { color: #FBBF24; text-shadow: 0 0 12px rgba(245,158,11,0.6); }
+.streak-teal    { color: #22D3EE; text-shadow: 0 0 12px rgba(6,182,212,0.55); }
+.streak-cosmic  { color: #818CF8; text-shadow: 0 0 8px #818CF8, 0 0 22px rgba(99,102,241,0.5); }
+.streak-rainbow {
+  background: linear-gradient(90deg,#EF4444,#F97316,#FBBF24,#10B981,#22D3EE,#818CF8,#F472B6,#EF4444);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; background-size: 300% auto;
+  animation: streakRainbow 3s linear infinite;
+}
+.streak-diamond { color: #E0F2FE; text-shadow: 0 0 8px #fff, 0 0 18px #93C5FD, 0 0 35px rgba(147,197,253,0.55); }
+
+/* Pill backgrounds */
+.streak-pill-warm    { background: rgba(249,115,22,0.09) !important; border-color: rgba(249,115,22,0.30) !important; }
+.streak-pill-hot     { background: rgba(239,68,68,0.10) !important;  border-color: rgba(239,68,68,0.32) !important; }
+.streak-pill-inferno { background: rgba(220,38,38,0.12) !important;  border-color: rgba(220,38,38,0.40) !important; animation: streakPulse 2.4s ease-in-out infinite; }
+.streak-pill-violet  { background: rgba(139,92,246,0.10) !important; border-color: rgba(167,139,250,0.38) !important; animation: streakPulse 2.6s ease-in-out infinite; }
+.streak-pill-fuchsia { background: rgba(236,72,153,0.10) !important; border-color: rgba(244,114,182,0.42) !important; animation: streakPulse 2.2s ease-in-out infinite; }
+.streak-pill-gold    { background: rgba(245,158,11,0.12) !important; border-color: rgba(251,191,36,0.45) !important; animation: streakPulse 2.8s ease-in-out infinite; }
+.streak-pill-teal    { background: rgba(6,182,212,0.10) !important;  border-color: rgba(34,211,238,0.40) !important; animation: streakPulse 2.4s ease-in-out infinite; }
+.streak-pill-cosmic  { background: rgba(99,102,241,0.12) !important; border-color: rgba(129,140,248,0.44) !important; animation: streakPulse 2s ease-in-out infinite; }
+.streak-pill-rainbow { background: rgba(236,72,153,0.07) !important; border-color: rgba(129,140,248,0.45) !important; animation: streakRainbowBorder 3s linear infinite; }
+.streak-pill-diamond { background: rgba(224,242,254,0.14) !important; border-color: rgba(147,197,253,0.60) !important; animation: streakDiamond 2s ease-in-out infinite; }
+
+@keyframes streakPulse {
+  0%,100% { box-shadow: 0 0 0 0 transparent; }
+  50%     { box-shadow: 0 0 8px 2px rgba(255,255,255,0.08); }
+}
+@keyframes streakRainbow {
+  0% { background-position: 0% center; }
+  100% { background-position: 300% center; }
+}
+@keyframes streakRainbowBorder {
+  0%   { border-color: rgba(239,68,68,0.5) !important; }
+  17%  { border-color: rgba(249,115,22,0.5) !important; }
+  33%  { border-color: rgba(251,191,36,0.5) !important; }
+  50%  { border-color: rgba(34,211,238,0.5) !important; }
+  67%  { border-color: rgba(129,140,248,0.5) !important; }
+  83%  { border-color: rgba(244,114,182,0.5) !important; }
+  100% { border-color: rgba(239,68,68,0.5) !important; }
+}
+@keyframes streakDiamond {
+  0%,100% { box-shadow: 0 0 6px rgba(147,197,253,0.3); }
+  50%     { box-shadow: 0 0 14px rgba(147,197,253,0.55), 0 0 4px rgba(255,255,255,0.4); }
+}
+
 /* Confetti */
 .cfp {
   position: fixed;
@@ -482,6 +544,13 @@ body.focus-mode .focus-exit-btn { display: flex !important; }
   .clock-bar { padding-left: 62px; }
 }
 
+/* iPhone notch / Dynamic Island safe area */
+@supports (padding: env(safe-area-inset-bottom)) {
+  @media (max-width: 960px) {
+    body { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  }
+}
+
 /* Responsive — mobile */
 @media (max-width: 600px) {
   /* Clock bar: semplificato, non trabocca più */
@@ -535,13 +604,9 @@ body.focus-mode .focus-exit-btn { display: flex !important; }
   transform: translateZ(0);
 }
 
-/* Su mobile nasconde tutti gli animali — performance critica */
+/* Su mobile: casette e falò nascosti (troppo ingombranti), animali visibili */
 @media (max-width: 768px) {
-  .cat-companion, .dog-companion, .fox-companion,
-  .rabbit-companion, .parrot-companion, .owl-companion,
-  .lion-companion, .raccoon-companion, .dragon-companion, .platypus-companion,
-  .giraffe-companion, .campfire-wrap, .animal-house,
-  .animal-bubble { display: none !important; }
+  .campfire-wrap, .animal-house { display: none !important; }
 }
 
 /* ══════════════════════════════════════

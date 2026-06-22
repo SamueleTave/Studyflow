@@ -1102,9 +1102,11 @@
 ══════════════════════════════════ */
 [data-ts="thin"]     .timer-display { font-size: 5rem;   font-weight: 100; letter-spacing: 8px; }
 [data-ts="bold"]     .timer-display { font-size: 3.6rem; font-weight: 900; letter-spacing: 1px; }
-[data-ts="orbitron"] .timer-display { font-family: 'Orbitron', sans-serif; font-size: 2.9rem; font-weight: 700; letter-spacing: 4px; }
-[data-ts="bebas"]    .timer-display { font-family: 'Bebas Neue', cursive; font-size: 5.2rem; font-weight: 400; letter-spacing: 6px; }
-[data-ts="serif"]    .timer-display { font-family: 'Playfair Display', serif; font-size: 4rem; font-weight: 700; letter-spacing: -1px; }
+[data-ts="orbitron"]   .timer-display { font-family: 'Orbitron', sans-serif; font-size: 2.9rem; font-weight: 700; letter-spacing: 4px; }
+[data-ts="bebas"]      .timer-display { font-family: 'Bebas Neue', cursive; font-size: 5.2rem; font-weight: 400; letter-spacing: 6px; }
+[data-ts="serif"]      .timer-display { font-family: 'Playfair Display', serif; font-size: 4rem; font-weight: 700; letter-spacing: -1px; }
+[data-ts="spacemono"]  .timer-display { font-family: 'Space Mono', monospace; font-size: 3rem; font-weight: 700; letter-spacing: 3px; }
+[data-ts="neon"]       .timer-display { font-size: 4rem; font-weight: 200; letter-spacing: 8px; color: #00e5ff; text-shadow: 0 0 8px #00e5ff, 0 0 20px #0090ff, 0 0 40px rgba(0,144,255,0.5); }
 
 /* ══════════════════════════════════
    CLOCK STYLE VARIANTS  (data-cs su #clock-card)
@@ -1242,7 +1244,19 @@
   margin-bottom: 20px;
   display: flex; align-items: center; justify-content: space-between;
   letter-spacing: -0.01em;
+  position: relative;
 }
+.sp-title::after {
+  content: '✓ Salvato';
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  font-size: 0.72rem; font-weight: 600;
+  color: #10B981;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.sp-title[data-saved="1"]::after { opacity: 1; }
 
 .sp-close {
   background: var(--card-border);
@@ -1299,9 +1313,11 @@
 .sp-t-minimal  { font-size: 1.5rem; font-weight: 200; letter-spacing: 2px; }
 .sp-t-thin     { font-size: 1.5rem; font-weight: 100; letter-spacing: 4px; }
 .sp-t-bold     { font-size: 1.3rem; font-weight: 900; letter-spacing: 0.5px; }
-.sp-t-orbitron { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; letter-spacing: 2px; }
-.sp-t-bebas    { font-family: 'Bebas Neue', cursive; font-size: 1.8rem; letter-spacing: 5px; }
-.sp-t-serif    { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; }
+.sp-t-orbitron   { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; letter-spacing: 2px; }
+.sp-t-bebas      { font-family: 'Bebas Neue', cursive; font-size: 1.8rem; letter-spacing: 5px; }
+.sp-t-serif      { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; }
+.sp-t-spacemono  { font-family: 'Space Mono', monospace; font-size: 1.1rem; font-weight: 700; letter-spacing: 2px; }
+.sp-t-neon       { font-size: 1.4rem; font-weight: 200; letter-spacing: 4px; color: #00e5ff; text-shadow: 0 0 6px #00e5ff, 0 0 14px #0090ff; }
 
 /* ── Clock previews ── */
 .sp-c { width: 100%; border-radius: 8px; padding: 5px 7px; display: flex; align-items: center; gap: 5px; overflow: hidden; }

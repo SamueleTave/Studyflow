@@ -750,6 +750,7 @@
   })();
 
   const AUTH = _adminAuth;
+  const COIN_SVG = '<svg width="13" height="13" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle;display:inline-block;flex-shrink:0"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg>';
 
   function logout() { sessionStorage.removeItem('sf_auth'); location.replace('login.html'); }
 
@@ -816,7 +817,7 @@
   function renderStats(users) {
     document.getElementById('statTotal').textContent    = users.length;
     document.getElementById('statSessions').textContent = users.reduce((s,u) => s + (u.session_count||0), 0);
-    document.getElementById('statCoins').textContent    = users.reduce((s,u) => s + (u.coins||0), 0) + ' 🪙';
+    document.getElementById('statCoins').innerHTML    = users.reduce((s,u) => s + (u.coins||0), 0) + ' ' + COIN_SVG;
     const last = users.find(u => u.last_seen);
     if (last) {
       document.getElementById('statLast').textContent    = fmtDate(last.last_seen);
@@ -827,9 +828,9 @@
   function fmtDate(dt) {
     if (!dt) return '—';
     try {
-      const d = new Date(dt);
-      return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit'}) +
-             ' ' + d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+      const d = new Date(dt.replace(' ', 'T') + 'Z');
+      return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit',timeZone:'Europe/Rome'}) +
+             ' ' + d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Rome'});
     } catch { return dt; }
   }
 
@@ -862,7 +863,7 @@
             ${adminTag}
           </div>
         </td>
-        <td><span class="coin-value" id="coin-val-${u.id}">${u.coins} 🪙</span></td>
+        <td><span class="coin-value" id="coin-val-${u.id}">${u.coins} ${COIN_SVG}</span></td>
         <td>
           <span class="role-badge" style="color:${role.color};background:${role.bg};border-color:${role.border}">
             ${role.emoji} ${role.name}${forcedTag}
@@ -1073,7 +1074,7 @@
 
       <div class="edit-section">
         <div class="edit-section-title">Monete & Statistiche</div>
-        <div class="edit-row"><label>Monete (balance) 🪙</label>
+        <div class="edit-row"><label>Monete (balance) ${COIN_SVG}</label>
           <input class="edit-input" type="number" id="edit-balance" min="0" max="999999" value="${coins.balance||0}"></div>
         <div class="edit-row"><label>Monete guadagnate totali</label>
           <input class="edit-input" type="number" id="edit-earned" min="0" value="${coins.totalEarned||0}"></div>
@@ -1199,7 +1200,7 @@
 
       /* Aggiorna UI tabella */
       const el = document.getElementById('coin-val-' + uid);
-      if (el) el.textContent = balance + ' 🪙';
+      if (el) el.innerHTML = balance + ' ' + COIN_SVG;
       const u = _users.find(x => x.id === uid);
       if (u) { u.coins = balance; u.session_count = sessions; u.role_override = roleOverride; }
       renderStats(_users); renderTable(_users);
@@ -1289,7 +1290,7 @@
     renderStats(_users); renderTable(_users);
     sessionStorage.setItem('_sf_admin_users', JSON.stringify(_users));
     btn.disabled = false; btn.textContent = '🎁 Invia bonus';
-    toast('🎁 Bonus di ' + amount + ' 🪙 inviato a ' + done + ' utenti!');
+    toast('🎁 Bonus di ' + amount + ' monete inviato a ' + done + ' utenti!');
     if (reason) {
       try {
         await apiFetch('/api/admin/notifications/announce', {

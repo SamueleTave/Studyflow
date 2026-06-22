@@ -163,24 +163,62 @@ function getAudioCtx() {
   return audioCtx;
 }
 
+function _makeBeepNote(ctx, freq, when, dur, vol) {
+  const osc = ctx.createOscillator();
+  const g   = ctx.createGain();
+  osc.connect(g); g.connect(ctx.destination);
+  osc.type = 'sine'; osc.frequency.value = freq;
+  const t = ctx.currentTime + when;
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.05);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.start(t); osc.stop(t + dur + 0.05);
+}
+
+function _playSoundBell() {
+  try {
+    const ctx = getAudioCtx();
+    /* campanella: armonici che si smorzano lentamente */
+    [[880,0,0.9,0.18],[1760,0,0.65,0.10],[2640,0.01,0.45,0.07]].forEach(([f,w,d,v]) => _makeBeepNote(ctx,f,w,d,v));
+  } catch(e){}
+}
+
+function _playSoundChime() {
+  try {
+    const ctx = getAudioCtx();
+    /* carillon: sequenza di note C-E-G-C */
+    [[523,0,0.55,0.22],[659,0.19,0.55,0.20],[784,0.38,0.55,0.18],[1047,0.57,0.7,0.22]].forEach(([f,w,d,v]) => _makeBeepNote(ctx,f,w,d,v));
+  } catch(e){}
+}
+
+function _playSoundGong() {
+  try {
+    const ctx = getAudioCtx();
+    /* gong zen: bassa frequenza, lunga coda */
+    [[110,0,2.8,0.20],[220,0,2.0,0.14],[330,0.02,1.4,0.08]].forEach(([f,w,d,v]) => _makeBeepNote(ctx,f,w,d,v));
+  } catch(e){}
+}
+
+function _playSoundSoft() {
+  try {
+    const ctx = getAudioCtx();
+    /* ding soft: delicato e discreto */
+    [[660,0,0.38,0.10],[990,0.22,0.30,0.07]].forEach(([f,w,d,v]) => _makeBeepNote(ctx,f,w,d,v));
+  } catch(e){}
+}
+
 function playBeep() {
   if (!cfg.sound) return;
   try {
+    /* Controlla suono timer attivo */
+    const activeSnd = (typeof coinData !== 'undefined') ? (coinData.activeEffects.activeTimerSound || '') : '';
+    if (activeSnd === 'bell')  { _playSoundBell();  return; }
+    if (activeSnd === 'chime') { _playSoundChime(); return; }
+    if (activeSnd === 'gong')  { _playSoundGong();  return; }
+    if (activeSnd === 'soft')  { _playSoundSoft();  return; }
+    /* Default: doppio beep */
     const ctx = getAudioCtx();
-    [[880, 0, 0.55], [1100, 0.32, 0.4]].forEach(([freq, when, dur]) => {
-      const osc = ctx.createOscillator();
-      const g   = ctx.createGain();
-      osc.connect(g);
-      g.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      const t = ctx.currentTime + when;
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.26, t + 0.05);
-      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-      osc.start(t);
-      osc.stop(t + dur + 0.05);
-    });
+    [[880, 0, 0.55, 0.26], [1100, 0.32, 0.4, 0.22]].forEach(([f,w,d,v]) => _makeBeepNote(ctx,f,w,d,v));
   } catch (e) { /* silenzio */ }
 }
 
@@ -657,49 +695,49 @@ const SF_ROLES = [
     color: '#6b7280', bg: 'rgba(107,114,128,0.12)',
     grad: ['#9ca3af','#6b7280'], coinBonus: 0,
     perk: 'Punto di partenza',
-    perks: ['⏱ Timer Pomodoro base', '🪙 Monete standard per sessione'] },
+    perks: ['⏱ Timer Pomodoro base', '<svg width="11" height="11" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle;display:inline-block"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg> Monete standard per sessione'] },
 
   { min:   1, key: 'studente',
     emoji: '📖', name: 'Studente',
     color: '#3b82f6', bg: 'rgba(59,130,246,0.13)',
     grad: ['#60a5fa','#3b82f6'], coinBonus: 2,
     perk: 'Widget Citazione sbloccato',
-    perks: ['💬 Widget Citazione motivazionale', '🪙 +2 monete per sessione', '🤝 Accesso alle sfide amici'] },
+    perks: ['💬 Widget Citazione motivazionale', '<svg width="11" height="11" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle;display:inline-block"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg> +2 monete per sessione', '🤝 Accesso alle sfide amici'] },
 
   { min:  10, key: 'applicato',
     emoji: '🎯', name: 'Applicato',
     color: '#8b5cf6', bg: 'rgba(139,92,246,0.13)',
     grad: ['#a78bfa','#8b5cf6'], coinBonus: 3,
     perk: 'Tema Viola sbloccato',
-    perks: ['🎨 Tema Viola e Smeraldo', '🐰 Coniglio compagno', '🪙 +3 monete per sessione', '📊 Statistiche avanzate'] },
+    perks: ['🎨 Tema Viola e Smeraldo', '🐰 Coniglio compagno', '<svg width="11" height="11" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle;display:inline-block"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg> +3 monete per sessione', '📊 Statistiche avanzate'] },
 
   { min:  25, key: 'determinato',
     emoji: '🔥', name: 'Determinato',
     color: '#f97316', bg: 'rgba(249,115,22,0.15)',
     grad: ['#fb923c','#f97316'], coinBonus: 5,
     perk: 'Coniglio compagno interattivo',
-    perks: ['🔥 Animali interattivi sbloccati', '⚡ Sfide premium accesso', '🪙 +5 monete per sessione', '🏅 Badge fuoco in classifica'] },
+    perks: ['🔥 Animali interattivi sbloccati', '⚡ Sfide premium accesso', '<svg width="11" height="11" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle;display:inline-block"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg> +5 monete per sessione', '🏅 Badge fuoco in classifica'] },
 
   { min:  50, key: 'studioso',
     emoji: '⭐', name: 'Studioso',
     color: '#10b981', bg: 'rgba(16,185,129,0.14)',
     grad: ['#34d399','#10b981'], coinBonus: 8,
     perk: 'Tema Foresta sbloccato',
-    perks: ['🌲 Tema Foresta esclusivo', '🦉 Tutti gli animali base', '🪙 +8 monete per sessione', '🥇 Bordo verde in classifica'] },
+    perks: ['🌲 Tema Foresta esclusivo', '🦉 Tutti gli animali base', '<svg width="11" height="11" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle;display:inline-block"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg> +8 monete per sessione', '🥇 Bordo verde in classifica'] },
 
   { min: 100, key: 'esperto',
     emoji: '💎', name: 'Esperto',
     color: '#06b6d4', bg: 'rgba(6,182,212,0.14)',
     grad: ['#22d3ee','#06b6d4'], coinBonus: 12,
     perk: 'Tutti gli animali sbloccati',
-    perks: ['💎 Tutti gli animali premium', '📐 Widget taglia XL', '🪙 +12 monete per sessione', '✨ Frame speciale profilo classifica'] },
+    perks: ['💎 Tutti gli animali premium', '📐 Widget taglia XL', '<svg width="11" height="11" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle;display:inline-block"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg> +12 monete per sessione', '✨ Frame speciale profilo classifica'] },
 
   { min: 200, key: 'maestro',
     emoji: '🏆', name: 'Maestro',
     color: '#f59e0b', bg: 'rgba(245,158,11,0.18)',
     grad: ['#fcd34d','#f59e0b'], coinBonus: 20,
     perk: 'Tutto sbloccato — titolo esclusivo',
-    perks: ['👑 Titolo Maestro nel profilo', '🏆 Bordo oro in classifica', '🪙 +20 monete per sessione', '🎁 Tutto sbloccato per sempre'] },
+    perks: ['👑 Titolo Maestro nel profilo', '🏆 Bordo oro in classifica', '<svg width="11" height="11" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle;display:inline-block"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg> +20 monete per sessione', '🎁 Tutto sbloccato per sempre'] },
 ];
 
 function _getBackendRole(sessionCount) {
@@ -784,7 +822,7 @@ function _showRoleLevelUpToast(role) {
     '</div>' +
     '<div style="height:1px;background:' + role.color + '25;margin-bottom:8px"></div>' +
     '<div style="font-size:0.75rem;color:#374151;font-weight:600">🎁 ' + unlockText + '</div>' +
-    '<div style="font-size:0.7rem;color:#9ca3af;margin-top:3px">' + (role.coinBonus > 0 ? '+' + role.coinBonus + ' 🪙 per ogni sessione da ora in poi' : '') + '</div>';
+    '<div style="font-size:0.7rem;color:#9ca3af;margin-top:3px">' + (role.coinBonus > 0 ? '+' + role.coinBonus + ' <svg width="11" height="11" viewBox="0 0 16 16" fill="#F59E0B" style="vertical-align:middle;display:inline-block"><circle cx="8" cy="8" r="8"/><circle cx="8" cy="8" r="5" fill="#D97706"/><circle cx="8" cy="8" r="3" fill="#F59E0B"/></svg> per ogni sessione da ora in poi' : '') + '</div>';
   document.body.appendChild(t);
   requestAnimationFrame(() => {
     t.style.transform = 'translateX(-50%) translateY(0)';

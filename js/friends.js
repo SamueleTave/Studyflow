@@ -83,7 +83,7 @@ function sendFriendRequest(username) {
 function acceptRequest(fid) {
   _apiCall('POST', '/friends/' + fid + '/accept', null, function(err, data) {
     if (err || data.error) { _showFriendsToast(data && data.error ? data.error : 'Errore', true); return; }
-    var msg = data.coins ? 'Amicizia accettata! +' + data.coins + ' monete 🪙' : 'Amicizia accettata!';
+    var msg = data.coins ? 'Amicizia accettata! +' + data.coins + ' monete' : 'Amicizia accettata!';
     _showFriendsToast(msg);
     /* Ricarica dati dal server per aggiornare monete e lista amici */
     if (typeof loadFromServer === 'function') {
