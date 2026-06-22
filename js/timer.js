@@ -293,7 +293,8 @@ function toggleTimer() {
           const blocksNow = Math.floor(elapsed / 1500);
           if (blocksNow > _coinBlocksDone && elapsed >= 1500) {
             _coinBlocksDone = blocksNow;
-            if (typeof earnCoins === 'function') earnCoins(5);
+            const _lvl = typeof getRoleLevel === 'function' ? getRoleLevel() : 0;
+            if (typeof earnCoins === 'function') earnCoins(5 + Math.max(0, _lvl - 1));
           }
         }
         _syncUI();
@@ -378,7 +379,9 @@ function _onEnd(silent) {
     if (typeof addSessionStats === 'function') addSessionStats(cfg.work);
     /* Monete per sessioni brevi < 25 min (i blocchi >25 min già premiati mid-session) */
     if (_sessionCoinEnabled && cfg.work >= 5 && _coinBlocksDone === 0) {
-      if (typeof earnCoins === 'function') earnCoins(Math.max(1, Math.round(5 * cfg.work / 25)));
+      const _lvl = typeof getRoleLevel === 'function' ? getRoleLevel() : 0;
+      const _base = 5 + Math.max(0, _lvl - 1);
+      if (typeof earnCoins === 'function') earnCoins(Math.max(1, Math.round(_base * cfg.work / 25)));
     }
     if (_sessionCoinEnabled) _incTodayCoinSessions();
     _coinBlocksDone = 0;

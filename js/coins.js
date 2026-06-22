@@ -292,6 +292,19 @@ function saveCoinData() {
   localStorage.setItem(COIN_KEY, JSON.stringify(coinData));
 }
 
+/* ── Livello ruolo basato su totalSessions (0-6) ── */
+function getRoleLevel() {
+  loadCoinData();
+  const s = coinData.totalSessions || 0;
+  if (s >= 800) return 6;
+  if (s >= 450) return 5;
+  if (s >= 150) return 4;
+  if (s >= 75)  return 3;
+  if (s >= 25)  return 2;
+  if (s >= 1)   return 1;
+  return 0;
+}
+
 /* ── Guadagna monete ── */
 function earnCoins(amount) {
   loadCoinData();
