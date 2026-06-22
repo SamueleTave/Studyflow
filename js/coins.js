@@ -185,8 +185,8 @@ const SHOP_ITEMS = [
 
 const ACHIEVEMENTS = [
   { id:'first_session',  name:'Prima Sessione!',   desc:'Completa la tua prima sessione Pomodoro',    coins:10,  icon:'play',         check: (c) => c.totalSessions >= 1 },
-  { id:'sessions_10',    name:'Focus Intenso',     desc:'10 sessioni Pomodoro completate',             coins:30,  icon:'zap',          check: (c) => c.totalSessions >= 10 },
-  { id:'sessions_50',    name:'Maestro del Focus', desc:'50 sessioni completate, sei imbattibile!',    coins:100, icon:'award',        check: (c) => c.totalSessions >= 50 },
+  { id:'sessions_25',    name:'Focus Intenso',     desc:'25 sessioni Pomodoro completate',             coins:30,  icon:'zap',          check: (c) => c.totalSessions >= 25 },
+  { id:'sessions_150',   name:'Studioso Serio',    desc:'150 sessioni completate, sei imbattibile!',   coins:100, icon:'award',        check: (c) => c.totalSessions >= 150 },
   { id:'streak_3',       name:'3 Giorni di Fila',  desc:'Studia per 3 giorni consecutivi',             coins:25,  icon:'trending-up',  check: (c) => (c.bestStreak || 0) >= 3 },
   { id:'streak_7',       name:'Una Settimana!',    desc:'Studia per 7 giorni di fila',                 coins:50,  icon:'star',         check: (c) => (c.bestStreak || 0) >= 7 },
   { id:'tasks_20',       name:'Task Hunter',       desc:'Completa 20 task in totale',                  coins:40,  icon:'check-square', check: (c) => (c.tasksCompleted || 0) >= 20 },

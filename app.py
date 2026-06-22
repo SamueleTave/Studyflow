@@ -1465,11 +1465,11 @@ def _user_weekly_minutes(c, uid, week_start):
 
 def _user_role(sessions):
     s = int(sessions or 0)
-    if s >= 200: return {"key": "maestro",     "label": "Maestro",     "emoji": "🏆", "level": 6}
-    if s >= 100: return {"key": "esperto",     "label": "Esperto",     "emoji": "💎", "level": 5}
-    if s >= 50:  return {"key": "studioso",    "label": "Studioso",    "emoji": "⭐", "level": 4}
-    if s >= 25:  return {"key": "determinato", "label": "Determinato", "emoji": "🔥", "level": 3}
-    if s >= 10:  return {"key": "applicato",   "label": "Applicato",   "emoji": "🎯", "level": 2}
+    if s >= 800: return {"key": "maestro",     "label": "Maestro",     "emoji": "🏆", "level": 6}
+    if s >= 450: return {"key": "esperto",     "label": "Esperto",     "emoji": "💎", "level": 5}
+    if s >= 150: return {"key": "studioso",    "label": "Studioso",    "emoji": "⭐", "level": 4}
+    if s >= 75:  return {"key": "determinato", "label": "Determinato", "emoji": "🔥", "level": 3}
+    if s >= 25:  return {"key": "applicato",   "label": "Applicato",   "emoji": "🎯", "level": 2}
     if s >= 1:   return {"key": "studente",    "label": "Studente",    "emoji": "📖", "level": 1}
     return {"key": "novizio", "label": "Novizio", "emoji": "🌱", "level": 0}
 

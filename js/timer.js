@@ -13,7 +13,17 @@ let totalTime  = 0;
 let isRunning  = false;
 let cycleCount = 0;      // sessioni di lavoro completate nel ciclo corrente
 let timerIv    = null;
-let _coinBlocksDone = 0; // blocchi da 25 min già premiati nella sessione corrente
+let _coinBlocksDone    = 0;
+let _sessionCoinEnabled = false; // false dopo le prime 10 sessioni della giornata
+
+function _todayCoinSessions() {
+  const k = 'sf_coin_sess_' + new Date().toISOString().slice(0, 10);
+  return parseInt(localStorage.getItem(k) || '0', 10);
+}
+function _incTodayCoinSessions() {
+  const k = 'sf_coin_sess_' + new Date().toISOString().slice(0, 10);
+  localStorage.setItem(k, _todayCoinSessions() + 1);
+}
 
 /* ===== ELEMENTI DOM ===== */
 let _ring, _glow, _display, _badge, _dots, _playBtn, _ringWrap;
@@ -269,6 +279,7 @@ function toggleTimer() {
     if (typeof setPresenceStudying === 'function') setPresenceStudying(timerMode === 'work');
     _requestWakeLock();
     _coinBlocksDone = 0;
+    _sessionCoinEnabled = timerMode === 'work' && _todayCoinSessions() < 10;
     timerIv = setInterval(() => {
       if (timeLeft > 0) {
         timeLeft--;
@@ -277,7 +288,7 @@ function toggleTimer() {
           tickHydration(true);
         }
         /* Monete ogni 25 minuti completati (1500 secondi) */
-        if (timerMode === 'work') {
+        if (timerMode === 'work' && _sessionCoinEnabled) {
           const elapsed = totalTime - timeLeft;
           const blocksNow = Math.floor(elapsed / 1500);
           if (blocksNow > _coinBlocksDone && elapsed >= 1500) {
@@ -366,10 +377,12 @@ function _onEnd(silent) {
     /* Monete + sfida + stats cumulative */
     if (typeof addSessionStats === 'function') addSessionStats(cfg.work);
     /* Monete per sessioni brevi < 25 min (i blocchi >25 min già premiati mid-session) */
-    if (cfg.work >= 5 && _coinBlocksDone === 0) {
+    if (_sessionCoinEnabled && cfg.work >= 5 && _coinBlocksDone === 0) {
       if (typeof earnCoins === 'function') earnCoins(Math.max(1, Math.round(5 * cfg.work / 25)));
     }
+    if (_sessionCoinEnabled) _incTodayCoinSessions();
     _coinBlocksDone = 0;
+    _sessionCoinEnabled = false;
     if (typeof updateChallengeProgress === 'function') {
       updateChallengeProgress('sessionsToday', stats.sessions);
       updateChallengeProgress('minutesToday', stats.minutes);
