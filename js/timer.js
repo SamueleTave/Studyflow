@@ -438,7 +438,7 @@ function _onEnd(silent) {
     if (typeof syncDragonToTimer   === 'function') setTimeout(() => syncDragonToTimer(false), 2200);
     if (typeof syncPlatypusToTimer === 'function') setTimeout(() => syncPlatypusToTimer(false), 2200);
     if (typeof syncOwlToTimer    === 'function') setTimeout(() => syncOwlToTimer(false), 2200);
-    if (typeof resetHydrationCounter === 'function') resetHydrationCounter();
+    /* NON resettiamo il contatore idratazione — si accumula tra le sessioni e si azzera solo quando suona */
 
     const nextMode = cycleCount >= cfg.goal ? 'long' : 'short';
     if (cycleCount >= cfg.goal) cycleCount = 0;

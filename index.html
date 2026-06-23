@@ -357,7 +357,8 @@
     <div class="scb-title">Sessione completata!</div>
     <div class="scb-coins" id="scb-coins">+15 monete</div>
     <div class="scb-label">Cosa hai studiato?</div>
-    <input class="scb-input" id="scb-note" maxlength="80" placeholder="es. Matematica — capitolo 3..." autocomplete="off">
+    <div class="scb-chips" id="scb-chips"></div>
+    <input class="scb-input" id="scb-note" maxlength="80" placeholder="Aggiungi note (es. capitolo 3)..." autocomplete="off">
     <div class="scb-subject" id="scb-subject-info"></div>
     <div class="scb-btns">
       <button class="scb-skip" onclick="_closeCheckin()">Salta</button>
@@ -689,6 +690,25 @@
   })();
 
   /* ── Checkin post-sessione ── */
+  let _checkinSubject = '';
+  function _renderCheckinChips(preselect) {
+    const wrap = document.getElementById('scb-chips');
+    if (!wrap) return;
+    const subjects = JSON.parse(localStorage.getItem('sf_subjects') || '[]');
+    if (!subjects.length) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'flex';
+    _checkinSubject = preselect || '';
+    wrap.innerHTML = subjects.map(s => {
+      const sel = s.name === _checkinSubject;
+      return `<button class="scb-chip${sel ? ' selected' : ''}" style="--chip-c:${s.color||'var(--accent)'}" onclick="_selectCheckinChip(this,'${s.name.replace(/'/g,"&#39;")}')">${s.name}</button>`;
+    }).join('');
+  }
+  function _selectCheckinChip(el, name) {
+    const already = el.classList.contains('selected');
+    document.querySelectorAll('.scb-chip').forEach(c => c.classList.remove('selected'));
+    if (already) { _checkinSubject = ''; }
+    else         { el.classList.add('selected'); _checkinSubject = name; }
+  }
   function showSessionCheckin(subject, callback) {
     _checkinCallback = callback;
     const modal = document.getElementById('session-checkin-modal');
@@ -696,7 +716,8 @@
     const subInfo = document.getElementById('scb-subject-info');
     if (!modal) { callback && callback(); return; }
     if (inp)     inp.value = '';
-    if (subInfo) subInfo.textContent = subject ? '📚 Materia: ' + subject : '';
+    if (subInfo) subInfo.textContent = '';
+    _renderCheckinChips(subject);
     /* Aggiorna le monete ricevute usando la formula reale (ruolo + durata) */
     const coinsEl = document.getElementById('scb-coins');
     if (coinsEl) {
@@ -721,19 +742,19 @@
     if (_checkinCallback) { _checkinCallback(); _checkinCallback = null; }
   }
   function _saveCheckinNote() {
-    const inp = document.getElementById('scb-note');
-    const note = inp ? inp.value.trim() : '';
-    if (note) {
+    const inp     = document.getElementById('scb-note');
+    const freeNote = inp ? inp.value.trim() : '';
+    const subject  = _checkinSubject || freeNote;
+    const note     = _checkinSubject && freeNote ? _checkinSubject + ' — ' + freeNote : (_checkinSubject || freeNote);
+    if (subject || freeNote) {
       try {
         const sessions = JSON.parse(localStorage.getItem('sf_sessions') || '[]');
         const last = sessions[sessions.length - 1];
         if (last) {
-          if (!last.note) last.note = note;
-          /* Se l'utente non aveva scritto la materia prima della sessione,
-             usa il testo del banner come subject per le statistiche */
-          if (!last.subject) last.subject = note;
+          if (!last.note)    last.note    = note;
+          if (!last.subject) last.subject = subject;
         } else {
-          sessions.push({ date: new Date().toISOString().slice(0,10), note, subject: note, duration: typeof cfg !== 'undefined' ? cfg.work : 25 });
+          sessions.push({ date: new Date().toISOString().slice(0,10), note, subject, duration: typeof cfg !== 'undefined' ? cfg.work : 25 });
         }
         localStorage.setItem('sf_sessions', JSON.stringify(sessions));
       } catch {}

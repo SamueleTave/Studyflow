@@ -564,6 +564,18 @@
   transition: all 0.2s;
 }
 .scb-save:hover { transform: scale(1.02); box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+.scb-chips {
+  display: flex; flex-wrap: wrap; gap: 7px; justify-content: center;
+  width: 100%; margin-bottom: 2px;
+}
+.scb-chip {
+  padding: 5px 13px; border-radius: 20px; border: 1.5px solid var(--chip-c, var(--accent));
+  background: transparent; color: var(--chip-c, var(--accent));
+  font-family: 'Poppins', sans-serif; font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+}
+.scb-chip:hover    { background: rgba(0,0,0,0.05); transform: scale(1.04); }
+.scb-chip.selected { background: var(--chip-c, var(--accent)); color: white; }
 
 /* ══════════════════════════════════
    SISTEMA WIDGET
