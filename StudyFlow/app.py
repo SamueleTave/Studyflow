@@ -539,6 +539,35 @@ def user_sync_data():
                             corrections['sf_coins'] = value
                 except Exception:
                     pass
+            # Protezione sf_stats: stessa logica _adminTs per streak e minuti oggi.
+            # Quando admin aggiorna streak/minuti, il client potrebbe sovrascrivere
+            # con valori vecchi prima di ricevere la correzione.
+            if key == 'sf_stats':
+                try:
+                    client_s = json_lib.loads(value)
+                    srv_row = c.execute(
+                        "SELECT value FROM user_data WHERE user_id=? AND key='sf_stats'",
+                        (user["id"],)
+                    ).fetchone()
+                    if srv_row and srv_row["value"]:
+                        server_s = json_lib.loads(srv_row["value"])
+                        srv_ts = server_s.get('_adminTs', '')
+                        cli_ts = client_s.get('_adminTs', '')
+                        if srv_ts and srv_ts != cli_ts:
+                            # Admin ha modificato stats: protegge streak e minuti oggi.
+                            def _imax(a, b):
+                                try: return max(int(a or 0), int(b or 0))
+                                except: return int(b or 0)
+                            client_s['streak'] = _imax(server_s.get('streak'), client_s.get('streak'))
+                            # Proteggi minuti/sessioni solo se stesso giorno
+                            if server_s.get('date') and server_s.get('date') == client_s.get('date'):
+                                client_s['minutes']  = _imax(server_s.get('minutes'),  client_s.get('minutes'))
+                                client_s['sessions'] = _imax(server_s.get('sessions'), client_s.get('sessions'))
+                            client_s['_adminTs'] = srv_ts
+                            value = json_lib.dumps(client_s)
+                            corrections['sf_stats'] = value
+                except Exception:
+                    pass
             c.execute("""
                 INSERT INTO user_data (user_id, key, value, updated_at)
                 VALUES (?,?,?,datetime('now','localtime'))
@@ -733,13 +762,13 @@ def admin_set_user_data(uid):
         return jsonify({"error": "key richiesta"}), 400
     if not isinstance(value, str):
         value = json_lib.dumps(value)
-    # Quando admin imposta sf_coins aggiunge _adminTs: il sync del client non
-    # sovrascriverà il balance finché il client non scarica la versione aggiornata.
-    if key == 'sf_coins':
+    # Quando admin imposta sf_coins o sf_stats aggiunge _adminTs: il sync del client
+    # non sovrascriverà i valori finché il client non scarica la versione aggiornata.
+    if key in ('sf_coins', 'sf_stats'):
         try:
-            coins = json_lib.loads(value)
-            coins['_adminTs'] = _now()
-            value = json_lib.dumps(coins)
+            obj = json_lib.loads(value)
+            obj['_adminTs'] = _now()
+            value = json_lib.dumps(obj)
         except Exception:
             pass
     with get_db() as c:

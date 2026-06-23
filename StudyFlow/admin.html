@@ -1064,6 +1064,8 @@
 
     const sessionsForRole = (_editState.coins.totalSessions || 0);
     const currentRole = getRole(sessionsForRole);
+    const _statsToday = new Date().toDateString();
+    const _todayMins = (_editState.stats.date === _statsToday) ? (_editState.stats.minutes || 0) : 0;
 
     const body = `
       <div class="edit-section">
@@ -1086,8 +1088,10 @@
           <input class="edit-input" type="number" id="edit-earned" min="0" value="${coins.totalEarned||0}"></div>
         <div class="edit-row"><label>Sessioni completate</label>
           <input class="edit-input" type="number" id="edit-sessions" min="0" value="${coins.totalSessions||0}"></div>
-        <div class="edit-row"><label>Minuti di studio</label>
+        <div class="edit-row"><label>Minuti totali (storico)</label>
           <input class="edit-input" type="number" id="edit-minutes" min="0" value="${coins.totalMinutes||0}"></div>
+        <div class="edit-row"><label>Minuti oggi 📅 <span style="font-size:0.7rem;color:var(--text-soft)">(sf_stats)</span></label>
+          <input class="edit-input" type="number" id="edit-today-mins" min="0" max="9999" value="${_todayMins}"></div>
         <div class="edit-row"><label>Task completate</label>
           <input class="edit-input" type="number" id="edit-tasks" min="0" value="${coins.tasksCompleted||0}"></div>
         <div class="edit-row"><label>Streak giorni 🔥</label>
@@ -1159,12 +1163,13 @@
     const btn = document.getElementById('editSaveBtn');
     if (btn) { btn.textContent = '⏳ Salvataggio...'; btn.disabled = true; }
     try {
-      const balance  = Math.max(0, parseInt(document.getElementById('edit-balance').value)  || 0);
-      const earned   = Math.max(0, parseInt(document.getElementById('edit-earned').value)   || 0);
-      const sessions = Math.max(0, parseInt(document.getElementById('edit-sessions').value) || 0);
-      const minutes  = Math.max(0, parseInt(document.getElementById('edit-minutes').value)  || 0);
-      const tasks    = Math.max(0, parseInt(document.getElementById('edit-tasks').value)    || 0);
-      const streak   = Math.max(0, parseInt(document.getElementById('edit-streak').value)   || 0);
+      const balance   = Math.max(0, parseInt(document.getElementById('edit-balance').value)    || 0);
+      const earned    = Math.max(0, parseInt(document.getElementById('edit-earned').value)     || 0);
+      const sessions  = Math.max(0, parseInt(document.getElementById('edit-sessions').value)  || 0);
+      const minutes   = Math.max(0, parseInt(document.getElementById('edit-minutes').value)   || 0);
+      const todayMins = Math.max(0, parseInt(document.getElementById('edit-today-mins').value) || 0);
+      const tasks     = Math.max(0, parseInt(document.getElementById('edit-tasks').value)     || 0);
+      const streak    = Math.max(0, parseInt(document.getElementById('edit-streak').value)    || 0);
       const roleOverride = document.getElementById('edit-role')?.value || 'auto';
 
       /* Se il ruolo è forzato, le sessioni devono essere almeno il minimo richiesto */
@@ -1189,8 +1194,16 @@
       });
       if (!r1.ok) throw new Error('sf_coins: HTTP ' + r1.status);
 
-      /* Salva sf_stats (streak) */
-      const newStats = { ...(_editState.stats||{}), streak };
+      /* Salva sf_stats — _adminTs impedisce che il prossimo syncToServer del client
+         sovrascriva i valori prima che il client riceva la correzione. */
+      const newStats = {
+        ...(_editState.stats || {}),
+        streak,
+        date:      new Date().toDateString(),
+        minutes:   todayMins,
+        sessions:  Math.round(todayMins / 25),
+        _adminTs:  Date.now(),
+      };
       const r1b = await apiFetch('/api/admin/users/' + uid + '/data', {
         method: 'PUT', body: JSON.stringify({ key:'sf_stats', value:JSON.stringify(newStats) })
       });
