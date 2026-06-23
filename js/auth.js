@@ -35,10 +35,12 @@ function requireAdmin() {
 
 /* ── Logout ── */
 async function logout() {
-  /* Backup sessioni — sopravvivono al logout in caso il sync fallisca */
+  /* Backup sessioni e stats — sopravvivono al logout in caso il sync fallisca */
   try {
-    const sessBak = localStorage.getItem('sf_sessions');
-    if (sessBak) sessionStorage.setItem('_sf_sess_bak', sessBak);
+    const sessBak  = localStorage.getItem('sf_sessions');
+    const statsBak = localStorage.getItem('sf_stats');
+    if (sessBak)  sessionStorage.setItem('_sf_sess_bak',  sessBak);
+    if (statsBak) sessionStorage.setItem('_sf_stats_bak', statsBak);
   } catch {}
   /* Salva subito al server prima di pulire — evita perdita tema/sfida/impostazioni */
   if (_sfSyncTimer) { clearTimeout(_sfSyncTimer); _sfSyncTimer = null; }
@@ -127,18 +129,26 @@ async function loadFromServer() {
           }
         } catch {}
       }
-      /* sf_stats: stesso giorno → prendi il valore più alto tra server e locale (minuti non si azzerano mai) */
-      if (k === 'sf_stats' && localVal) {
+      /* sf_stats: prendi sempre il valore più alto tra server, locale e backup pre-logout.
+         Minuti/sessioni/streak non possono mai scendere il giorno corrente. */
+      if (k === 'sf_stats') {
         try {
-          const srv = JSON.parse(data[k]);
-          const loc = JSON.parse(localVal);
-          const today = new Date().toDateString();
-          if (srv.date === today && loc.date === today) {
+          const today   = new Date().toDateString();
+          const srv     = JSON.parse(data[k] || '{}');
+          const loc     = localVal ? JSON.parse(localVal) : null;
+          const bakRaw  = sessionStorage.getItem('_sf_stats_bak');
+          const bak     = bakRaw ? JSON.parse(bakRaw) : null;
+          if (bakRaw) sessionStorage.removeItem('_sf_stats_bak');
+          /* Raccoglie tutti i candidati con la data di oggi */
+          const candidates = [srv, loc, bak].filter(c => c && c.date === today);
+          if (candidates.length > 0) {
             _sfOrigSetItem(k, JSON.stringify({
               ...srv,
-              sessions: Math.max(srv.sessions || 0, loc.sessions || 0),
-              minutes:  Math.max(srv.minutes  || 0, loc.minutes  || 0),
-              streak:   Math.max(srv.streak   || 0, loc.streak   || 0),
+              date:      today,
+              sessions:  Math.max(...candidates.map(c => c.sessions  || 0)),
+              minutes:   Math.max(...candidates.map(c => c.minutes   || 0)),
+              streak:    Math.max(...candidates.map(c => c.streak    || 0)),
+              lastStudy: candidates.reduce((a, c) => (c.lastStudy || '') > a ? (c.lastStudy || '') : a, ''),
             }));
             return;
           }
@@ -154,6 +164,14 @@ async function loadFromServer() {
               ? (server.shop || {})
               : Object.assign({}, server.shop || {}, local.shop || {}),
             activeEffects: Object.assign({}, server.activeEffects || {}, local.activeEffects || {}),
+            /* Contatori cumulativi — possono solo salire. Locale vince se server ha dato più vecchio. */
+            totalSessions:      Math.max(server.totalSessions      || 0, local.totalSessions      || 0),
+            totalMinutes:       Math.max(server.totalMinutes       || 0, local.totalMinutes       || 0),
+            totalEarned:        Math.max(server.totalEarned        || 0, local.totalEarned        || 0),
+            tasksCompleted:     Math.max(server.tasksCompleted     || 0, local.tasksCompleted     || 0),
+            challengesCompleted: Math.max(server.challengesCompleted || 0, local.challengesCompleted || 0),
+            /* Balance: admin vince sempre; senza admin il valore più alto (sync in ritardo) */
+            balance: adminChanged ? server.balance : Math.max(server.balance || 0, local.balance || 0),
           });
           if (server._adminTs) merged._adminTs = server._adminTs;
           _sfOrigSetItem(k, JSON.stringify(merged));
@@ -191,6 +209,24 @@ function _triggerSync() {
   clearTimeout(_sfSyncTimer);
   _sfSyncTimer = setTimeout(syncToServer, 2500);
 }
+
+/* ── Sync immediato alla chiusura del tab/browser (keepalive sopravvive all'unload) ── */
+window.addEventListener('pagehide', () => {
+  if (!isLoggedIn()) return;
+  const auth = getAuth();
+  if (!auth?.token) return;
+  if (_sfSyncTimer) { clearTimeout(_sfSyncTimer); _sfSyncTimer = null; }
+  const payload = {};
+  _SF_SYNC_KEYS.forEach(k => { const v = localStorage.getItem(k); if (v !== null) payload[k] = v; });
+  try {
+    fetch((window.SF_API_BASE || '/api') + '/user/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + auth.token },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    });
+  } catch {}
+});
 
 /* ── Inietta pill utente + link admin nella sidebar ── */
 function _initSidebarUser() {
