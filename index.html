@@ -126,6 +126,23 @@
     <!-- SFIDA GIORNALIERA -->
     <div class="challenge-bar" id="challenge-bar"></div>
 
+    <!-- BANNER BACKGROUND WARNING -->
+    <div id="bg-warn-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;
+      background:linear-gradient(90deg,#dc2626,#b91c1c,#dc2626);background-size:200% 100%;
+      animation:bgwarn-slide 2s linear infinite;
+      padding:10px 20px 10px 16px;display:none;align-items:center;justify-content:center;gap:10px;
+      box-shadow:0 2px 20px rgba(220,38,38,0.55);border-bottom:2px solid rgba(255,255,255,0.18)">
+      <span style="font-size:1.1rem;animation:bgwarn-pulse 1s ease-in-out infinite;display:inline-block">⚠️</span>
+      <span style="font-size:0.82rem;font-weight:700;color:#fff;letter-spacing:0.01em;text-shadow:0 1px 4px rgba(0,0,0,0.3);text-align:center;line-height:1.4">
+        Timer in background — il browser rallenta il conto. <strong style="text-decoration:underline">Torna su questa pagina</strong> per la massima precisione.
+      </span>
+      <span style="font-size:0.72rem;color:rgba(255,255,255,0.75);white-space:nowrap;display:none" id="bg-warn-elapsed"></span>
+    </div>
+    <style>
+      @keyframes bgwarn-slide { 0%{background-position:0% 0%} 100%{background-position:200% 0%} }
+      @keyframes bgwarn-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.25)} }
+    </style>
+
     <!-- BANNER NOVITÀ -->
     <!-- Banner dinamico: contenuto caricato da admin via /api/config -->
     <div class="update-banner" id="update-banner" style="display:none">

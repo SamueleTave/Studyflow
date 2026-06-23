@@ -94,9 +94,25 @@ async function _requestWakeLock() {
 function _releaseWakeLock() {
   if (_wakeLock) { try { _wakeLock.release(); } catch(e) {} _wakeLock = null; }
 }
+/* Banner avviso background — mostra quando il timer gira ma la pagina non è visibile */
+function _showBgWarn() {
+  const b = document.getElementById('bg-warn-banner');
+  if (b) b.style.display = 'flex';
+}
+function _hideBgWarn() {
+  const b = document.getElementById('bg-warn-banner');
+  if (b) b.style.display = 'none';
+}
+
 /* Re-acquisisci Wake Lock e correggi drift da throttling background tab */
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'visible' || !isRunning) return;
+  if (document.visibilityState === 'hidden') {
+    if (isRunning && timerMode === 'work') _showBgWarn();
+    return;
+  }
+  /* Tornati in foreground */
+  _hideBgWarn();
+  if (!isRunning) return;
   _requestWakeLock();
   /* Correggi secondi persi dal throttling del browser */
   try {
@@ -291,6 +307,7 @@ function _setRunningStyle(running) {
   if (_playBtn) _playBtn.innerHTML = running ? _PAUSE_SVG : _PLAY_SVG;
   if (_ringWrap) _ringWrap.classList.toggle('running', running);
   if (_ring) _ring.style.filter = running ? 'drop-shadow(0 0 13px var(--accent))' : '';
+  if (!running) _hideBgWarn();
 }
 
 /* ===== AZIONI PUBBLICHE ===== */
