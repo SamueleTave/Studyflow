@@ -94,14 +94,26 @@ async function _requestWakeLock() {
 function _releaseWakeLock() {
   if (_wakeLock) { try { _wakeLock.release(); } catch(e) {} _wakeLock = null; }
 }
-/* Banner avviso background — mostra quando il timer gira ma la pagina non è visibile */
+/* Banner avviso background */
+var _bgWarnAt = 0;
 function _showBgWarn() {
+  _bgWarnAt = Date.now();
   const b = document.getElementById('bg-warn-banner');
   if (b) b.style.display = 'flex';
 }
 function _hideBgWarn() {
   const b = document.getElementById('bg-warn-banner');
   if (b) b.style.display = 'none';
+  _bgWarnAt = 0;
+}
+function _updateBgWarnText(secondsAway) {
+  const t = document.getElementById('bg-warn-text');
+  if (!t) return;
+  if (secondsAway > 0) {
+    t.textContent = '⚠ Eri via da ' + secondsAway + 's — il timer potrebbe aver perso qualche secondo';
+  } else {
+    t.textContent = '⚠ Sei stato via — il timer potrebbe aver perso qualche secondo';
+  }
 }
 
 /* Re-acquisisci Wake Lock e correggi drift da throttling background tab */
@@ -110,8 +122,11 @@ document.addEventListener('visibilitychange', () => {
     if (isRunning && timerMode === 'work') _showBgWarn();
     return;
   }
-  /* Tornati in foreground */
-  _hideBgWarn();
+  /* Tornati in foreground — banner rimane, aggiorna testo con secondi di assenza */
+  if (_bgWarnAt > 0) {
+    const away = Math.round((Date.now() - _bgWarnAt) / 1000);
+    _updateBgWarnText(away);
+  }
   if (!isRunning) return;
   _requestWakeLock();
   /* Correggi secondi persi dal throttling del browser */
