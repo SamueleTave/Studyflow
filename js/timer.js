@@ -369,11 +369,22 @@ function toggleTimer() {
 
 function setWorkDuration(mins) {
   if (!mins || isNaN(mins)) return;
+  const prevElapsed = totalTime - timeLeft; // secondi già trascorsi prima del cambio
   cfg.work = mins;
   if (typeof saveCfg === 'function') saveCfg();
   if (timerMode === 'work' && !isRunning) {
     totalTime = cfg.work * 60;
-    timeLeft  = totalTime;
+    if (prevElapsed === 0) {
+      // Timer mai avviato: reset pulito al nuovo valore
+      timeLeft = totalTime;
+    } else if (mins <= 25) {
+      // Ritorno a 25min: preserva la posizione nel blocco corrente
+      const blockElapsed = prevElapsed % 1500;
+      timeLeft = Math.max(0, 1500 - blockElapsed);
+    } else {
+      // Cambio a durata maggiore: mantieni stesso elapsed, nuova durata totale
+      timeLeft = Math.max(0, totalTime - prevElapsed);
+    }
     _syncUI();
   }
 }
