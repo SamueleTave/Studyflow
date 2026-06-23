@@ -354,12 +354,17 @@
     const cd = typeof coinData !== 'undefined' ? coinData : {};
     const sf = (() => { try { return JSON.parse(localStorage.getItem('sf_stats')||'{}'); } catch { return {}; } })();
 
-    const todayMin = sessions.filter(s => s.date === today).reduce((a,s) => a + (s.duration||0), 0);
-    const totalMin = sessions.reduce((a,s) => a + (s.duration||0), 0);
+    const sessionsTodayMin = sessions.filter(s => s.date === today).reduce((a,s) => a + (s.duration||0), 0);
+    /* sf_stats.minutes può essere impostato dall'admin: prendi il massimo */
+    const sfTodayMins = (sf.date === new Date().toDateString()) ? parseInt(sf.minutes || 0) : 0;
+    const todayMin = Math.max(sessionsTodayMin, sfTodayMins);
+    const sessionsTotalMin = sessions.reduce((a,s) => a + (s.duration||0), 0);
+    /* Ore totali: prendi il massimo tra sf_sessions e sf_coins.totalMinutes (admin può modificarlo) */
+    const totalMin = Math.max(sessionsTotalMin, cd.totalMinutes || 0);
     const streak   = sf.streak || cd.bestStreak || 0;
 
     document.getElementById('sc-hours').textContent    = (Math.round(totalMin / 60 * 10) / 10) + 'h';
-    document.getElementById('sc-sessions').textContent = sessions.length || cd.totalSessions || 0;
+    document.getElementById('sc-sessions').textContent = cd.totalSessions || sessions.length || 0;
     document.getElementById('sc-streak').textContent   = streak;
     document.getElementById('sc-today').textContent    = todayMin + 'm';
     const sp = document.getElementById('pill-streak');
@@ -684,12 +689,22 @@
     const lastMonday = new Date(thisMonday); lastMonday.setDate(thisMonday.getDate() - 7);
     const lastSunday = new Date(thisMonday); lastSunday.setDate(thisMonday.getDate() - 1);
 
-    let thisWeek = 0, lastWeek = 0;
+    let thisWeek = 0, lastWeek = 0, sessionsTodayW = 0;
+    const todayIso = today.toISOString().slice(0,10);
     sessions.forEach(s => {
       const d = new Date(s.date);
-      if (d >= thisMonday && d <= today) thisWeek += s.duration || 0;
-      else if (d >= lastMonday && d <= lastSunday) lastWeek += s.duration || 0;
+      if (d >= thisMonday && d <= today) {
+        thisWeek += s.duration || 0;
+        if (s.date === todayIso) sessionsTodayW += s.duration || 0;
+      } else if (d >= lastMonday && d <= lastSunday) lastWeek += s.duration || 0;
     });
+    /* Considera sf_stats.minutes (impostato da admin) per oggi */
+    try {
+      const sf2 = JSON.parse(localStorage.getItem('sf_stats') || '{}');
+      const adminMins = parseInt(sf2.minutes || 0);
+      if (sf2.date === today.toDateString() && adminMins > sessionsTodayW)
+        thisWeek += adminMins - sessionsTodayW;
+    } catch {}
 
     const bar  = document.getElementById('week-compare-bar');
     const icon = document.getElementById('week-compare-icon');
