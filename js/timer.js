@@ -94,9 +94,28 @@ async function _requestWakeLock() {
 function _releaseWakeLock() {
   if (_wakeLock) { try { _wakeLock.release(); } catch(e) {} _wakeLock = null; }
 }
-/* Re-acquisisci Wake Lock quando la pagina torna attiva */
+/* Re-acquisisci Wake Lock e correggi drift da throttling background tab */
 document.addEventListener('visibilitychange', () => {
-  if (isRunning && document.visibilityState === 'visible') _requestWakeLock();
+  if (document.visibilityState !== 'visible' || !isRunning) return;
+  _requestWakeLock();
+  /* Correggi secondi persi dal throttling del browser */
+  try {
+    const saved = JSON.parse(localStorage.getItem('sf_timer') || 'null');
+    if (saved && saved.running && saved.savedAt) {
+      const elapsed = Math.floor((Date.now() - saved.savedAt) / 1000);
+      const corrected = Math.max(0, saved.timeLeft - elapsed);
+      if (corrected < timeLeft) {
+        timeLeft = corrected;
+        _syncUI();
+        if (timeLeft === 0) {
+          clearInterval(timerIv);
+          isRunning = false;
+          _setRunningStyle(false);
+          _onEnd(false);
+        }
+      }
+    }
+  } catch(e) {}
 });
 
 /* ===== RIPRISTINO TIMER (localStorage) ===== */
