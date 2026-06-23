@@ -127,6 +127,23 @@ async function loadFromServer() {
           }
         } catch {}
       }
+      /* sf_stats: stesso giorno → prendi il valore più alto tra server e locale (minuti non si azzerano mai) */
+      if (k === 'sf_stats' && localVal) {
+        try {
+          const srv = JSON.parse(data[k]);
+          const loc = JSON.parse(localVal);
+          const today = new Date().toDateString();
+          if (srv.date === today && loc.date === today) {
+            _sfOrigSetItem(k, JSON.stringify({
+              ...srv,
+              sessions: Math.max(srv.sessions || 0, loc.sessions || 0),
+              minutes:  Math.max(srv.minutes  || 0, loc.minutes  || 0),
+              streak:   Math.max(srv.streak   || 0, loc.streak   || 0),
+            }));
+            return;
+          }
+        } catch {}
+      }
       if (k === 'sf_coins' && localVal) {
         try {
           const local  = JSON.parse(localVal);
