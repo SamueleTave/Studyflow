@@ -129,17 +129,26 @@ async function loadFromServer() {
           }
         } catch {}
       }
-      /* sf_stats: prendi sempre il valore più alto tra server, locale e backup pre-logout.
-         Minuti/sessioni/streak non possono mai scendere il giorno corrente. */
+      /* sf_stats: protezione completa contro sync stale e rispetto delle modifiche admin.
+         Regola 1 — Admin override: se server ha _adminTs che il client non conosce
+                    (né local né backup la hanno), il server vince completamente.
+         Regola 2 — Merge normale: tra i candidati di oggi prende il valore più alto
+                    (minuti/sessioni/streak non scendono mai durante la giornata). */
       if (k === 'sf_stats') {
         try {
-          const today   = new Date().toDateString();
-          const srv     = JSON.parse(data[k] || '{}');
-          const loc     = localVal ? JSON.parse(localVal) : null;
-          const bakRaw  = sessionStorage.getItem('_sf_stats_bak');
-          const bak     = bakRaw ? JSON.parse(bakRaw) : null;
+          const today  = new Date().toDateString();
+          const srv    = JSON.parse(data[k] || '{}');
+          const loc    = localVal ? JSON.parse(localVal) : null;
+          const bakRaw = sessionStorage.getItem('_sf_stats_bak');
+          const bak    = bakRaw ? JSON.parse(bakRaw) : null;
           if (bakRaw) sessionStorage.removeItem('_sf_stats_bak');
-          /* Raccoglie tutti i candidati con la data di oggi */
+          /* Regola 1 */
+          const srvTs = srv._adminTs;
+          if (srvTs && srvTs !== (loc?._adminTs) && srvTs !== (bak?._adminTs)) {
+            _sfOrigSetItem(k, data[k]);   // server vince — admin ha modificato, client non sa ancora
+            return;
+          }
+          /* Regola 2 */
           const candidates = [srv, loc, bak].filter(c => c && c.date === today);
           if (candidates.length > 0) {
             _sfOrigSetItem(k, JSON.stringify({
@@ -158,20 +167,21 @@ async function loadFromServer() {
         try {
           const local  = JSON.parse(localVal);
           const server = JSON.parse(data[k]);
-          const adminChanged = server._adminTs && server._adminTs !== local._adminTs;
+          const ac = !!(server._adminTs && server._adminTs !== local._adminTs);
           const merged = Object.assign({}, server, {
-            shop:          adminChanged
-              ? (server.shop || {})
-              : Object.assign({}, server.shop || {}, local.shop || {}),
+            /* Shop: admin override vince; altrimenti unisci acquisti locali recenti */
+            shop: ac ? (server.shop || {}) : Object.assign({}, server.shop || {}, local.shop || {}),
             activeEffects: Object.assign({}, server.activeEffects || {}, local.activeEffects || {}),
-            /* Contatori cumulativi — possono solo salire. Locale vince se server ha dato più vecchio. */
-            totalSessions:      Math.max(server.totalSessions      || 0, local.totalSessions      || 0),
-            totalMinutes:       Math.max(server.totalMinutes       || 0, local.totalMinutes       || 0),
-            totalEarned:        Math.max(server.totalEarned        || 0, local.totalEarned        || 0),
-            tasksCompleted:     Math.max(server.tasksCompleted     || 0, local.tasksCompleted     || 0),
-            challengesCompleted: Math.max(server.challengesCompleted || 0, local.challengesCompleted || 0),
-            /* Balance: admin vince sempre; senza admin il valore più alto (sync in ritardo) */
-            balance: adminChanged ? server.balance : Math.max(server.balance || 0, local.balance || 0),
+            /* Contatori cumulativi: admin può alzarli O abbassarli (ac vince);
+               senza admin change il locale vince se più alto (sync in ritardo). */
+            totalSessions:       ac ? server.totalSessions       : Math.max(server.totalSessions       || 0, local.totalSessions       || 0),
+            totalMinutes:        ac ? server.totalMinutes        : Math.max(server.totalMinutes        || 0, local.totalMinutes        || 0),
+            totalEarned:         ac ? server.totalEarned         : Math.max(server.totalEarned         || 0, local.totalEarned         || 0),
+            tasksCompleted:      ac ? server.tasksCompleted      : Math.max(server.tasksCompleted      || 0, local.tasksCompleted      || 0),
+            challengesCompleted: ac ? server.challengesCompleted : Math.max(server.challengesCompleted || 0, local.challengesCompleted || 0),
+            /* Balance: admin vince sempre; senza admin change usa il locale
+               (più aggiornato per sia guadagni che spese — evita rimborso accidentale). */
+            balance: ac ? server.balance : (local.balance ?? server.balance),
           });
           if (server._adminTs) merged._adminTs = server._adminTs;
           _sfOrigSetItem(k, JSON.stringify(merged));
@@ -188,6 +198,9 @@ async function loadFromServer() {
 }
 
 function _sfReinitAll() {
+  /* Rilegge sf_stats dal localStorage (appena aggiornato dalla correzione server)
+     così streak e minuti sono corretti nell'oggetto stats in memoria. */
+  if (typeof loadData             === 'function') loadData();
   if (typeof initCoins            === 'function') initCoins();
   if (typeof initWidgets          === 'function') initWidgets();
   if (typeof updateLevelPill      === 'function') updateLevelPill();

@@ -554,16 +554,18 @@ def user_sync_data():
                         srv_ts = server_s.get('_adminTs', '')
                         cli_ts = client_s.get('_adminTs', '')
                         if srv_ts and srv_ts != cli_ts:
-                            # Admin ha modificato stats: protegge streak e minuti oggi.
-                            def _imax(a, b):
-                                try: return max(int(a or 0), int(b or 0))
-                                except: return int(b or 0)
-                            client_s['streak'] = _imax(server_s.get('streak'), client_s.get('streak'))
-                            # Proteggi minuti/sessioni solo se stesso giorno
-                            if server_s.get('date') and server_s.get('date') == client_s.get('date'):
-                                client_s['minutes']  = _imax(server_s.get('minutes'),  client_s.get('minutes'))
-                                client_s['sessions'] = _imax(server_s.get('sessions'), client_s.get('sessions'))
-                            client_s['_adminTs'] = srv_ts
+                            # Admin vince completamente — può alzare O abbassare i valori.
+                            # Il client non conosce ancora questa modifica: sovrascriviamo
+                            # i campi rilevanti con i valori server e mandiamo la correzione.
+                            def _si(v):
+                                try: return int(v or 0)
+                                except: return 0
+                            client_s['streak']    = _si(server_s.get('streak'))
+                            client_s['minutes']   = _si(server_s.get('minutes'))
+                            client_s['sessions']  = _si(server_s.get('sessions'))
+                            client_s['date']      = server_s.get('date',      client_s.get('date', ''))
+                            client_s['lastStudy'] = server_s.get('lastStudy', client_s.get('lastStudy', ''))
+                            client_s['_adminTs']  = srv_ts
                             value = json_lib.dumps(client_s)
                             corrections['sf_stats'] = value
                 except Exception:

@@ -63,13 +63,25 @@ function loadData() {
 function saveCfg()   { localStorage.setItem('sf_cfg',   JSON.stringify(cfg)); }
 function saveTasks() { localStorage.setItem('sf_tasks', JSON.stringify(tasks)); }
 function saveStats() {
-  localStorage.setItem('sf_stats', JSON.stringify({
-    date: new Date().toDateString(),
-    sessions: stats.sessions,
-    minutes:  stats.minutes,
-    streak:   stats.streak,
-    lastStudy: stats.lastStudy,
-  }));
+  try {
+    const ex = JSON.parse(localStorage.getItem('sf_stats') || '{}');
+    const obj = {
+      date:      new Date().toDateString(),
+      sessions:  stats.sessions,
+      minutes:   stats.minutes,
+      streak:    stats.streak,
+      lastStudy: stats.lastStudy,
+    };
+    /* Preserva _adminTs: serve al server per sapere che il client ha già
+       ricevuto la modifica admin e non deve sovrascriverla di nuovo. */
+    if (ex._adminTs) obj._adminTs = ex._adminTs;
+    localStorage.setItem('sf_stats', JSON.stringify(obj));
+  } catch {
+    localStorage.setItem('sf_stats', JSON.stringify({
+      date: new Date().toDateString(), sessions: stats.sessions,
+      minutes: stats.minutes, streak: stats.streak, lastStudy: stats.lastStudy,
+    }));
+  }
 }
 
 /* ===== UTILITY ===== */
