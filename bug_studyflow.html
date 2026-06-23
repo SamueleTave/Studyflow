@@ -155,13 +155,64 @@
 <body>
 
 <h1>🐛 Bug StudyFlow — Registro Completo</h1>
-<p class="subtitle">Aggiornato: 2026-06-22 — Sessione 21 &nbsp;|&nbsp; ⚡ Priorità: Netlify (online) &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
+<p class="subtitle">Aggiornato: 2026-06-23 — Sessione 23 &nbsp;|&nbsp; ⚡ Priorità: Netlify (online) &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
 
 <!-- STATO DEPLOY -->
 <div class="status-row">
-  <div class="status-chip"><div class="dot green"></div> GitHub: pushato (05611e9)</div>
-  <div class="status-chip"><div class="dot green"></div> Netlify: ⚡ incredible-scone-e3d69d.netlify.app</div>
-  <div class="status-chip"><div class="dot green"></div> Render: Manual Deploy — app.py modificato (s21)</div>
+  <div class="status-chip"><div class="dot green"></div> GitHub: pushato (fdf3752)</div>
+  <div class="status-chip"><div class="dot green"></div> Netlify: ⚡ incredible-scone-e3d69d.netlify.app (auto)</div>
+  <div class="status-chip"><div class="dot yellow"></div> Render: ⚠️ Manual Deploy richiesto (app.py cambiato)</div>
+</div>
+
+<!-- ===== AGGIORNAMENTI SESSIONE 23 — 2026-06-23 ===== -->
+<div class="section">
+  <div class="section-title">🚀 Aggiornamenti — sessione 23 (2026-06-23) — pushati</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#6366f1;text-transform:uppercase;margin-bottom:10px">🔒 Fix sync admin (6 bug)</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span> <div><strong>saveStats() eliminava _adminTs</strong> — dopo ogni sessione <code>saveStats()</code> riscriveva sf_stats senza <code>_adminTs</code> → la protezione admin si rompeva. Fix: legge il _adminTs esistente da localStorage e lo reinserisce.</div></li>
+        <li><span>✓</span> <div><strong>sf_stats: admin non poteva abbassare i valori</strong> — il merge con Math.max impediva riduzioni. Fix: Regola 1 in auth.js — se server ha _adminTs diverso da locale E backup, il server vince completamente (senza max).</div></li>
+        <li><span>✓</span> <div><strong>sf_coins balance usava Math.max</strong> — riaprendo un tab il balance tornava al valore server anche dopo acquisti. Fix: <code>balance: ac ? server.balance : local.balance</code> — il locale vince sempre tranne dopo modifica admin.</div></li>
+        <li><span>✓</span> <div><strong>Contatori cumulativi coins ignoravano admin change</strong> — totalSessions/totalMinutes/totalEarned usavano Math.max anche dopo modifica admin → riduzioni admin annullate. Fix: <code>ac ? server.X : Math.max(...)</code>.</div></li>
+        <li><span>✓</span> <div><strong>app.py sync usava max per sf_stats</strong> — il server annullava le riduzioni admin lato server. Fix: quando srv_ts ≠ cli_ts, il server sovrascrive completamente (streak/minutes/sessions/date/lastStudy).</div></li>
+        <li><span>✓</span> <div><strong>_sfReinitAll() non chiamava loadData()</strong> — le correzioni server aggiornano localStorage ma l'oggetto <code>stats</code> in memoria restava vecchio → UI non si aggiornava. Fix: prima istruzione di _sfReinitAll è loadData().</div></li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#10b981;text-transform:uppercase;margin-bottom:10px">📊 Fix statistiche e classifica</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span> <div><strong>"Minuti oggi" ignorava il valore admin</strong> — <code>loadPage()</code> in stats.html calcolava todayMin SOLO da sf_sessions, ignorando sf_stats.minutes. Fix: <code>Math.max(sessions_oggi, sf_stats.minutes)</code>.</div></li>
+        <li><span>✓</span> <div><strong>"Ore totali" poteva essere bassa</strong> — usava solo la somma di sf_sessions. Fix: <code>Math.max(sessions_total, sf_coins.totalMinutes)</code>.</div></li>
+        <li><span>✓</span> <div><strong>Confronto settimanale non rispecchiava admin</strong> — _renderWeekCompare() ignorava sf_stats.minutes per oggi. Fix: aggiunge la differenza admin–sessioni se sf_stats.date è oggi.</div></li>
+        <li><span>✓</span> <div><strong>Classifica (server) non considerava minuti admin</strong> — <code>_user_weekly_minutes()</code> in app.py leggeva solo sf_sessions. Fix: per oggi prende <code>max(sessions_oggi, sf_stats.minutes)</code> leggendo sf_stats dal DB. Parsing da toDateString() JS a ISO.</div></li>
+        <li><span>✓</span> <div><strong>Classifica (client) stessa issue</strong> — friends.html override locale ignorava sf_stats. Fix: calcola sessionsTodayMins separatamente, aggiunge differenza admin se sf_stats.minutes è più alto.</div></li>
+        <li><span>✓</span> <div><strong>Grafico settimanale barra oggi</strong> — _renderHistoryLocal() ignorava sf_stats.minutes per oggi. Fix: dopo il loop sessioni, corregge map[todayKey].minutes con Math.max.</div></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AGGIORNAMENTI SESSIONE 22 — 2026-06-23 ===== -->
+<div class="section">
+  <div class="section-title">🚀 Aggiornamenti — sessione 22 (2026-06-23) — pushati</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#6366f1;text-transform:uppercase;margin-bottom:10px">✅ Fix</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span> <div><strong>Timer rallentava cambiando tab</strong> — browser throttla <code>setInterval</code> in background. Aggiunta correzione drift nel listener <code>visibilitychange</code>: al ritorno in foreground confronta <code>Date.now()</code> con <code>savedAt</code> e corregge <code>timeLeft</code>. Se timer scaduto in background → <code>_onEnd()</code> immediato.</div></li>
+        <li><span>✓</span> <div><strong>Sfide giornaliere — verifica monete</strong> — analizzato flusso completo: <code>updateChallengeProgress()</code> → <code>earnCoins(ch.reward)</code> → notifica. Sistema funzionante su tutte le pagine (anche tasks.html senza challenge-bar). Nessun bug trovato.</div></li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#10b981;text-transform:uppercase;margin-bottom:10px">💡 Idee raccolte</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>🆕</span> <div>10 nuove idee funzionalità aggiunte alla sezione Idee (suoni, modalità esame, statistiche per materia, carte collezionabili, bonus notturno, promemoria, stanza condivisa, barra XP, note per materia, piano settimanale)</div></li>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <!-- ===== AGGIORNAMENTI SESSIONE 21 — 2026-06-22 ===== -->
@@ -736,35 +787,57 @@
 <div class="section">
   <div class="section-title">💡 Idee — nuove funzionalità da aggiungere</div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+  <!-- GAMIFICATION -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
     <div>
       <div style="font-size:0.72rem;font-weight:700;color:#f59e0b;text-transform:uppercase;margin-bottom:10px">🎮 Gamification</div>
       <ul class="todo-list">
-        <li><span>⭐</span> <div><strong>Barra XP visiva</strong> — progress bar animata sotto il profilo, animazione level-up con particelle, collegata ai ruoli novizio→maestro</div></li>
+        <li><span>⭐</span> <div><strong>Barra XP visiva</strong> — progress bar animata nel timer che si riempie verso il prossimo ruolo. Già hai SF_ROLES ma sono nascosti — renderli visibili è ad alto impatto motivazionale. Animazione level-up con particelle.</div></li>
+        <li><span>🎴</span> <div><strong>Carte collezionabili rare</strong> — ogni 10 sessioni appare una carta casuale (comune/rara/leggendaria) con i compagni. Effetto gacha. Si vedono nello shop, si mostrano agli amici. Altamente addictive.</div></li>
+        <li><span>🌙</span> <div><strong>Bonus sessione notturna</strong> — studi dopo le 22:00 → monete ×1.5 e il gufo diventa protagonista. Il cielo del giardino mostra aurora boreale. Premia chi studia di notte.</div></li>
         <li><span>🏆</span> <div><strong>Achievement sbloccabili</strong> — badge da collezione: "Prima sessione", "7 giorni streak", "10 ore studiate", "Tutti i compagni", ecc.</div></li>
-        <li><span>🎴</span> <div><strong>Carte studio rare</strong> — dopo X sessioni appare una carta collezionabile animata (tipo card Pokémon ma con i compagni). Da scambiare con gli amici.</div></li>
-        <li><span>🌙</span> <div><strong>Sessioni notturne bonus</strong> — se studi dopo le 22:00 ottieni stelle doppie. Il cielo del giardino mostra aurora boreale.</div></li>
       </ul>
     </div>
     <div>
-      <div style="font-size:0.72rem;font-weight:700;color:#10b981;text-transform:uppercase;margin-bottom:10px">📱 UX / Funzionalità</div>
+      <div style="font-size:0.72rem;font-weight:700;color:#ef4444;text-transform:uppercase;margin-bottom:10px">😴 Produttività</div>
       <ul class="todo-list">
-        <li><span>🔔</span> <div><strong>Notifiche push</strong> — Web Push API, reminder "Studia ora!", avviso fine sessione anche con app minimizzata</div></li>
-        <li><span>🎯</span> <div><strong>Modalità focus</strong> — schermo pieno, blocco notifiche, timer 90min, musica auto-start, sfondo immersivo</div></li>
-        <li><span>👀</span> <div><strong>Preview compagni nello shop</strong> — mini SVG animato nella card prima dell'acquisto (vedi l'animale muoversi prima di comprarlo)</div></li>
-        <li><span>📅</span> <div><strong>Piano studio settimanale</strong> — scheduler drag&drop: trascina le materie nei giorni della settimana, reminder automatici</div></li>
-        <li><span>📊</span> <div><strong>Report PDF mensile</strong> — ore studiate, materie, streak, compagni, heatmap. Export da app.py con WeasyPrint.</div></li>
-        <li><span>⚡</span> <div><strong>Sfide amici live</strong> — classifica in tempo reale (polling 30s), notifica "Il tuo amico ti ha superato!", emoji reactions durante la sfida</div></li>
+        <li><span>😴</span> <div><strong>Modalità Esame</strong> — blocca il tab per X minuti: non puoi uscire senza perdere monete. Tipo Forest app. Punisce la distrazione invece di solo premiare lo studio. Molto efficace.</div></li>
+        <li><span>🎯</span> <div><strong>Modalità Focus</strong> — schermo pieno, blocco notifiche, timer 90min, musica ambient auto-start, sfondo immersivo. Per le sessioni lunghe.</div></li>
+        <li><span>🔔</span> <div><strong>Promemoria intelligente</strong> — "Non studi da 2 giorni" → notifica push via Service Worker. Già hai il sistema streak, basterebbe una scheduled notification.</div></li>
+        <li><span>📊</span> <div><strong>Statistiche per materia</strong> — grafico ore per materia: totale, sessioni, trend ultima settimana. Ora le stats sono aggregate — utile sapere dove si studia meno.</div></li>
       </ul>
     </div>
   </div>
 
-  <div style="margin-top:16px">
+  <!-- SOCIAL + AUDIO -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#06b6d4;text-transform:uppercase;margin-bottom:10px">👥 Social</div>
+      <ul class="todo-list">
+        <li><span>🤝</span> <div><strong>Stanza studio condivisa</strong> — 2-4 amici nel timer insieme, vedono i progressi live. Timer sincronizzato. Tipo "study with me" virtuale. Già hai il sistema amici + DB.</div></li>
+        <li><span>⚔️</span> <div><strong>Sfida amici in tempo reale</strong> — due utenti si sfidano: chi fa più sessioni in 24h vince monete. Tabella <code>friend_challenges</code> con stato/scadenza. Polling 30s, notifica "ti ha superato!"</div></li>
+        <li><span>👀</span> <div><strong>Preview compagni nello shop</strong> — mini SVG animato nella card prima dell'acquisto (vedi l'animale muoversi prima di comprarlo).</div></li>
+        <li><span>📊</span> <div><strong>Report PDF mensile</strong> — ore studiate, materie, streak, compagni, heatmap. Export da app.py con WeasyPrint.</div></li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#10b981;text-transform:uppercase;margin-bottom:10px">🎵 Audio + UX</div>
+      <ul class="todo-list">
+        <li><span>🎵</span> <div><strong>Suoni ambientali integrati</strong> — lo-fi, pioggia, foresta, café — select nella sidebar del timer. Audio HTML5 con file mp3 leggeri. Si combina col falò del giardino. Facile da fare.</div></li>
+        <li><span>📓</span> <div><strong>Note per materia</strong> — ogni materia ha le sue note veloci (ora <code>sf_notes</code> è globale). Note per-subject: notebook laterale come widget nel timer. Si aggancia all'esistente.</div></li>
+        <li><span>📅</span> <div><strong>Piano studio settimanale</strong> — vista 7 giorni con slot orari drag&drop. Si aggancia al calendario esistente. Reminder automatici.</div></li>
+        <li><span>📱</span> <div><strong>Installabile come PWA</strong> — aggiungere manifest.json + service worker. L'utente può installare StudyFlow come app nativa su iOS/Android dalla schermata home.</div></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- AI -->
+  <div>
     <div style="font-size:0.72rem;font-weight:700;color:#8b5cf6;text-transform:uppercase;margin-bottom:10px">🤖 AI integrata</div>
     <ul class="todo-list">
-      <li><span>🧠</span> <div><strong>Card argomenti AI</strong> — già in da fare. Espandibile: flashcard generate dall'AI, spiegazioni adattive al livello, quiz automatici sulla materia</div></li>
-      <li><span>📝</span> <div><strong>Riassunto sessione AI</strong> — a fine sessione l'AI chiede "cosa hai studiato?" e genera un mini-riassunto salvato nel notebook</div></li>
-      <li><span>🗓️</span> <div><strong>Piano studio personalizzato</strong> — l'AI analizza le statistiche e suggerisce: "Stai trascurando Matematica, studia 30min domani"</div></li>
+      <li><span>🧠</span> <div><strong>Card argomenti AI</strong> — già in da fare. Espandibile: flashcard generate dall'AI, spiegazioni adattive al livello, quiz automatici sulla materia.</div></li>
+      <li><span>📝</span> <div><strong>Riassunto sessione AI</strong> — a fine sessione l'AI chiede "cosa hai studiato?" e genera un mini-riassunto salvato nel notebook per materia.</div></li>
+      <li><span>🗓️</span> <div><strong>Piano studio personalizzato AI</strong> — l'AI analizza le statistiche e suggerisce: "Stai trascurando Matematica, studia 30min domani". Usa i dati di sf_sessions.</div></li>
     </ul>
   </div>
 </div>
@@ -821,7 +894,7 @@
 </div>
 
 <p style="color:#475569;font-size:0.72rem;text-align:center;margin-top:40px">
-  Aggiornato — Sessione 17 · 2026-06-21 · Claude Sonnet 4.6
+  Aggiornato — Sessione 23 · 2026-06-23 · Claude Sonnet 4.6
 </p>
 
 </body>
