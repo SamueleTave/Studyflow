@@ -470,6 +470,15 @@
       map[key] = { date: key, label, minutes: 0 };
     }
     sessions.forEach(s => { if (map[s.date]) map[s.date].minutes += s.duration || 0; });
+    /* Se admin ha impostato minuti oggi in sf_stats, prendi il massimo */
+    try {
+      const todayKey = new Date().toISOString().slice(0, 10);
+      if (map[todayKey]) {
+        const sf = JSON.parse(localStorage.getItem('sf_stats') || '{}');
+        const adminMins = parseInt(sf.minutes || 0);
+        if (adminMins > map[todayKey].minutes) map[todayKey].minutes = adminMins;
+      }
+    } catch {}
     renderHistoryChart(Object.values(map), days);
   }
 

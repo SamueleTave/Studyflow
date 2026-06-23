@@ -917,10 +917,22 @@
         const weekStart = new Date(today); weekStart.setDate(today.getDate() - today.getDay() + 1);
         const weekStartStr = weekStart.toISOString().slice(0,10);
         let localMins = 0;
+        const todayStr = new Date().toISOString().slice(0,10);
+        let sessionsTodayMins = 0;
         for (const s of localSessions) {
           const d = (s.date || s.endedAt || '').slice(0,10);
-          if (d >= weekStartStr) localMins += parseInt(s.duration || 25);
+          if (d >= weekStartStr) {
+            const dur = parseInt(s.duration || 25);
+            localMins += dur;
+            if (d === todayStr) sessionsTodayMins += dur;
+          }
         }
+        /* Se admin ha impostato minuti oggi in sf_stats, prendi il massimo */
+        try {
+          const sf = JSON.parse(localStorage.getItem('sf_stats') || '{}');
+          const adminMins = parseInt(sf.minutes || 0);
+          if (adminMins > sessionsTodayMins) localMins += adminMins - sessionsTodayMins;
+        } catch {}
         const me = data.find(u => u.is_me);
         if (me) {
           if (localMins > me.minutes) {

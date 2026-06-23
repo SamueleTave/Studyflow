@@ -1487,16 +1487,43 @@ def stats_heatmap():
     return jsonify(result)
 
 def _user_weekly_minutes(c, uid, week_start):
+    today_str = date.today().isoformat()
+    sessions_today = 0
+    minutes = 0
     row = c.execute(
         "SELECT value FROM user_data WHERE user_id=? AND key='sf_sessions'", (uid,)
     ).fetchone()
-    minutes = 0
     if row and row["value"]:
         try:
             for s in json_lib.loads(row["value"]):
                 d = (s.get("date") or s.get("endedAt") or "")[:10]
                 if d >= week_start:
-                    minutes += int(s.get("duration") or 25)
+                    dur = int(s.get("duration") or 25)
+                    minutes += dur
+                    if d == today_str:
+                        sessions_today += dur
+        except Exception:
+            pass
+    # Se admin ha impostato minuti oggi in sf_stats, prendi il massimo
+    # per evitare che le sessioni reali scendano sotto il valore admin
+    if today_str >= week_start:
+        try:
+            st_row = c.execute(
+                "SELECT value FROM user_data WHERE user_id=? AND key='sf_stats'", (uid,)
+            ).fetchone()
+            if st_row and st_row["value"]:
+                st = json_lib.loads(st_row["value"])
+                import datetime as _dt
+                st_date = st.get("date", "")
+                # sf_stats.date è toDateString() JS ("Mon Jun 23 2026") — convertiamo
+                try:
+                    parsed = _dt.datetime.strptime(st_date, "%a %b %d %Y").date().isoformat()
+                except Exception:
+                    parsed = st_date[:10]
+                if parsed == today_str:
+                    admin_mins = int(st.get("minutes") or 0)
+                    if admin_mins > sessions_today:
+                        minutes += admin_mins - sessions_today
         except Exception:
             pass
     return minutes
