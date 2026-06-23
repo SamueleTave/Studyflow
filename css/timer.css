@@ -1428,6 +1428,9 @@
   opacity: 0; transition: opacity 0.12s;
 }
 .sp-swatch.sp-active::after { opacity: 1; }
+.sp-swatch-default {
+  background: conic-gradient(from 0deg, #6366f1, #ec4899, #f59e0b, #10b981, #06b6d4, #6366f1);
+}
 
 /* ── Duration tiles ── */
 .sp-dur-tile {

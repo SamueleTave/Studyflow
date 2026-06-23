@@ -977,6 +977,13 @@
     const row = document.getElementById('sp-swatches');
     if (!row || row.children.length > 0) return;
     const cur = parseInt(localStorage.getItem('sf_accent') ?? '-1');
+    /* Swatch "Default tema" */
+    const def = document.createElement('div');
+    def.className = 'sp-swatch sp-swatch-default' + (cur < 0 ? ' sp-active' : '');
+    def.title = 'Default tema';
+    def.onclick = () => pickAccentDefault();
+    row.appendChild(def);
+    /* Swatches colori */
     _ACCENTS.forEach((a, i) => {
       const s = document.createElement('div');
       s.className = 'sp-swatch' + (i === cur ? ' sp-active' : '');
@@ -1085,10 +1092,22 @@
     _refreshSpTiles();
     _showSpSaved();
   }
+  function pickAccentDefault() {
+    localStorage.removeItem('sf_accent');
+    localStorage.removeItem('sf_accent_color');
+    const r = document.documentElement;
+    r.style.removeProperty('--accent');
+    r.style.removeProperty('--accent-2');
+    r.style.removeProperty('--accent-rgb');
+    document.querySelectorAll('.sp-swatch').forEach(s => s.classList.remove('sp-active'));
+    document.querySelector('.sp-swatch-default')?.classList.add('sp-active');
+    _showSpSaved();
+  }
   function pickAccentColor(idx) {
     localStorage.setItem('sf_accent', idx);
     _applyAccent(idx);
-    document.querySelectorAll('.sp-swatch').forEach((s, i) => s.classList.toggle('sp-active', i === idx));
+    document.querySelectorAll('.sp-swatch:not(.sp-swatch-default)').forEach((s, i) => s.classList.toggle('sp-active', i === idx));
+    document.querySelector('.sp-swatch-default')?.classList.remove('sp-active');
     _showSpSaved();
   }
   initStyles();
