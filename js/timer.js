@@ -179,6 +179,37 @@ function _fmt(s) {
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }
 
+/* ===== BARRA BLOCCHI 25min ===== */
+function _updateBlockBar() {
+  const wrap = document.getElementById('block-bar-wrap');
+  if (!wrap) return;
+
+  const show = cfg.work > 25 && timerMode === 'work';
+  wrap.style.display = show ? 'flex' : 'none';
+  if (!show) return;
+
+  const totalBlocks = Math.floor(cfg.work / 25);
+  const elapsed     = totalTime - timeLeft;
+  const blockIdx    = Math.min(_coinBlocksDone, totalBlocks - 1);
+  const blockElapsed = elapsed - blockIdx * 1500;
+  const pct         = Math.min(100, Math.round(blockElapsed / 1500 * 100));
+  const secsLeft    = Math.max(0, 1500 - blockElapsed);
+
+  const fill   = document.getElementById('block-bar-fill');
+  const lbl    = document.getElementById('block-bar-lbl');
+  const remEl  = document.getElementById('block-bar-rem');
+  const dotsEl = document.getElementById('block-bar-dots');
+
+  if (fill)   fill.style.width = pct + '%';
+  if (lbl)    lbl.textContent  = 'Blocco ' + (blockIdx + 1) + ' / ' + totalBlocks;
+  if (remEl)  remEl.textContent = _fmt(secsLeft);
+  if (dotsEl) {
+    dotsEl.innerHTML = Array.from({ length: totalBlocks }, (_, i) =>
+      `<span class="block-dot ${i < _coinBlocksDone ? 'done' : i === blockIdx ? 'active' : ''}"></span>`
+    ).join('');
+  }
+}
+
 /* ===== UI SYNC ===== */
 function _syncUI() {
   if (!_display) return;
@@ -242,6 +273,7 @@ function _syncUI() {
     : 'StudyFlow ✨';
 
   if (typeof updateLevelPill === 'function') updateLevelPill();
+  _updateBlockBar();
   _saveTimer();
 }
 
@@ -317,6 +349,9 @@ function toggleTimer() {
             _coinBlocksDone = blocksNow;
             const _lvl = typeof getRoleLevel === 'function' ? getRoleLevel() : 0;
             if (typeof earnCoins === 'function') earnCoins(5 + Math.max(0, _lvl - 1));
+            /* Flash barra blocchi */
+            const _bbw = document.getElementById('block-bar-wrap');
+            if (_bbw) { _bbw.classList.add('bb-flash'); setTimeout(() => _bbw.classList.remove('bb-flash'), 650); }
           }
         }
         _syncUI();
