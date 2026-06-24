@@ -241,7 +241,7 @@
   display: flex; flex-direction: column; align-items: center;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  z-index: 200;
+  z-index: 5000;
   opacity: 0; pointer-events: none;
   transition: opacity 0.28s;
 }
