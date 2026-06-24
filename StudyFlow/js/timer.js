@@ -13,6 +13,8 @@ let totalTime  = 0;
 let isRunning  = false;
 let cycleCount = 0;      // sessioni di lavoro completate nel ciclo corrente
 let timerIv    = null;
+let _timerStart     = 0;   // Date.now() al momento del (re)start
+let _timerStartLeft = 0;   // timeLeft al momento del (re)start
 let _coinBlocksDone    = 0;
 let _sessionCoinEnabled = false; // false dopo le prime 10 sessioni della giornata
 
@@ -52,11 +54,16 @@ function initTimer() {
 
   /* Riavvia interval se il timer era in esecuzione */
   if (isRunning) {
+    _timerStart     = Date.now();
+    _timerStartLeft = timeLeft;
     timerIv = setInterval(() => {
+      const _prev = timeLeft;
+      timeLeft = Math.max(0, _timerStartLeft - Math.floor((Date.now() - _timerStart) / 1000));
       if (timeLeft > 0) {
-        timeLeft--;
-        if (timerMode === 'work' && timeLeft % 60 === 0 && typeof tickHydration === 'function') {
-          tickHydration(true);
+        if (timerMode === 'work' && typeof tickHydration === 'function') {
+          const pm = Math.floor((totalTime - _prev) / 60);
+          const cm = Math.floor((totalTime - timeLeft) / 60);
+          for (let m = pm + 1; m <= cm; m++) tickHydration(true);
         }
         _syncUI();
       } else {
@@ -112,29 +119,23 @@ document.addEventListener('visibilitychange', () => {
       toggleTimer();
       return;
     }
+    /* Ricalcola subito da start assoluto — annulla completamente il throttling */
+    if (_timerStart > 0) {
+      timeLeft = Math.max(0, _timerStartLeft - Math.floor((Date.now() - _timerStart) / 1000));
+      _syncUI();
+      if (timeLeft === 0) {
+        clearInterval(timerIv);
+        isRunning = false;
+        _setRunningStyle(false);
+        _onEnd(false);
+        return;
+      }
+    }
   } else {
     _bgHiddenAt = 0;
   }
   if (!isRunning) return;
   _requestWakeLock();
-  /* Correggi secondi persi dal throttling del browser (tab in background < 10min) */
-  try {
-    const saved = JSON.parse(localStorage.getItem('sf_timer') || 'null');
-    if (saved && saved.running && saved.savedAt) {
-      const elapsed = Math.floor((Date.now() - saved.savedAt) / 1000);
-      const corrected = Math.max(0, saved.timeLeft - elapsed);
-      if (corrected < timeLeft) {
-        timeLeft = corrected;
-        _syncUI();
-        if (timeLeft === 0) {
-          clearInterval(timerIv);
-          isRunning = false;
-          _setRunningStyle(false);
-          _onEnd(false);
-        }
-      }
-    }
-  } catch(e) {}
 });
 
 /* ===== RIPRISTINO TIMER (localStorage) ===== */
@@ -146,13 +147,26 @@ function _restoreTimer() {
       timerMode  = t.mode  || 'work';
       cycleCount = t.cycle || 0;
       totalTime  = _modeSec(timerMode);
-      if (t.running && t.savedAt) {
-        const elapsed = Math.floor((Date.now() - t.savedAt) / 1000);
-        timeLeft = Math.max(0, t.timeLeft - elapsed);
+      if (t.running) {
+        /* Usa timerStart assoluto se disponibile (formato nuovo) — immune al throttling */
+        if (t.timerStart && t.timerStartLeft !== undefined) {
+          timeLeft = Math.max(0, t.timerStartLeft - Math.floor((Date.now() - t.timerStart) / 1000));
+          _timerStart     = t.timerStart;
+          _timerStartLeft = t.timerStartLeft;
+        } else if (t.savedAt) {
+          const elapsed = Math.floor((Date.now() - t.savedAt) / 1000);
+          timeLeft = Math.max(0, t.timeLeft - elapsed);
+          _timerStart     = Date.now();
+          _timerStartLeft = timeLeft;
+        } else {
+          timeLeft = t.timeLeft || totalTime;
+          _timerStart     = Date.now();
+          _timerStartLeft = timeLeft;
+        }
         if (timeLeft === 0) {
           /* Il timer è scaduto mentre eravamo via — abilita monete prima di _onEnd */
           _sessionCoinEnabled = (t.mode || 'work') === 'work' && _todayCoinSessions() < 10;
-          _coinBlocksDone     = Math.floor((totalTime - 0) / 1500);
+          _coinBlocksDone     = Math.floor(totalTime / 1500);
           _onEnd(true);
           return;
         }
@@ -174,12 +188,14 @@ function _restoreTimer() {
 
 function _saveTimer() {
   localStorage.setItem('sf_timer', JSON.stringify({
-    mode:      timerMode,
+    mode:           timerMode,
     timeLeft,
     totalTime,
-    cycle:     cycleCount,
-    running:   isRunning,
-    savedAt:   Date.now(),
+    cycle:          cycleCount,
+    running:        isRunning,
+    savedAt:        Date.now(),
+    timerStart:     _timerStart,
+    timerStartLeft: _timerStartLeft,
   }));
 }
 
@@ -354,12 +370,17 @@ function toggleTimer() {
     /* Al resume, ripristina i blocchi già premiati per evitare doppie monete su pausa+ripresa */
     _coinBlocksDone = Math.floor((totalTime - timeLeft) / 1500);
     _sessionCoinEnabled = timerMode === 'work' && _todayCoinSessions() < 10;
+    _timerStart     = Date.now();
+    _timerStartLeft = timeLeft;
     timerIv = setInterval(() => {
+      const _prev = timeLeft;
+      timeLeft = Math.max(0, _timerStartLeft - Math.floor((Date.now() - _timerStart) / 1000));
       if (timeLeft > 0) {
-        timeLeft--;
-        /* Tick idratazione ogni minuto intero in modalità lavoro */
-        if (timerMode === 'work' && timeLeft % 60 === 0 && typeof tickHydration === 'function') {
-          tickHydration(true);
+        /* Tick idratazione: controlla se è stato attraversato un confine di minuto */
+        if (timerMode === 'work' && typeof tickHydration === 'function') {
+          const pm = Math.floor((totalTime - _prev) / 60);
+          const cm = Math.floor((totalTime - timeLeft) / 60);
+          for (let m = pm + 1; m <= cm; m++) tickHydration(true);
         }
         /* Monete ogni 25 minuti completati (1500 secondi) */
         if (timerMode === 'work' && _sessionCoinEnabled) {
@@ -369,7 +390,6 @@ function toggleTimer() {
             _coinBlocksDone = blocksNow;
             const _lvl = typeof getRoleLevel === 'function' ? getRoleLevel() : 0;
             if (typeof earnCoins === 'function') earnCoins(5 + Math.max(0, _lvl - 1));
-            /* Flash barra blocchi */
             const _bbw = document.getElementById('block-bar-wrap');
             if (_bbw) { _bbw.classList.add('bb-flash'); setTimeout(() => _bbw.classList.remove('bb-flash'), 650); }
           }
