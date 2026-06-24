@@ -51,6 +51,10 @@ async function logout() {
   ['sf_spotify_token','sf_spotify_token_exp','sf_pkce_verifier','sf_pkce_client_id'].forEach(k => localStorage.removeItem(k));
   sessionStorage.removeItem(SF_AUTH_KEY);
   sessionStorage.removeItem('sf_session_loaded');
+  /* Pulisce tutte le chiavi sessionStorage specifiche dell'utente.
+     Evita che dati visivi (shop disabled, prezzi, mood) dell'utente precedente
+     compaiano brevemente al prossimo utente prima che initCoins() li sovrascriva. */
+  ['sf_mood_shown', '_sfDisabled', '_sfPrices'].forEach(k => sessionStorage.removeItem(k));
   window.location.replace('login.html');
 }
 
