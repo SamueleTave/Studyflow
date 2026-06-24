@@ -155,13 +155,320 @@
 <body>
 
 <h1>🐛 Bug StudyFlow — Registro Completo</h1>
-<p class="subtitle">Aggiornato: 2026-06-22 — Sessione 21 &nbsp;|&nbsp; ⚡ Priorità: Netlify (online) &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
+<p class="subtitle">Aggiornato: 2026-06-24 — Sessione 25 &nbsp;|&nbsp; ⚡ Priorità: Netlify (manuale) &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
 
 <!-- STATO DEPLOY -->
 <div class="status-row">
-  <div class="status-chip"><div class="dot green"></div> GitHub: pushato (b464816)</div>
-  <div class="status-chip"><div class="dot green"></div> Netlify: ⚡ PRIORITÀ — auto-deploy da GitHub</div>
-  <div class="status-chip"><div class="dot green"></div> Render: OK — app.py non toccato</div>
+  <div class="status-chip"><div class="dot green"></div> GitHub: pushato (b22d2f2)</div>
+  <div class="status-chip"><div class="dot yellow"></div> Netlify: ⚠️ Upload manuale richiesto (StudyFlow/StudyFlow)</div>
+  <div class="status-chip"><div class="dot yellow"></div> Render: ⚠️ Manual Deploy richiesto (app.py cambiato)</div>
+  <div class="status-chip"><div class="dot red"></div> Pulizia DB: Reset oggi su Samu/Elly/Look via admin panel</div>
+</div>
+
+<!-- ===== AGGIORNAMENTI SESSIONE 25 — 2026-06-24 ===== -->
+<div class="section">
+  <div class="section-title">🚀 Aggiornamenti — sessione 25 (2026-06-24) — pushati</div>
+
+  <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:16px 20px;margin-bottom:20px">
+    <div style="font-size:0.75rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">🔴 Bug critico — mix account (ora risolto)</div>
+    <p style="font-size:0.85rem;line-height:1.7;color:#e2e8f0">
+      Al logout, <code>sf_sessions</code> e <code>sf_stats</code> venivano salvati in <code>sessionStorage</code> come backup puro senza indicare a chi appartenessero.
+      Se un secondo utente si loggava sullo stesso tab, <code>loadFromServer()</code> leggeva quel backup e lo fondeva nei propri dati.
+      Risultato: Samu vedeva 50 min non fatti, Elly 25 min non fatti, Look 50 min non fatti, classifica con 100 min, streak azzerata.
+    </p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#ef4444;text-transform:uppercase;margin-bottom:10px">🔐 Fix isolamento account (auth.js)</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span><div><strong>Mix account via sessionStorage backup</strong> — il backup al logout ora è <code>{u:"username", d:"...dati..."}</code>. <code>loadFromServer()</code> lo usa solo se <code>u === utente_corrente</code>, altrimenti lo scarta. Vecchio formato senza tag = scartato.</div></li>
+        <li><span>✓</span><div><strong>Pulizia sessionStorage al logout</strong> — aggiunte <code>sf_mood_shown</code>, <code>_sfDisabled</code>, <code>_sfPrices</code> alla lista di chiavi rimosse al logout. Prima potevano mostrare brevemente lo stato shop/UI dell'utente precedente.</div></li>
+        <li><span>✓</span><div><strong>Ore totali in stats gonfiati dal mixing</strong> — <code>Math.max(sessionsTotalMin, totalMinutes)</code> prendeva il valore più alto tra l'array sessioni (gonfiato da fake) e totalMinutes (reale). Fix: <code>cd.totalMinutes || sessionsTotalMin</code> — usa totalMinutes come fonte primaria, fallback solo se = 0.</div></li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#f59e0b;text-transform:uppercase;margin-bottom:10px">🛡️ Fix admin persistence (admin.html + app.py)</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span><div><strong>Streak resettava a 1 dopo modifica admin</strong> — <code>saveUserEdit()</code> non impostava <code>lastStudy</code>. <code>updateStreak()</code> vedeva lastStudy null → azzerava. Fix: <code>lastStudy = ieri</code> automaticamente quando admin imposta streak &gt; 0.</div></li>
+        <li><span>✓</span><div><strong>Minuti admin sparivano il giorno dopo</strong> — <code>sf_stats.minutes</code> è solo per oggi. Fix: admin.html aggiunge una sessione <code>adm_day_</code> con <code>date: ISO, duration: todayMins</code> in sf_sessions — persiste nel leaderboard anche domani.</div></li>
+        <li><span>✓</span><div><strong>Leaderboard double-counting adm_day_</strong> — <code>_user_weekly_minutes()</code> sommava sia adm_day_ che sf_stats. Fix: per ogni data usa <code>max(sessioni_reali, adm_day_floor)</code> invece di sommare — zero doppio conteggio.</div></li>
+        <li><span>✓</span><div><strong>Nuovo bottone "🗑️ Reset oggi"</strong> — nel modal admin edit utente. Chiama <code>POST /api/admin/users/:uid/reset-today</code> → azzera sf_stats.minutes/sessions di oggi, rimuove le sessioni del giorno da sf_sessions, preserva streak. Usato per pulire dati contaminati dal mixing.</div></li>
+        <li><span>✓</span><div><strong>Fix z-index iOS Safari (commit precedente)</strong> — tasto "Modifica" timer non cliccabile su iOS perché i tab modalità (Sessione/Pausa Lunga) erano sopra l'overlay. Fix: z-index overlay <code>200 → 5000</code> in calendar.css?v=7.</div></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AGGIORNAMENTI SESSIONE 23 — 2026-06-23 ===== -->
+<div class="section">
+  <div class="section-title">🚀 Aggiornamenti — sessione 23 (2026-06-23) — pushati</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#6366f1;text-transform:uppercase;margin-bottom:10px">🔒 Fix sync admin (6 bug)</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span> <div><strong>saveStats() eliminava _adminTs</strong> — dopo ogni sessione <code>saveStats()</code> riscriveva sf_stats senza <code>_adminTs</code> → la protezione admin si rompeva. Fix: legge il _adminTs esistente da localStorage e lo reinserisce.</div></li>
+        <li><span>✓</span> <div><strong>sf_stats: admin non poteva abbassare i valori</strong> — il merge con Math.max impediva riduzioni. Fix: Regola 1 in auth.js — se server ha _adminTs diverso da locale E backup, il server vince completamente (senza max).</div></li>
+        <li><span>✓</span> <div><strong>sf_coins balance usava Math.max</strong> — riaprendo un tab il balance tornava al valore server anche dopo acquisti. Fix: <code>balance: ac ? server.balance : local.balance</code> — il locale vince sempre tranne dopo modifica admin.</div></li>
+        <li><span>✓</span> <div><strong>Contatori cumulativi coins ignoravano admin change</strong> — totalSessions/totalMinutes/totalEarned usavano Math.max anche dopo modifica admin → riduzioni admin annullate. Fix: <code>ac ? server.X : Math.max(...)</code>.</div></li>
+        <li><span>✓</span> <div><strong>app.py sync usava max per sf_stats</strong> — il server annullava le riduzioni admin lato server. Fix: quando srv_ts ≠ cli_ts, il server sovrascrive completamente (streak/minutes/sessions/date/lastStudy).</div></li>
+        <li><span>✓</span> <div><strong>_sfReinitAll() non chiamava loadData()</strong> — le correzioni server aggiornano localStorage ma l'oggetto <code>stats</code> in memoria restava vecchio → UI non si aggiornava. Fix: prima istruzione di _sfReinitAll è loadData().</div></li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#10b981;text-transform:uppercase;margin-bottom:10px">📊 Fix statistiche e classifica</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span> <div><strong>"Minuti oggi" ignorava il valore admin</strong> — <code>loadPage()</code> in stats.html calcolava todayMin SOLO da sf_sessions, ignorando sf_stats.minutes. Fix: <code>Math.max(sessions_oggi, sf_stats.minutes)</code>.</div></li>
+        <li><span>✓</span> <div><strong>"Ore totali" poteva essere bassa</strong> — usava solo la somma di sf_sessions. Fix: <code>Math.max(sessions_total, sf_coins.totalMinutes)</code>.</div></li>
+        <li><span>✓</span> <div><strong>Confronto settimanale non rispecchiava admin</strong> — _renderWeekCompare() ignorava sf_stats.minutes per oggi. Fix: aggiunge la differenza admin–sessioni se sf_stats.date è oggi.</div></li>
+        <li><span>✓</span> <div><strong>Classifica (server) non considerava minuti admin</strong> — <code>_user_weekly_minutes()</code> in app.py leggeva solo sf_sessions. Fix: per oggi prende <code>max(sessions_oggi, sf_stats.minutes)</code> leggendo sf_stats dal DB. Parsing da toDateString() JS a ISO.</div></li>
+        <li><span>✓</span> <div><strong>Classifica (client) stessa issue</strong> — friends.html override locale ignorava sf_stats. Fix: calcola sessionsTodayMins separatamente, aggiunge differenza admin se sf_stats.minutes è più alto.</div></li>
+        <li><span>✓</span> <div><strong>Grafico settimanale barra oggi</strong> — _renderHistoryLocal() ignorava sf_stats.minutes per oggi. Fix: dopo il loop sessioni, corregge map[todayKey].minutes con Math.max.</div></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AGGIORNAMENTI SESSIONE 22 — 2026-06-23 ===== -->
+<div class="section">
+  <div class="section-title">🚀 Aggiornamenti — sessione 22 (2026-06-23) — pushati</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#6366f1;text-transform:uppercase;margin-bottom:10px">✅ Fix</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span> <div><strong>Timer rallentava cambiando tab</strong> — browser throttla <code>setInterval</code> in background. Aggiunta correzione drift nel listener <code>visibilitychange</code>: al ritorno in foreground confronta <code>Date.now()</code> con <code>savedAt</code> e corregge <code>timeLeft</code>. Se timer scaduto in background → <code>_onEnd()</code> immediato.</div></li>
+        <li><span>✓</span> <div><strong>Sfide giornaliere — verifica monete</strong> — analizzato flusso completo: <code>updateChallengeProgress()</code> → <code>earnCoins(ch.reward)</code> → notifica. Sistema funzionante su tutte le pagine (anche tasks.html senza challenge-bar). Nessun bug trovato.</div></li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#10b981;text-transform:uppercase;margin-bottom:10px">💡 Idee raccolte</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>🆕</span> <div>10 nuove idee funzionalità aggiunte alla sezione Idee (suoni, modalità esame, statistiche per materia, carte collezionabili, bonus notturno, promemoria, stanza condivisa, barra XP, note per materia, piano settimanale)</div></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AGGIORNAMENTI SESSIONE 21 — 2026-06-22 ===== -->
+<div class="section">
+  <div class="section-title">🚀 Aggiornamenti — sessione 21 (2026-06-22) — pushati</div>
+
+  <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:12px;padding:16px 20px;margin-bottom:20px">
+    <div style="font-size:0.75rem;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">📣 Messaggio aggiornamento utenti</div>
+    <p style="font-size:0.88rem;line-height:1.8;color:#e2e8f0">
+      <strong>🆕 Aggiornamento StudyFlow — 22 Giugno 2026</strong><br><br>
+      🏆 <strong>Classifica — ruoli corretti</strong> — I ruoli degli altri utenti ora appaiono con il colore giusto. Prima potevano mostrare il ruolo sbagliato (es. Studiosa appariva come Studente).<br><br>
+      💰 <strong>Monete per sessione — ora basate sul tuo ruolo</strong> — Il badge a fine sessione mostra le monete reali guadagnate:<br>
+      &nbsp;&nbsp;• Novizio / Studente → <strong>5 monete</strong><br>
+      &nbsp;&nbsp;• Applicato → <strong>6</strong> &nbsp;·&nbsp; Determinato → <strong>7</strong> &nbsp;·&nbsp; Studioso → <strong>8</strong><br>
+      &nbsp;&nbsp;• Esperto → <strong>9</strong> &nbsp;·&nbsp; Maestro → <strong>10</strong><br>
+      &nbsp;&nbsp;• Sessioni da 50 min → monete raddoppiate<br><br>
+      ✍️ <strong>Popup fine sessione più leggibile</strong> — la scritta "Cosa hai studiato?" era quasi invisibile. Ora è ben visibile.<br><br>
+      📅 <strong>Calendario — task nel giorno giusto</strong> — le task con scadenza ora appaiono nel giorno corretto.<br><br>
+      🔑 <strong>Fix sessioni perse</strong> — risolto bug che in certi casi faceva perdere l'ultima sessione dopo logout.<br><br>
+      🌙 <strong>Giardino — alba e tramonto reali</strong> — il cielo usa gli orari reali della tua posizione. La luna è sempre visibile di notte anche su mobile.
+    </p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#6366f1;text-transform:uppercase;margin-bottom:10px">👤 Lato utente</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span> <div>Classifica: ruolo ricalcolato da SF_ROLES per tutti (non solo me)</div></li>
+        <li><span>✓</span> <div>Classifica: sf_role_override rispettato nel leaderboard (lato server)</div></li>
+        <li><span>✓</span> <div>Badge monete: formula reale <code>5 + max(0, livello-1)</code> × blocchi 25min (era hardcoded 15)</div></li>
+        <li><span>✓</span> <div>scb-label "Cosa hai studiato?" → var(--text) font-weight 600 (era quasi invisibile)</div></li>
+        <li><span>✓</span> <div>Calendario: task usa dueDate se presente, altrimenti date di creazione</div></li>
+        <li><span>✓</span> <div>Session loss al logout: backup sessionStorage → merge su login</div></li>
+        <li><span>✓</span> <div>Calendario today: color-mix(var(--accent)) invece di azzurro hardcoded</div></li>
+        <li><span>✓</span> <div>Giardino: alba/tramonto reali da Open-Meteo, parsing ISO → ore decimali</div></li>
+        <li><span>✓</span> <div>Luna sempre visibile di notte su mobile</div></li>
+        <li><span>✓</span> <div>13 bug proattivi risolti prima delle segnalazioni utenti</div></li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#06b6d4;text-transform:uppercase;margin-bottom:10px">🔧 Lato admin / backend</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span> <div>app.py leaderboard: legge sf_role_override per ogni utente</div></li>
+        <li><span>✓</span> <div>Admin: set ruolo → auto-sync sessioni al minimo del ruolo (_ROLE_MIN_SESSIONS)</div></li>
+        <li><span>✓</span> <div>Admin: saveUserEdit usa effectiveSessions = Math.max(sessions, _minForRole)</div></li>
+        <li><span>✓</span> <div>app.py: /api/sessions e /api/export/csv protetti da auth</div></li>
+        <li><span>✓</span> <div>admin_set_coins: aggiunto _adminTs per rilevare aggiornamenti admin</div></li>
+        <li><span>✓</span> <div>friends_invite_progress: legge totalSessions da sf_coins</div></li>
+        <li><span>✓</span> <div>friends_search: LIKE con escape per caratteri speciali</div></li>
+        <li><span>✓</span> <div>update_challenge_progress: try/except su int(), add_delta incrementale</div></li>
+        <li><span>✓</span> <div>Pannello ruolo: legge sessionCount da sf_coins.totalSessions</div></li>
+        <li><span>✓</span> <div>Mobile: qnote-panel fullwidth, animal-bubble riposizionata, toast safe-area</div></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SESSIONE 17 — FIX ===== -->
+<div class="section">
+  <div class="section-title">✅ Sessione 17 (2026-06-21) — Fix e funzionalità</div>
+
+  <div class="bug-card critico">
+    <div class="bug-header">
+      <span class="badge critico">Critico</span>
+      <div>
+        <div class="bug-title">AI Key bug — apiFetch non definita in flashcards</div>
+        <div class="bug-file">flashcards.html · _aiLoadKey()</div>
+      </div>
+      <span class="commit">67ad130</span>
+    </div>
+    <p class="bug-desc"><code>apiFetch</code> è definita localmente solo in <code>admin.html</code>. In <code>flashcards.html</code> la chiamata causava <code>ReferenceError</code> silenzioso (catch) → <code>_aiServerKey = ''</code> → "AI non configurata" per tutti gli utenti anche con chiave impostata.</p>
+    <div class="bug-fix"><strong>Fix:</strong> sostituita <code>apiFetch('/api/user/ai-key')</code> → <code>apiGet('/user/ai-key')</code> (funzione di api.js sempre disponibile). Cache solo se chiave truthy → si aggiorna dopo che admin la imposta.</div>
+  </div>
+
+  <div class="bug-card critico">
+    <div class="bug-header">
+      <span class="badge critico">Critico</span>
+      <div>
+        <div class="bug-title">Ornitorinco dava monete infinite al tap</div>
+        <div class="bug-file">js/platypus.js · _onPlatypusClick()</div>
+      </div>
+      <span class="commit">eca3ffe</span>
+    </div>
+    <p class="bug-desc">Ogni click sull'ornitorinco chiamava <code>earnCoins(1)</code> senza alcun limite. Farming illimitato.</p>
+    <div class="bug-fix"><strong>Fix:</strong> max 2 monete/giorno via chiave localStorage <code>sf_plat_tap_YYYY-MM-DD</code>. Al 3° tap mostra bubble "Già dato oggi! 😄" senza dare monete. Solo il platipus dava monete al tap (tutti gli altri animali no).</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Ornitorinco usciva fuori dal canvas nel giardino</div>
+        <div class="bug-file">js/platypus.js · platypusEnterGarden()</div>
+      </div>
+      <span class="commit">eca3ffe</span>
+    </div>
+    <p class="bug-desc">Il garden walk usava <code>window.innerWidth</code> come maxX invece dei bounds reali del canvas. Risultato: l'ornitorinco camminava fuori dal giardino. Mancava anche il delay 900ms e il posizionamento sull'erba.</p>
+    <div class="bug-fix"><strong>Fix:</strong> riscritto come <code>catEnterGarden</code>: delay 900ms, <code>rect.left/right</code> del canvas per bounds X, <code>GRASS_H=100</code> per Y (sull'erba), variazione Y stretta (minB/maxB con range 8px).</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Ornitorinco non si rimpiccioliva nel giardino</div>
+        <div class="bug-file">js/garden.js · toggleGarden()</div>
+      </div>
+      <span class="commit">56a23ad</span>
+    </div>
+    <p class="bug-desc"><code>garden.js</code> chiamava enter/exit garden per tutti gli animali tranne platipus e giraffa. Le funzioni esistevano ma non erano invocate.</p>
+    <div class="bug-fix"><strong>Fix:</strong> aggiunte chiamate <code>platypusEnterGarden/Exit</code> e <code>giraffeEnterGarden/Exit</code> (con guard <code>typeof === 'function'</code>). Giraffe non ha le funzioni garden → la guard salta silenziosamente.</div>
+  </div>
+
+  <div class="bug-card medio">
+    <div class="bug-header">
+      <span class="badge medio">Medio</span>
+      <div>
+        <div class="bug-title">Modal non scrollava (mobile + desktop)</div>
+        <div class="bug-file">css/calendar.css · .overlay / .modal</div>
+      </div>
+      <span class="commit">18f9367</span>
+    </div>
+    <p class="bug-desc">Overlay con <code>display:flex; align-items:center</code> centrando il modal, ma <code>overflow-y:auto</code> sul modal dentro <code>position:fixed</code> non funziona su iOS Safari. Modal con <code>max-height:88vh</code> e overflow interno non scrollava correttamente.</p>
+    <div class="bug-fix"><strong>Fix:</strong> overlay scrollabile (<code>overflow-y:auto; -webkit-overflow-scrolling:touch</code>) con <code>::before</code>/<code>::after</code> flex spacers (<code>flex:1; min-height:16px</code>) per centrare. Quando modal supera viewport i spacer collassano e l'overlay scrolla. Rimosso <code>max-height</code> dal modal.</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge minore">Minore</span>
+      <div>
+        <div class="bug-title">Double-tap zoom su login PIN (iOS)</div>
+        <div class="bug-file">login.html · &lt;style&gt;</div>
+      </div>
+      <span class="commit">18f9367</span>
+    </div>
+    <p class="bug-desc"><code>user-scalable=no</code> ignorato da iOS 10+ per accessibilità. Doppio tap sui tasti PIN allargava la pagina.</p>
+    <div class="bug-fix"><strong>Fix:</strong> <code>touch-action: manipulation</code> su <code>button, input, a, label</code> in login.html. Impedisce il doppio-tap zoom senza disabilitare lo scroll. <code>-webkit-tap-highlight-color: transparent</code> per rimuovere il flash blu al tap.</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge minore">Minore</span>
+      <div>
+        <div class="bug-title">Hamburger copriva il contenuto delle pagine</div>
+        <div class="bug-file">css/base.css + css/sidebar.css · @media ≤960px</div>
+      </div>
+      <span class="commit">18f9367</span>
+    </div>
+    <p class="bug-desc">L'hamburger è <code>position:fixed; top:14px; height:44px</code>. Le pagine non avevano clearance sufficiente. sidebar.css sovrascriveva il padding a 0 esplicitamente.</p>
+    <div class="bug-fix"><strong>Fix:</strong> <code>padding-top:66px</code> su <code>.app > *:not(aside)</code> a ≤960px in base.css. Rimossa la riga che sovrascriveva a 0 in sidebar.css.</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge risolto">Funzionalità</span>
+      <div>
+        <div class="bug-title">Timer standby — comportamento scelto</div>
+        <div class="bug-file">js/timer.js · initTimer()</div>
+      </div>
+      <span class="commit">56a23ad</span>
+    </div>
+    <p class="bug-desc">Il timer si congelava durante lo standby e riprendeva da dove era (setInterval si ferma durante sleep). Era stata aggiunta una correzione che calcolava il tempo trascorso — ma il comportamento voluto è che il timer si congeli.</p>
+    <div class="bug-fix"><strong>Decisione:</strong> rimossa la correzione elapsed. Timer = congela durante sleep, riprende da dove era. <strong>Wake Lock API</strong> aggiunto: impedisce allo schermo di spegnersi mentre il timer gira (<code>navigator.wakeLock.request('screen')</code>).</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge risolto">Funzionalità</span>
+      <div>
+        <div class="bug-title">Chiave AI spostata in admin — solo kiwi07</div>
+        <div class="bug-file">app.py · /api/user/ai-key &nbsp;|&nbsp; admin.html · flashcards.html</div>
+      </div>
+      <span class="commit">18f9367</span>
+    </div>
+    <p class="bug-desc">In precedenza la chiave Groq era inserita dall'utente in localStorage. Accesso non controllato.</p>
+    <div class="bug-fix"><strong>Fix:</strong> chiave salvata in <code>app_config</code> DB con key <code>groq_key</code>. Solo admin può impostare/rimuovere. Nuovo endpoint <code>GET /api/user/ai-key</code> (auth required) ritorna la chiave a tutti gli utenti autenticati. UI inserimento rimossa da flashcards.html.</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge risolto">Funzionalità</span>
+      <div>
+        <div class="bug-title">Banner Novità — sistema admin dinamico</div>
+        <div class="bug-file">admin.html · index.html · app_config(banner_json)</div>
+      </div>
+      <span class="commit">18f9367</span>
+    </div>
+    <p class="bug-desc">Il banner "Novità" in index.html era hardcoded. L'admin non poteva aggiornarlo senza toccare il codice.</p>
+    <div class="bug-fix"><strong>Fix:</strong> banner dinamico. Admin pubblica da pannello (titolo + max 6 voci con colore, grassetto, testo). Salvato in <code>app_config</code> key <code>banner_json</code>. <code>_loadBanner()</code> in index.html lo carica da <code>GET /api/config</code>. Ogni utente vede il banner una sola volta (<code>sf_banner_vYYYYMMDD</code> in localStorage). Nuova pubblicazione = tutti lo rivedono.</div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge risolto">Funzionalità</span>
+      <div>
+        <div class="bug-title">Mappa di Studio AI + Admin responsive</div>
+        <div class="bug-file">flashcards.html · css/flashcards.css · admin.html</div>
+      </div>
+      <span class="commit">18f9367</span>
+    </div>
+    <p class="bug-desc">Nuove funzionalità aggiunte in sessione 17.</p>
+    <div class="bug-fix">
+      <strong>Mappa AI:</strong> nuova view <code>fc-view-map</code> in flashcards.html. Accordion con sezioni emoji+titolo+punti. Generata da Groq <code>llama-3.1-8b-instant</code>. JSON <code>{title, sections:[{title,emoji,summary,points:[]}]}</code>.<br><br>
+      <strong>Flashcard UI:</strong> progress bar mastery % sui deck card. Pulsanti azioni sempre visibili su touch (opacity:1 a ≤600px). Grid 2 colonne pulsanti mobile.<br><br>
+      <strong>Admin responsive:</strong> media queries ≤960px e ≤420px per layout tablet/mobile del pannello admin.
+    </div>
+  </div>
+
+  <div class="bug-card minore">
+    <div class="bug-header">
+      <span class="badge risolto">Deploy</span>
+      <div>
+        <div class="bug-title">Nuovo URL Netlify (vecchio esaurito)</div>
+        <div class="bug-file">—</div>
+      </div>
+      <span class="commit">2026-06-21</span>
+    </div>
+    <p class="bug-desc">Vecchio sito Netlify (rainbow-daifuku-58caa0) aveva esaurito i crediti.</p>
+    <div class="bug-fix"><strong>Nuovo URL:</strong> <code>https://incredible-scone-e3d69d.netlify.app/login.html</code><br>Auto-deploy da GitHub attivo. Messaggio inviato agli utenti del vecchio sito via admin notifiche.</div>
+  </div>
 </div>
 
 <!-- ===== SESSIONE 10 — BUG FIXATI ===== -->
@@ -516,35 +823,57 @@
 <div class="section">
   <div class="section-title">💡 Idee — nuove funzionalità da aggiungere</div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+  <!-- GAMIFICATION -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
     <div>
       <div style="font-size:0.72rem;font-weight:700;color:#f59e0b;text-transform:uppercase;margin-bottom:10px">🎮 Gamification</div>
       <ul class="todo-list">
-        <li><span>⭐</span> <div><strong>Barra XP visiva</strong> — progress bar animata sotto il profilo, animazione level-up con particelle, collegata ai ruoli novizio→maestro</div></li>
+        <li><span>⭐</span> <div><strong>Barra XP visiva</strong> — progress bar animata nel timer che si riempie verso il prossimo ruolo. Già hai SF_ROLES ma sono nascosti — renderli visibili è ad alto impatto motivazionale. Animazione level-up con particelle.</div></li>
+        <li><span>🎴</span> <div><strong>Carte collezionabili rare</strong> — ogni 10 sessioni appare una carta casuale (comune/rara/leggendaria) con i compagni. Effetto gacha. Si vedono nello shop, si mostrano agli amici. Altamente addictive.</div></li>
+        <li><span>🌙</span> <div><strong>Bonus sessione notturna</strong> — studi dopo le 22:00 → monete ×1.5 e il gufo diventa protagonista. Il cielo del giardino mostra aurora boreale. Premia chi studia di notte.</div></li>
         <li><span>🏆</span> <div><strong>Achievement sbloccabili</strong> — badge da collezione: "Prima sessione", "7 giorni streak", "10 ore studiate", "Tutti i compagni", ecc.</div></li>
-        <li><span>🎴</span> <div><strong>Carte studio rare</strong> — dopo X sessioni appare una carta collezionabile animata (tipo card Pokémon ma con i compagni). Da scambiare con gli amici.</div></li>
-        <li><span>🌙</span> <div><strong>Sessioni notturne bonus</strong> — se studi dopo le 22:00 ottieni stelle doppie. Il cielo del giardino mostra aurora boreale.</div></li>
       </ul>
     </div>
     <div>
-      <div style="font-size:0.72rem;font-weight:700;color:#10b981;text-transform:uppercase;margin-bottom:10px">📱 UX / Funzionalità</div>
+      <div style="font-size:0.72rem;font-weight:700;color:#ef4444;text-transform:uppercase;margin-bottom:10px">😴 Produttività</div>
       <ul class="todo-list">
-        <li><span>🔔</span> <div><strong>Notifiche push</strong> — Web Push API, reminder "Studia ora!", avviso fine sessione anche con app minimizzata</div></li>
-        <li><span>🎯</span> <div><strong>Modalità focus</strong> — schermo pieno, blocco notifiche, timer 90min, musica auto-start, sfondo immersivo</div></li>
-        <li><span>👀</span> <div><strong>Preview compagni nello shop</strong> — mini SVG animato nella card prima dell'acquisto (vedi l'animale muoversi prima di comprarlo)</div></li>
-        <li><span>📅</span> <div><strong>Piano studio settimanale</strong> — scheduler drag&drop: trascina le materie nei giorni della settimana, reminder automatici</div></li>
-        <li><span>📊</span> <div><strong>Report PDF mensile</strong> — ore studiate, materie, streak, compagni, heatmap. Export da app.py con WeasyPrint.</div></li>
-        <li><span>⚡</span> <div><strong>Sfide amici live</strong> — classifica in tempo reale (polling 30s), notifica "Il tuo amico ti ha superato!", emoji reactions durante la sfida</div></li>
+        <li><span>😴</span> <div><strong>Modalità Esame</strong> — blocca il tab per X minuti: non puoi uscire senza perdere monete. Tipo Forest app. Punisce la distrazione invece di solo premiare lo studio. Molto efficace.</div></li>
+        <li><span>🎯</span> <div><strong>Modalità Focus</strong> — schermo pieno, blocco notifiche, timer 90min, musica ambient auto-start, sfondo immersivo. Per le sessioni lunghe.</div></li>
+        <li><span>🔔</span> <div><strong>Promemoria intelligente</strong> — "Non studi da 2 giorni" → notifica push via Service Worker. Già hai il sistema streak, basterebbe una scheduled notification.</div></li>
+        <li><span>📊</span> <div><strong>Statistiche per materia</strong> — grafico ore per materia: totale, sessioni, trend ultima settimana. Ora le stats sono aggregate — utile sapere dove si studia meno.</div></li>
       </ul>
     </div>
   </div>
 
-  <div style="margin-top:16px">
+  <!-- SOCIAL + AUDIO -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#06b6d4;text-transform:uppercase;margin-bottom:10px">👥 Social</div>
+      <ul class="todo-list">
+        <li><span>🤝</span> <div><strong>Stanza studio condivisa</strong> — 2-4 amici nel timer insieme, vedono i progressi live. Timer sincronizzato. Tipo "study with me" virtuale. Già hai il sistema amici + DB.</div></li>
+        <li><span>⚔️</span> <div><strong>Sfida amici in tempo reale</strong> — due utenti si sfidano: chi fa più sessioni in 24h vince monete. Tabella <code>friend_challenges</code> con stato/scadenza. Polling 30s, notifica "ti ha superato!"</div></li>
+        <li><span>👀</span> <div><strong>Preview compagni nello shop</strong> — mini SVG animato nella card prima dell'acquisto (vedi l'animale muoversi prima di comprarlo).</div></li>
+        <li><span>📊</span> <div><strong>Report PDF mensile</strong> — ore studiate, materie, streak, compagni, heatmap. Export da app.py con WeasyPrint.</div></li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#10b981;text-transform:uppercase;margin-bottom:10px">🎵 Audio + UX</div>
+      <ul class="todo-list">
+        <li><span>🎵</span> <div><strong>Suoni ambientali integrati</strong> — lo-fi, pioggia, foresta, café — select nella sidebar del timer. Audio HTML5 con file mp3 leggeri. Si combina col falò del giardino. Facile da fare.</div></li>
+        <li><span>📓</span> <div><strong>Note per materia</strong> — ogni materia ha le sue note veloci (ora <code>sf_notes</code> è globale). Note per-subject: notebook laterale come widget nel timer. Si aggancia all'esistente.</div></li>
+        <li><span>📅</span> <div><strong>Piano studio settimanale</strong> — vista 7 giorni con slot orari drag&drop. Si aggancia al calendario esistente. Reminder automatici.</div></li>
+        <li><span>📱</span> <div><strong>Installabile come PWA</strong> — aggiungere manifest.json + service worker. L'utente può installare StudyFlow come app nativa su iOS/Android dalla schermata home.</div></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- AI -->
+  <div>
     <div style="font-size:0.72rem;font-weight:700;color:#8b5cf6;text-transform:uppercase;margin-bottom:10px">🤖 AI integrata</div>
     <ul class="todo-list">
-      <li><span>🧠</span> <div><strong>Card argomenti AI</strong> — già in da fare. Espandibile: flashcard generate dall'AI, spiegazioni adattive al livello, quiz automatici sulla materia</div></li>
-      <li><span>📝</span> <div><strong>Riassunto sessione AI</strong> — a fine sessione l'AI chiede "cosa hai studiato?" e genera un mini-riassunto salvato nel notebook</div></li>
-      <li><span>🗓️</span> <div><strong>Piano studio personalizzato</strong> — l'AI analizza le statistiche e suggerisce: "Stai trascurando Matematica, studia 30min domani"</div></li>
+      <li><span>🧠</span> <div><strong>Card argomenti AI</strong> — già in da fare. Espandibile: flashcard generate dall'AI, spiegazioni adattive al livello, quiz automatici sulla materia.</div></li>
+      <li><span>📝</span> <div><strong>Riassunto sessione AI</strong> — a fine sessione l'AI chiede "cosa hai studiato?" e genera un mini-riassunto salvato nel notebook per materia.</div></li>
+      <li><span>🗓️</span> <div><strong>Piano studio personalizzato AI</strong> — l'AI analizza le statistiche e suggerisce: "Stai trascurando Matematica, studia 30min domani". Usa i dati di sf_sessions.</div></li>
     </ul>
   </div>
 </div>
@@ -577,65 +906,54 @@
   </ul>
 </div>
 
-<!-- ===== AGGIORNAMENTI SESSIONE 21 — 2026-06-22 ===== -->
+<!-- ===== IDEE NUOVE FUNZIONALITÀ ===== -->
 <div class="section">
-  <div class="section-title">🚀 Aggiornamenti — sessione 21 (2026-06-22) — pushati</div>
+  <div class="section-title">💡 Idee nuove funzionalità — per chi legge l'app</div>
 
-  <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:12px;padding:16px 20px;margin-bottom:20px">
-    <div style="font-size:0.75rem;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">📣 Messaggio aggiornamento utenti</div>
-    <p style="font-size:0.88rem;line-height:1.8;color:#e2e8f0">
-      <strong>🆕 Aggiornamento StudyFlow — 22 Giugno 2026</strong><br><br>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
 
-      🏆 <strong>Classifica — ruoli corretti</strong> — I ruoli degli altri utenti ora appaiono con il colore giusto. Prima potevano mostrare il ruolo sbagliato (es. Studiosa appariva come Studente con colore grigio).<br><br>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px 20px">
+      <div style="font-size:0.72rem;font-weight:700;color:#f59e0b;text-transform:uppercase;margin-bottom:12px">⚡ Alta priorità — impatto immediato</div>
+      <ul class="todo-list">
+        <li><span>📊</span><div><strong>Obiettivo settimanale personale</strong> — ogni utente imposta quante ore vuole studiare questa settimana (es. 10h). Barra di avanzamento visibile nella pagina stats e nel timer. Se lo supera: badge + monete bonus. Semplice da fare con sf_cfg.</div></li>
+        <li><span>🔔</span><div><strong>Promemoria push (PWA)</strong> — manifest.json + service worker già abbastanza semplici da aggiungere. Notifica "Non studi da 2 giorni, torna!" inviata via browser push. iOS Safari supporta PWA notifications da iOS 16.4+.</div></li>
+        <li><span>📱</span><div><strong>Menu mobile migliorato</strong> — hamburger fisso in basso tipo tab bar (Timer · Task · Stats · Amici · Negozio). Più intuitivo del drawer laterale su mobile. Già in lista DA FARE.</div></li>
+        <li><span>🎯</span><div><strong>Modalità Focus (blocco app)</strong> — quando il timer parte, un overlay leggero avvisa se provi ad andare su un'altra pagina. Costo uscita anticipata: 10 monete. Come Forest app — incentiva a restare.</div></li>
+      </ul>
+    </div>
 
-      💰 <strong>Monete per sessione — ora basate sul tuo ruolo</strong> — Il badge a fine sessione ora mostra il numero reale di monete guadagnate. Più studi e sali di ruolo, più guadagni per sessione:<br>
-      &nbsp;&nbsp;• Novizio / Studente → <strong>5 monete</strong><br>
-      &nbsp;&nbsp;• Applicato → <strong>6</strong> &nbsp;·&nbsp; Determinato → <strong>7</strong> &nbsp;·&nbsp; Studioso → <strong>8</strong><br>
-      &nbsp;&nbsp;• Esperto → <strong>9</strong> &nbsp;·&nbsp; Maestro → <strong>10</strong><br>
-      &nbsp;&nbsp;• Sessioni da 50 min → monete raddoppiate<br><br>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px 20px">
+      <div style="font-size:0.72rem;font-weight:700;color:#6366f1;text-transform:uppercase;margin-bottom:12px">🎮 Gamification — mantiene gli utenti</div>
+      <ul class="todo-list">
+        <li><span>🏆</span><div><strong>Tornei settimanali</strong> — ogni lunedì parte un torneo automatico: chi studia di più nella settimana vince monete extra (1°: 200, 2°: 100, 3°: 50). Si aggancia alla classifica già esistente. Annuncio con notifica domenica sera.</div></li>
+        <li><span>📅</span><div><strong>Streak bonus mensile</strong> — se mantieni la streak tutto il mese, animale speciale sbloccabile (es. giraffe rara o animale dorato). Incentivo enorme a non rompere la streak.</div></li>
+        <li><span>🎴</span><div><strong>Carte collezionabili</strong> — ogni 10 sessioni una carta casuale (comune/rara/leggendaria) con un compagno. Sistema gacha leggero. Gli utenti collezioneranno tutto.</div></li>
+        <li><span>⭐</span><div><strong>Barra XP verso il prossimo ruolo</strong> — sotto il timer: "Applicato → Determinato: 48/75 sessioni". SF_ROLES già esiste, manca solo la barra visiva. Motivazione immediata.</div></li>
+      </ul>
+    </div>
 
-      ✍️ <strong>Popup fine sessione più leggibile</strong> — la scritta "Cosa hai studiato?" era quasi invisibile. Ora è ben visibile.<br><br>
-
-      📅 <strong>Calendario — task nel giorno giusto</strong> — le task con data di scadenza ora appaiono nel giorno corretto (scadenza, non creazione).<br><br>
-
-      🔑 <strong>Fix sessioni perse</strong> — risolto un bug che in certi casi faceva perdere l'ultima sessione completata dopo un logout immediato.<br><br>
-
-      🌙 <strong>Giardino — alba e tramonto reali</strong> — il cielo del giardino usa gli orari reali della tua posizione. La luna è sempre visibile di notte, anche su mobile.
-    </p>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-    <div>
-      <div style="font-size:0.72rem;font-weight:700;color:#6366f1;text-transform:uppercase;margin-bottom:10px">👤 Lato utente</div>
-      <ul class="todo-list" style="opacity:0.8">
-        <li><span>✓</span> <div>Classifica: ruolo ricalcolato da SF_ROLES per tutti gli utenti (non solo me) → ruoli/colori sempre corretti</div></li>
-        <li><span>✓</span> <div>Classifica: sf_role_override rispettato nel leaderboard (lato server)</div></li>
-        <li><span>✓</span> <div>Badge monete fine sessione: formula reale <code>5 + max(0, livello-1)</code> × blocchi 25min (era hardcoded 15)</div></li>
-        <li><span>✓</span> <div>scb-label "Cosa hai studiato?" → <code>var(--text)</code> font-weight 600 (era var(--text-soft) quasi invisibile)</div></li>
-        <li><span>✓</span> <div>Calendario: task usa dueDate se presente, altrimenti date (era OR logico che mostrava su entrambi)</div></li>
-        <li><span>✓</span> <div>Session loss al logout: backup sessionStorage → merge su login se server ha perso dati</div></li>
-        <li><span>✓</span> <div>Calendario today: colore usa <code>color-mix(var(--accent))</code> invece di azzurro hardcoded</div></li>
-        <li><span>✓</span> <div>Giardino: alba/tramonto reali da Open-Meteo (<code>&daily=sunrise,sunset</code>), parsing ISO → ore decimali</div></li>
-        <li><span>✓</span> <div>Luna sempre visibile di notte su mobile (era nascosta se posizione Y usciva dal canvas)</div></li>
+
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px 20px">
+      <div style="font-size:0.72rem;font-weight:700;color:#10b981;text-transform:uppercase;margin-bottom:12px">🤝 Social — usa gli amici</div>
+      <ul class="todo-list">
+        <li><span>🏠</span><div><strong>Stanza studio condivisa</strong> — due amici aprono la stessa stanza, i loro timer partono insieme, vedono in real-time chi è ancora in sessione. "Marco sta studiando da 34 min". Sistema già parzialmente pronto con presence + websocket o polling 30s.</div></li>
+        <li><span>⚔️</span><div><strong>Sfida diretta amici</strong> — "ti sfido: chi fa più sessioni oggi vince 50 monete". Notifica all'amico, countdown 24h, risultato automatico a fine giornata.</div></li>
+        <li><span>👁️</span><div><strong>Visita giardino amici</strong> — dal profilo amico puoi vedere il suo giardino in sola lettura. Incentiva gli acquisti shop ("voglio anche io la giraffa!").</div></li>
       </ul>
     </div>
-    <div>
-      <div style="font-size:0.72rem;font-weight:700;color:#06b6d4;text-transform:uppercase;margin-bottom:10px">🔧 Lato admin / backend</div>
-      <ul class="todo-list" style="opacity:0.8">
-        <li><span>✓</span> <div>app.py leaderboard: legge sf_role_override per ogni utente; usa ruolo override se più alto del calcolato</div></li>
-        <li><span>✓</span> <div>Admin: set ruolo → auto-sync sessioni al minimo del ruolo scelto (<code>_ROLE_MIN_SESSIONS</code>)</div></li>
-        <li><span>✓</span> <div>Admin: saveUserEdit usa <code>effectiveSessions = Math.max(sessions, _minForRole)</code> per sf_coins/sf_sessions/session_count</div></li>
-        <li><span>✓</span> <div>app.py: /api/sessions e /api/export/csv protetti da <code>get_auth_user(required=True)</code></div></li>
-        <li><span>✓</span> <div>admin_set_coins: aggiunto <code>_adminTs</code> per rilevare aggiornamenti admin su sf_coins</div></li>
-        <li><span>✓</span> <div>friends_invite_progress: legge totalSessions da sf_coins (non sf_stats)</div></li>
-        <li><span>✓</span> <div>friends_search: LIKE con escape <code>q_safe</code> per caratteri speciali</div></li>
-        <li><span>✓</span> <div>update_challenge_progress: try/except su int(), modalità add_delta incrementale</div></li>
-        <li><span>✓</span> <div>Pannello ruolo (index.html): legge sessionCount da sf_coins.totalSessions prima di sf_sessions.length</div></li>
-        <li><span>✓</span> <div>Mobile: qnote-panel fullwidth, animal-bubble riposizionata, remove btn animali visibile su touch</div></li>
-        <li><span>✓</span> <div>Admin mobile: toast safe-area-inset, bottoni min-height 36px</div></li>
-        <li><span>✓</span> <div>13 bug proattivi risolti prima della segnalazione utenti</div></li>
+
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px 20px">
+      <div style="font-size:0.72rem;font-weight:700;color:#06b6d4;text-transform:uppercase;margin-bottom:12px">🤖 AI — differenziante</div>
+      <ul class="todo-list">
+        <li><span>🗓️</span><div><strong>Piano studio AI personalizzato</strong> — "hai un esame di Matematica tra 5 giorni e studi mediamente 45min/gg. Ti suggeriamo: 3 sessioni da 50min, focalizzati su X". L'AI legge sf_sessions + sf_events (calendario). Già hai la chiave API.</div></li>
+        <li><span>📝</span><div><strong>Diario studio AI</strong> — a fine sessione, check-in "cosa hai studiato?" → l'AI genera 3 righe di riepilogo salvate per quella materia. Costruisce un notebook automatico.</div></li>
+        <li><span>💬</span><div><strong>Tutor AI nella sessione</strong> — mini chat laterale nel timer. L'utente può fare domande sulla materia senza uscire dall'app. Risponde l'AI. Rimane in sessione = non si perde il focus.</div></li>
       </ul>
     </div>
+
   </div>
 </div>
 
@@ -645,9 +963,9 @@
   <div class="bug-card minore">
     <div class="bug-title" style="margin-bottom:8px">Deploy flow (importante)</div>
     <p class="bug-desc">
-      • <strong>Frontend:</strong> Netlify Drop manuale → caricare la cartella <code>/Users/samutave/Desktop/StudyFlow/StudyFlow/</code> (cartella INTERNA, non quella root)<br>
-      • <strong>Backend:</strong> ogni modifica a <code>app.py</code> → <code>cp StudyFlow/app.py app.py</code> → push → Manual Deploy su Render<br>
-      • <strong>File doppi:</strong> il repo ha <code>app.py</code> (root) e <code>StudyFlow/app.py</code>. Render usa <code>StudyFlow/</code>. Stesso per tutti i file JS/CSS/HTML.<br>
+      • <strong>Frontend:</strong> Netlify → <code>https://incredible-scone-e3d69d.netlify.app</code> — <strong>upload manuale</strong> della cartella <code>StudyFlow/StudyFlow</code><br>
+      • <strong>Backend:</strong> ogni modifica a <code>app.py</code> → push GitHub → Manual Deploy su Render<br>
+      • <strong>File doppi:</strong> il repo ha inner <code>StudyFlow/StudyFlow/</code> e outer <code>StudyFlow/</code>. Entrambi vengono modificati e committati. Netlify usa l'inner.<br>
       • <strong>SF_API_BASE:</strong> sempre hardcoded inline in ogni HTML: <code>&lt;script&gt;window.SF_API_BASE = 'https://studyflow-backend-5zy6.onrender.com/api';&lt;/script&gt;</code>
     </p>
   </div>
@@ -657,13 +975,14 @@
       1. Admin salva dato → backend scrive <code>sf_admin_flag='dirty'</code> nella user_data dell'utente<br>
       2. Utente apre qualsiasi pagina → <code>loadFromServer()</code> legge il flag → <code>isFirstLoad=true</code> → ricarica TUTTO dal server<br>
       3. Il flag viene cancellato dopo la lettura (si attiva una sola volta)<br>
-      4. Per sf_coins: se <code>server._adminTs ≠ local._adminTs</code> → server.shop è autoritativo (no merge con local)
+      4. Per sf_coins: se <code>server._adminTs ≠ local._adminTs</code> → server.shop è autoritativo (no merge con local)<br>
+      5. Backup sessioni/stats al logout taggato <code>{u:"username"}</code> — solo lo stesso utente può riutilizzarlo
     </p>
   </div>
 </div>
 
 <p style="color:#475569;font-size:0.72rem;text-align:center;margin-top:40px">
-  Generato automaticamente — Sessione 21 · 2026-06-22 · Claude Sonnet 4.6
+  Aggiornato — Sessione 25 · 2026-06-24 · Claude Sonnet 4.6
 </p>
 
 </body>
