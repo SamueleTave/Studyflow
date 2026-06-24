@@ -94,36 +94,30 @@ async function _requestWakeLock() {
 function _releaseWakeLock() {
   if (_wakeLock) { try { _wakeLock.release(); } catch(e) {} _wakeLock = null; }
 }
-/* Banner avviso background */
-var _bgWarnAt = 0;
-var _BG_WARN_THRESHOLD = 5; /* secondi minimi di assenza prima di mostrare il banner */
-function _hideBgWarn() {
-  const b = document.getElementById('bg-warn-banner');
-  if (b) b.style.display = 'none';
-  _bgWarnAt = 0;
-}
+/* Rilevamento standby + correzione drift tab in background */
+var _bgHiddenAt = 0;
+var _STANDBY_THRESHOLD_S = 600; /* 10 minuti → probabile standby/sleep */
 
-/* Re-acquisisci Wake Lock e correggi drift da throttling background tab */
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
-    /* Segna quando siamo andati in background — non mostrare ancora nulla */
-    if (isRunning && timerMode === 'work') _bgWarnAt = Date.now();
+    if (isRunning) _bgHiddenAt = Date.now();
     return;
   }
-  /* Tornati in foreground — mostra banner solo se via ≥ 5s */
-  if (_bgWarnAt > 0 && isRunning) {
-    const away = Math.round((Date.now() - _bgWarnAt) / 1000);
-    if (away >= _BG_WARN_THRESHOLD) {
-      const t = document.getElementById('bg-warn-text');
-      if (t) t.textContent = '⚠ Eri via da ' + away + 's — il timer potrebbe aver perso qualche secondo';
-      const b = document.getElementById('bg-warn-banner');
-      if (b) b.style.display = 'flex';
+  /* Tornati in foreground */
+  if (_bgHiddenAt > 0 && isRunning) {
+    const awaySec = Math.round((Date.now() - _bgHiddenAt) / 1000);
+    _bgHiddenAt = 0;
+    if (awaySec >= _STANDBY_THRESHOLD_S) {
+      /* Standby/sleep rilevato — pausa automatica */
+      toggleTimer();
+      return;
     }
-    _bgWarnAt = 0;
+  } else {
+    _bgHiddenAt = 0;
   }
   if (!isRunning) return;
   _requestWakeLock();
-  /* Correggi secondi persi dal throttling del browser */
+  /* Correggi secondi persi dal throttling del browser (tab in background < 10min) */
   try {
     const saved = JSON.parse(localStorage.getItem('sf_timer') || 'null');
     if (saved && saved.running && saved.savedAt) {
@@ -316,7 +310,7 @@ function _setRunningStyle(running) {
   if (_playBtn) _playBtn.innerHTML = running ? _PAUSE_SVG : _PLAY_SVG;
   if (_ringWrap) _ringWrap.classList.toggle('running', running);
   if (_ring) _ring.style.filter = running ? 'drop-shadow(0 0 13px var(--accent))' : '';
-  if (!running) _hideBgWarn();
+
 }
 
 /* ===== AZIONI PUBBLICHE ===== */
