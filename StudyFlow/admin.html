@@ -1201,7 +1201,10 @@
       if (!r1.ok) throw new Error('sf_coins: HTTP ' + r1.status);
 
       /* Salva sf_stats — _adminTs impedisce che il prossimo syncToServer del client
-         sovrascriva i valori prima che il client riceva la correzione. */
+         sovrascriva i valori prima che il client riceva la correzione.
+         lastStudy = ieri → updateStreak() incrementa correttamente alla prossima sessione
+         invece di resettare a 1. */
+      const _yestStr  = new Date(Date.now() - 86400000).toDateString();
       const newStats = {
         ...(_editState.stats || {}),
         streak,
@@ -1209,24 +1212,45 @@
         minutes:   todayMins,
         sessions:  Math.round(todayMins / 25),
         _adminTs:  Date.now(),
+        lastStudy: streak > 0 ? _yestStr : (_editState.stats?.lastStudy || ''),
       };
       const r1b = await apiFetch('/api/admin/users/' + uid + '/data', {
         method: 'PUT', body: JSON.stringify({ key:'sf_stats', value:JSON.stringify(newStats) })
       });
       if (!r1b.ok) throw new Error('sf_stats: HTTP ' + r1b.status);
 
-      /* Sincronizza sf_sessions */
+      /* Sincronizza sf_sessions.
+         Le sessioni "adm_day_" (una per giorno) portano i minuti admin con data ISO corretta
+         così il leaderboard le conta anche il giorno successivo.
+         Le sessioni "adm_..." senza data gestiscono solo il conteggio totale sessioni. */
       let existingSessions = [];
       try { existingSessions = JSON.parse(((_editState.raw||{})['sf_sessions'])||'[]'); } catch {}
       if (!Array.isArray(existingSessions)) existingSessions = [];
-      const diff = effectiveSessions - existingSessions.length;
+      const _todayIso   = new Date().toISOString().split('T')[0];
+      /* Separa le sessioni adm_day_ di oggi (eliminate e ricreate) da quelle normali */
+      const _admDayOther = existingSessions.filter(s => s.id?.startsWith('adm_day_') && s.date !== _todayIso);
+      const _normalSess  = existingSessions.filter(s => !s.id?.startsWith('adm_day_'));
+      /* Aggiusta il conteggio totale sessioni solo sulle sessioni normali */
+      const diff = effectiveSessions - _normalSess.length;
+      let _adjNormal = [..._normalSess];
       if (diff > 0) {
         for (let i = 0; i < diff; i++)
-          existingSessions.push({ id:'adm_'+Date.now()+'_'+i, mode:'work', mins:25, ts:new Date().toISOString() });
+          _adjNormal.push({ id:'adm_'+Date.now()+'_'+i, mode:'work', mins:25, ts:new Date().toISOString() });
       } else if (diff < 0) {
-        existingSessions = existingSessions.slice(0, effectiveSessions);
+        _adjNormal = _adjNormal.slice(0, effectiveSessions);
       }
-      if (diff !== 0) {
+      /* Ricostruisci: sessioni normali + adm_day_ altri giorni + adm_day_ di oggi (se todayMins>0) */
+      existingSessions = [..._adjNormal, ..._admDayOther];
+      if (todayMins > 0) {
+        existingSessions.push({
+          id:       'adm_day_' + Date.now(),
+          mode:     'work',
+          duration: todayMins,
+          date:     _todayIso,
+          ts:       new Date().toISOString(),
+        });
+      }
+      if (diff !== 0 || todayMins > 0) {
         const rSess = await apiFetch('/api/admin/users/' + uid + '/data', {
           method: 'PUT', body: JSON.stringify({ key:'sf_sessions', value:JSON.stringify(existingSessions) })
         });

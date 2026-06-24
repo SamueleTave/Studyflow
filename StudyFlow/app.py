@@ -1541,9 +1541,17 @@ def stats_heatmap():
     return jsonify(result)
 
 def _user_weekly_minutes(c, uid, week_start):
+    """Calcola i minuti settimanali per la classifica.
+
+    Logica per giorno:
+    - Sessioni reali ("adm_..." senza data o con date): sommate normalmente.
+    - Sessioni "adm_day_..." (floor admin): per ogni giorno usa
+      max(somma_sessioni_reali, adm_day_duration) — evita il doppio conteggio.
+    - Per OGGI: sf_stats.minutes è il floor più recente (può essere più alto di adm_day_).
+    """
     today_str = date.today().isoformat()
-    sessions_today = 0
-    minutes = 0
+    regular_by_date = {}   # date -> minuti da sessioni reali
+    adm_day_by_date = {}   # date -> floor minuti impostato dall'admin (adm_day_ sessions)
     row = c.execute(
         "SELECT value FROM user_data WHERE user_id=? AND key='sf_sessions'", (uid,)
     ).fetchone()
@@ -1551,15 +1559,19 @@ def _user_weekly_minutes(c, uid, week_start):
         try:
             for s in json_lib.loads(row["value"]):
                 d = (s.get("date") or s.get("endedAt") or "")[:10]
-                if d >= week_start:
-                    dur = int(s.get("duration") or 25)
-                    minutes += dur
-                    if d == today_str:
-                        sessions_today += dur
+                if not d or d < week_start:
+                    continue
+                dur = int(s.get("duration") or 25)
+                if (s.get("id") or "").startswith("adm_day_"):
+                    adm_day_by_date[d] = max(adm_day_by_date.get(d, 0), dur)
+                else:
+                    regular_by_date[d] = regular_by_date.get(d, 0) + dur
         except Exception:
             pass
-    # Se admin ha impostato minuti oggi in sf_stats, prendi il massimo
-    # per evitare che le sessioni reali scendano sotto il valore admin
+    # Per ogni data: max(sessioni_reali, floor_admin)
+    all_dates = set(list(regular_by_date.keys()) + list(adm_day_by_date.keys()))
+    minutes = sum(max(regular_by_date.get(d, 0), adm_day_by_date.get(d, 0)) for d in all_dates)
+    # sf_stats.minutes = floor per OGGI (più aggiornato di adm_day_ in tempo reale)
     if today_str >= week_start:
         try:
             st_row = c.execute(
@@ -1569,15 +1581,16 @@ def _user_weekly_minutes(c, uid, week_start):
                 st = json_lib.loads(st_row["value"])
                 import datetime as _dt
                 st_date = st.get("date", "")
-                # sf_stats.date è toDateString() JS ("Mon Jun 23 2026") — convertiamo
                 try:
                     parsed = _dt.datetime.strptime(st_date, "%a %b %d %Y").date().isoformat()
                 except Exception:
                     parsed = st_date[:10]
                 if parsed == today_str:
                     admin_mins = int(st.get("minutes") or 0)
-                    if admin_mins > sessions_today:
-                        minutes += admin_mins - sessions_today
+                    today_total = max(regular_by_date.get(today_str, 0),
+                                      adm_day_by_date.get(today_str, 0))
+                    if admin_mins > today_total:
+                        minutes += admin_mins - today_total
         except Exception:
             pass
     return minutes
