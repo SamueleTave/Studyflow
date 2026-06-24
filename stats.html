@@ -359,8 +359,10 @@
     const sfTodayMins = (sf.date === new Date().toDateString()) ? parseInt(sf.minutes || 0) : 0;
     const todayMin = Math.max(sessionsTodayMin, sfTodayMins);
     const sessionsTotalMin = sessions.reduce((a,s) => a + (s.duration||0), 0);
-    /* Ore totali: prendi il massimo tra sf_sessions e sf_coins.totalMinutes (admin può modificarlo) */
-    const totalMin = Math.max(sessionsTotalMin, cd.totalMinutes || 0);
+    /* Ore totali: sf_coins.totalMinutes è la fonte autorevole (incrementato solo da sessioni reali).
+       sessionsTotalMin può essere gonfiato da sessioni fake (mixing bug) — usalo solo come fallback
+       se totalMinutes non è ancora settato (account nuovo senza sf_coins). */
+    const totalMin = cd.totalMinutes || sessionsTotalMin || 0;
     const streak   = sf.streak || cd.bestStreak || 0;
 
     document.getElementById('sc-hours').textContent    = (Math.round(totalMin / 60 * 10) / 10) + 'h';
