@@ -94,6 +94,11 @@
       backdrop-filter: blur(10px);
     }
     .admin-btn-ghost:hover { background: rgba(255,255,255,0.75); }
+    .admin-btn-danger {
+      background: rgba(239,83,80,0.13); color: #ef5350;
+      border: 1.5px solid rgba(239,83,80,0.35);
+    }
+    .admin-btn-danger:hover { background: rgba(239,83,80,0.22); }
 
     /* ── Stats bar liquid crystal ── */
     .admin-stats-row {
@@ -524,6 +529,7 @@
     </div>
     <div class="edit-modal-footer">
       <button class="lc-btn" onclick="saveUserEdit()" id="editSaveBtn">💾 Salva tutto</button>
+      <button class="admin-btn admin-btn-danger" onclick="resetTodayForUser()" id="resetTodayBtn" title="Azzera minuti e sessioni di OGGI (streak preservata)">🗑️ Reset oggi</button>
       <button class="admin-btn admin-btn-ghost" onclick="closeEditModal()">Annulla</button>
     </div>
   </div>
@@ -1259,6 +1265,24 @@
     document.getElementById('editModal').classList.remove('show');
     document.body.style.overflow = '';
     _editState = { uid:null, username:'', coins:{}, friends:[], streak:0, roleOverride:'auto' };
+  }
+
+  async function resetTodayForUser() {
+    const uid = _editState.uid;
+    if (!uid) return;
+    if (!confirm('Azzera minuti e sessioni di OGGI per @' + _editState.username + '?\n(La streak viene preservata)')) return;
+    const btn = document.getElementById('resetTodayBtn');
+    if (btn) { btn.textContent = '⏳...'; btn.disabled = true; }
+    try {
+      const r = await apiFetch('/api/admin/users/' + uid + '/reset-today', { method: 'POST' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      toast('Minuti di oggi azzerati per @' + _editState.username + ' ✅');
+      closeEditModal();
+    } catch(e) {
+      toast('Errore: ' + e.message);
+    } finally {
+      if (btn) { btn.textContent = '🗑️ Reset oggi'; btn.disabled = false; }
+    }
   }
 
   /* ── Reset PIN ── */

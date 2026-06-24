@@ -35,12 +35,14 @@ function requireAdmin() {
 
 /* ── Logout ── */
 async function logout() {
-  /* Backup sessioni e stats — sopravvivono al logout in caso il sync fallisca */
+  /* Backup sessioni e stats — taggato con username per evitare cross-user contamination.
+     Solo il MEDESIMO utente può consumare il proprio backup al login successivo. */
   try {
+    const _bakAuth = getAuth();
     const sessBak  = localStorage.getItem('sf_sessions');
     const statsBak = localStorage.getItem('sf_stats');
-    if (sessBak)  sessionStorage.setItem('_sf_sess_bak',  sessBak);
-    if (statsBak) sessionStorage.setItem('_sf_stats_bak', statsBak);
+    if (sessBak)  sessionStorage.setItem('_sf_sess_bak',  JSON.stringify({ u: _bakAuth?.username, d: sessBak }));
+    if (statsBak) sessionStorage.setItem('_sf_stats_bak', JSON.stringify({ u: _bakAuth?.username, d: statsBak }));
   } catch {}
   /* Salva subito al server prima di pulire — evita perdita tema/sfida/impostazioni */
   if (_sfSyncTimer) { clearTimeout(_sfSyncTimer); _sfSyncTimer = null; }
@@ -115,16 +117,27 @@ async function loadFromServer() {
       if (k === 'sf_sessions') {
         try {
           const serverSess = JSON.parse(data[k] || '[]');
-          const bak = sessionStorage.getItem('_sf_sess_bak');
-          if (bak) {
+          const bakRaw = sessionStorage.getItem('_sf_sess_bak');
+          if (bakRaw) {
             sessionStorage.removeItem('_sf_sess_bak');
-            const bakSess = JSON.parse(bak);
-            const serverTs = new Set(serverSess.map(s => s.ts));
-            const extra = bakSess.filter(s => s.ts && !serverTs.has(s.ts));
-            if (extra.length) {
-              const merged = [...serverSess, ...extra].sort((a, b) => (a.ts||0) - (b.ts||0));
-              _sfOrigSetItem('sf_sessions', JSON.stringify(merged));
-              return;
+            /* Backup valido solo se tagged con lo stesso username — evita cross-user contamination */
+            let bakSessJson = null;
+            try {
+              const bakObj = JSON.parse(bakRaw);
+              if (bakObj && typeof bakObj === 'object' && 'u' in bakObj && 'd' in bakObj) {
+                if (bakObj.u === auth?.username) bakSessJson = bakObj.d;
+              }
+              /* Vecchio formato senza tag username: scarta per sicurezza */
+            } catch {}
+            if (bakSessJson) {
+              const bakSess = JSON.parse(bakSessJson);
+              const serverTs = new Set(serverSess.map(s => s.ts));
+              const extra = bakSess.filter(s => s.ts && !serverTs.has(s.ts));
+              if (extra.length) {
+                const merged = [...serverSess, ...extra].sort((a, b) => (a.ts||0) - (b.ts||0));
+                _sfOrigSetItem('sf_sessions', JSON.stringify(merged));
+                return;
+              }
             }
           }
         } catch {}
@@ -139,9 +152,19 @@ async function loadFromServer() {
           const today  = new Date().toDateString();
           const srv    = JSON.parse(data[k] || '{}');
           const loc    = localVal ? JSON.parse(localVal) : null;
+          /* Backup valido solo se tagged con lo stesso username — evita cross-user contamination */
           const bakRaw = sessionStorage.getItem('_sf_stats_bak');
-          const bak    = bakRaw ? JSON.parse(bakRaw) : null;
           if (bakRaw) sessionStorage.removeItem('_sf_stats_bak');
+          let bak = null;
+          if (bakRaw) {
+            try {
+              const bakObj = JSON.parse(bakRaw);
+              if (bakObj && typeof bakObj === 'object' && 'u' in bakObj && 'd' in bakObj) {
+                if (bakObj.u === auth?.username) bak = JSON.parse(bakObj.d);
+              }
+              /* Vecchio formato senza tag username: scarta per sicurezza */
+            } catch {}
+          }
           /* Regola 1 */
           const srvTs = srv._adminTs;
           if (srvTs && srvTs !== (loc?._adminTs) && srvTs !== (bak?._adminTs)) {

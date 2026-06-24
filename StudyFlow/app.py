@@ -801,6 +801,60 @@ def admin_reset_user(uid):
         c.commit()
     return jsonify({"ok": True})
 
+@app.route("/api/admin/users/<int:uid>/reset-today", methods=["POST"])
+def admin_reset_today(uid):
+    """Azzera minuti/sessioni di OGGI per questo utente (streak preservata).
+    Rimuove le sessioni con date==oggi da sf_sessions e azzera sf_stats per oggi."""
+    get_auth_user(required=True, admin=True)
+    today_iso = date.today().isoformat()          # "2026-06-24"
+    today_str = date.today().strftime("%a %b %d %Y")  # "Tue Jun 24 2026"
+    ts_now    = _now()
+    with get_db() as c:
+        # ── sf_stats: azzera sessions/minutes di oggi, preserva streak e lastStudy ──
+        sr = c.execute("SELECT value FROM user_data WHERE user_id=? AND key='sf_stats'", (uid,)).fetchone()
+        existing_stats = {}
+        if sr and sr["value"]:
+            try: existing_stats = json_lib.loads(sr["value"])
+            except Exception: pass
+        new_stats = {
+            "date":      today_str,
+            "sessions":  0,
+            "minutes":   0,
+            "streak":    existing_stats.get("streak", 0),
+            "lastStudy": existing_stats.get("lastStudy", ""),
+            "_adminTs":  ts_now,
+        }
+        c.execute("""
+            INSERT INTO user_data (user_id, key, value, updated_at)
+            VALUES (?,?,?,datetime('now','localtime'))
+            ON CONFLICT(user_id, key)
+            DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+        """, (uid, "sf_stats", json_lib.dumps(new_stats)))
+        # ── sf_sessions: rimuovi le sessioni di oggi ──
+        xr = c.execute("SELECT value FROM user_data WHERE user_id=? AND key='sf_sessions'", (uid,)).fetchone()
+        if xr and xr["value"]:
+            try:
+                sessions = json_lib.loads(xr["value"])
+                if isinstance(sessions, list):
+                    filtered = [s for s in sessions
+                                if (s.get("date") or s.get("ts","")[:10] or "") != today_iso]
+                    c.execute("""
+                        INSERT INTO user_data (user_id, key, value, updated_at)
+                        VALUES (?,?,?,datetime('now','localtime'))
+                        ON CONFLICT(user_id, key)
+                        DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+                    """, (uid, "sf_sessions", json_lib.dumps(filtered)))
+            except Exception: pass
+        # ── sf_admin_flag=dirty → client ricarica al prossimo accesso ──
+        c.execute("""
+            INSERT INTO user_data (user_id, key, value, updated_at)
+            VALUES (?,?,?,datetime('now','localtime'))
+            ON CONFLICT(user_id, key)
+            DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+        """, (uid, "sf_admin_flag", "dirty"))
+        c.commit()
+    return jsonify({"ok": True})
+
 # ──────────────────────────────────────────
 # API: AMICI
 # ──────────────────────────────────────────
