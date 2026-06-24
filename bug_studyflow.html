@@ -155,14 +155,48 @@
 <body>
 
 <h1>🐛 Bug StudyFlow — Registro Completo</h1>
-<p class="subtitle">Aggiornato: 2026-06-24 — Sessione 25 &nbsp;|&nbsp; ⚡ Priorità: Netlify (manuale) &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
+<p class="subtitle">Aggiornato: 2026-06-24 — Sessione 26 &nbsp;|&nbsp; ⚡ Priorità: Netlify (manuale) &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
 
 <!-- STATO DEPLOY -->
 <div class="status-row">
-  <div class="status-chip"><div class="dot green"></div> GitHub: pushato (b22d2f2)</div>
+  <div class="status-chip"><div class="dot green"></div> GitHub: pushato (0ae15cf)</div>
   <div class="status-chip"><div class="dot yellow"></div> Netlify: ⚠️ Upload manuale richiesto (StudyFlow/StudyFlow)</div>
-  <div class="status-chip"><div class="dot yellow"></div> Render: ⚠️ Manual Deploy richiesto (app.py cambiato)</div>
-  <div class="status-chip"><div class="dot red"></div> Pulizia DB: Reset oggi su Samu/Elly/Look via admin panel</div>
+  <div class="status-chip"><div class="dot green"></div> Render: OK (app.py non cambiato)</div>
+  <div class="status-chip"><div class="dot red"></div> Pulizia DB: Reset oggi su Samu/Elly/Look via admin panel (ancora da fare)</div>
+</div>
+
+<!-- ===== AGGIORNAMENTI SESSIONE 26 — 2026-06-24 ===== -->
+<div class="section">
+  <div class="section-title">🚀 Aggiornamenti — sessione 26 (2026-06-24) — pushati</div>
+
+  <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:16px 20px;margin-bottom:20px">
+    <div style="font-size:0.75rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">🔴 Bug critico — timer rallentava e si fermava cambiando tab/pagina</div>
+    <p style="font-size:0.85rem;line-height:1.7;color:#e2e8f0">
+      Il timer usava <code>timeLeft--</code> in un <code>setInterval(1000ms)</code>. I browser moderni throttlano gli interval nei tab in background a 1 tick/minuto (Chrome) o li congelano completamente (iOS Safari).
+      Contemporaneamente, <code>_saveTimer()</code> veniva chiamato in <code>_syncUI()</code> ogni tick — aggiornando <code>savedAt</code> all'ultimo tick lento.
+      La "correzione drift" in <code>visibilitychange</code> calcolava <code>elapsed = now - savedAt</code>: poiché <code>savedAt</code> era aggiornato ogni tick throttled, correggeva solo i pochi secondi dall'ultimo tick, non i minuti reali persi.
+    </p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#ef4444;text-transform:uppercase;margin-bottom:10px">⏱️ Fix timer (timer.js — commit 0ae15cf)</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span><div><strong>Throttling browser uccideva il timer</strong> — eliminato <code>timeLeft--</code>. Ora il timer calcola <code>timeLeft = _timerStartLeft - floor((Date.now() - _timerStart) / 1000)</code> su ogni tick. Il browser può throttlare quanto vuole: ogni tick salta direttamente al valore corretto. Zero deriva possibile.</div></li>
+        <li><span>✓</span><div><strong>_timerStart e _timerStartLeft</strong> — nuove variabili di stato salvate anche in localStorage (<code>sf_timer.timerStart/timerStartLeft</code>). Sopravvivono a navigazione tra pagine: <code>_restoreTimer()</code> li usa per ricalcolare il timeLeft esatto all'identico modo del tick.</div></li>
+        <li><span>✓</span><div><strong>visibilitychange semplificato</strong> — non legge più <code>sf_timer</code> da localStorage. Ricalcola direttamente <code>_timerStartLeft - elapsed_da_start</code>. Risultato immediato e corretto quando si torna sul tab.</div></li>
+        <li><span>✓</span><div><strong>Idratazione: minute-boundary crossing</strong> — l'old check <code>timeLeft % 60 === 0</code> saltava confini di minuto se il tick era throttled. Nuovo check: confronta <code>floor(elapsed_prima / 60)</code> vs <code>floor(elapsed_dopo / 60)</code>, suona per ogni minuto attraversato.</div></li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#6366f1;text-transform:uppercase;margin-bottom:10px">🔕 Rimosso banner background + standby (commit 6e5a82a)</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span><div><strong>Banner "Eri via da Xs" rimosso</strong> — rimosso div <code>#bg-warn-banner</code> e tutto il CSS associato da <code>index.html</code>. Rimosso <code>_hideBgWarn()</code> e tutto il codice di visualizzazione da <code>timer.js</code>.</div></li>
+        <li><span>✓</span><div><strong>Pausa automatica su standby computer</strong> — se il tab torna visibile dopo ≥ 10 minuti di assenza, il timer si mette in pausa automaticamente (si assume standby/sleep del computer). Sotto i 10 minuti il timer continua. Soglia: <code>_STANDBY_THRESHOLD_S = 600</code>.</div></li>
+        <li><span>✓</span><div><strong>Cambio pagina: timer continua</strong> — navigando tra pagine dell'app (<code>index → tasks → index</code>), <code>_restoreTimer()</code> usa <code>timerStart</code> assoluto dal localStorage per ripristinare il tempo esatto. Nessuna perdita di secondi.</div></li>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <!-- ===== AGGIORNAMENTI SESSIONE 25 — 2026-06-24 ===== -->
@@ -982,7 +1016,7 @@
 </div>
 
 <p style="color:#475569;font-size:0.72rem;text-align:center;margin-top:40px">
-  Aggiornato — Sessione 25 · 2026-06-24 · Claude Sonnet 4.6
+  Aggiornato — Sessione 26 · 2026-06-24 · Claude Sonnet 4.6
 </p>
 
 </body>
