@@ -164,17 +164,20 @@ function _restoreTimer() {
           _timerStartLeft = timeLeft;
         }
         if (timeLeft === 0) {
-          /* Guard 1: timerStart di un giorno precedente → reset senza sessione fantasma */
-          if (t.timerStart && new Date(t.timerStart).toISOString().slice(0,10) !== new Date().toISOString().slice(0,10)) {
+          /* Guard 0: nessun timerStart (formato vecchio/corrotto) → reset sicuro */
+          if (!t.timerStart) {
             timerMode = 'work'; totalTime = _modeSec('work'); timeLeft = totalTime; isRunning = false; return;
           }
-          /* Guard 2: sessione già completata in questa sessione browser (marker intra-day) */
+          /* Guard 1: timerStart di un giorno precedente → reset senza sessione fantasma */
+          if (new Date(t.timerStart).toISOString().slice(0,10) !== new Date().toISOString().slice(0,10)) {
+            timerMode = 'work'; totalTime = _modeSec('work'); timeLeft = totalTime; isRunning = false; return;
+          }
+          /* Guard 2: sessione già completata — marker impostato da _onEnd() (persiste al logout) */
           const _doneTs = localStorage.getItem('_sf_timer_processed_ts');
           if (_doneTs && parseInt(_doneTs) === t.timerStart) {
             timerMode = 'work'; totalTime = _modeSec('work'); timeLeft = totalTime; isRunning = false; return;
           }
           /* Il timer è scaduto mentre eravamo via — abilita monete prima di _onEnd */
-          if (t.timerStart) localStorage.setItem('_sf_timer_processed_ts', String(t.timerStart));
           _sessionCoinEnabled = (t.mode || 'work') === 'work' && _todayCoinSessions() < 10;
           _coinBlocksDone     = Math.floor(totalTime / 1500);
           _onEnd(true);
@@ -484,6 +487,10 @@ function _onEnd(silent) {
   }
 
   if (timerMode === 'work') {
+    /* Marca questo timerStart come completato — previene sessioni fantasma se il server
+       mantiene running:true (es. sync fallito su Render sleeping). La chiave
+       _sf_timer_processed_ts non è in _SF_SYNC_KEYS quindi persiste al logout. */
+    if (_timerStart > 0) localStorage.setItem('_sf_timer_processed_ts', String(_timerStart));
     cycleCount++;
     stats.sessions++;
     stats.minutes += cfg.work;

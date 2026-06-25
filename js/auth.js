@@ -121,15 +121,19 @@ async function loadFromServer() {
       if (k === 'sf_timer') {
         try {
           const _t = JSON.parse(data[k] || '{}');
-          if (_t.running && _t.timerStart) {
+          if (_t.running) {
+            const _resetTimer = () => {
+              _sfOrigSetItem(k, JSON.stringify({ mode: 'work', timeLeft: 1500, totalTime: 1500, running: false, cycle: 0, savedAt: Date.now() }));
+              _triggerSync();
+            };
+            /* Formato vecchio senza timerStart → non possiamo verificare, reset sicuro */
+            if (!_t.timerStart) { _resetTimer(); return; }
             const _startDay = new Date(_t.timerStart).toISOString().slice(0, 10);
             const _today    = new Date().toISOString().slice(0, 10);
             const _doneTs   = localStorage.getItem('_sf_timer_processed_ts');
-            const _isStale  = _startDay !== _today || (_doneTs && parseInt(_doneTs) === _t.timerStart);
-            if (_isStale) {
-              _sfOrigSetItem(k, JSON.stringify({ mode: 'work', timeLeft: 1500, totalTime: 1500, running: false, cycle: 0, savedAt: Date.now() }));
-              _triggerSync();
-              return;
+            /* Stale se: giorno precedente OPPURE già marcato come completato */
+            if (_startDay !== _today || (_doneTs && parseInt(_doneTs) === _t.timerStart)) {
+              _resetTimer(); return;
             }
           }
         } catch {}
