@@ -806,38 +806,45 @@ def admin_reset_today(uid):
     """Azzera minuti/sessioni di OGGI per questo utente (streak preservata).
     Rimuove le sessioni con date==oggi da sf_sessions e azzera sf_stats per oggi."""
     get_auth_user(required=True, admin=True)
-    today_iso = date.today().isoformat()          # "2026-06-24"
-    today_str = date.today().strftime("%a %b %d %Y")  # "Tue Jun 24 2026"
+    from datetime import timezone as _tz, datetime as _dt
+    today_iso = _dt.now(_tz.utc).date().isoformat()   # "2026-06-25" (UTC, uguale al client)
     ts_now    = _now()
     with get_db() as c:
-        # ── sf_stats: azzera sessions/minutes di oggi, preserva streak e lastStudy ──
+        # ── sf_stats: azzera sessions/minutes di oggi, preserva TUTTO il resto ──
         sr = c.execute("SELECT value FROM user_data WHERE user_id=? AND key='sf_stats'", (uid,)).fetchone()
         existing_stats = {}
         if sr and sr["value"]:
             try: existing_stats = json_lib.loads(sr["value"])
             except Exception: pass
-        new_stats = {
-            "date":      today_str,
-            "sessions":  0,
-            "minutes":   0,
-            "streak":    existing_stats.get("streak", 0),
-            "lastStudy": existing_stats.get("lastStudy", ""),
-            "_adminTs":  ts_now,
-        }
+        # Copia tutti i campi esistenti (streak, lastStudy, ecc.) e sovrascrive solo
+        # i campi da resettare — così streak e ogni valore admin-set sopravvivono.
+        new_stats = dict(existing_stats)
+        new_stats["sessions"] = 0
+        new_stats["minutes"]  = 0
+        new_stats["_adminTs"] = ts_now
+        # Lasciamo volutamente 'date' invariata: il client la aggiornerà alla prossima
+        # saveStats() con new Date().toDateString() locale, evitando mismatch UTC/locale.
         c.execute("""
             INSERT INTO user_data (user_id, key, value, updated_at)
             VALUES (?,?,?,datetime('now','localtime'))
             ON CONFLICT(user_id, key)
             DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
         """, (uid, "sf_stats", json_lib.dumps(new_stats)))
-        # ── sf_sessions: rimuovi le sessioni di oggi ──
+        # ── sf_sessions: rimuovi le sessioni di oggi (usa ISO UTC, uguale a api.js) ──
         xr = c.execute("SELECT value FROM user_data WHERE user_id=? AND key='sf_sessions'", (uid,)).fetchone()
         if xr and xr["value"]:
             try:
                 sessions = json_lib.loads(xr["value"])
                 if isinstance(sessions, list):
-                    filtered = [s for s in sessions
-                                if (s.get("date") or s.get("ts","")[:10] or "") != today_iso]
+                    def _sess_date(s):
+                        d = s.get("date")
+                        if d: return str(d)[:10]
+                        ts = s.get("ts")
+                        if ts:
+                            try: return _dt.fromtimestamp(int(ts)/1000, tz=_tz.utc).date().isoformat()
+                            except Exception: pass
+                        return ""
+                    filtered = [s for s in sessions if _sess_date(s) != today_iso]
                     c.execute("""
                         INSERT INTO user_data (user_id, key, value, updated_at)
                         VALUES (?,?,?,datetime('now','localtime'))
