@@ -801,6 +801,86 @@ def admin_reset_user(uid):
         c.commit()
     return jsonify({"ok": True})
 
+@app.route("/api/admin/users/<int:uid>/reset-today", methods=["POST"])
+def admin_reset_today(uid):
+    """Azzera minuti/sessioni di OGGI per questo utente (streak preservata).
+    Rimuove le sessioni con date==oggi da sf_sessions e azzera sf_stats per oggi."""
+    get_auth_user(required=True, admin=True)
+    today_iso = date.today().isoformat()          # "2026-06-24"
+    today_str = date.today().strftime("%a %b %d %Y")  # "Tue Jun 24 2026"
+    ts_now    = _now()
+    with get_db() as c:
+        # ── sf_stats: azzera sessions/minutes di oggi, preserva streak e lastStudy ──
+        sr = c.execute("SELECT value FROM user_data WHERE user_id=? AND key='sf_stats'", (uid,)).fetchone()
+        existing_stats = {}
+        if sr and sr["value"]:
+            try: existing_stats = json_lib.loads(sr["value"])
+            except Exception: pass
+        new_stats = {
+            "date":      today_str,
+            "sessions":  0,
+            "minutes":   0,
+            "streak":    existing_stats.get("streak", 0),
+            "lastStudy": existing_stats.get("lastStudy", ""),
+            "_adminTs":  ts_now,
+        }
+        c.execute("""
+            INSERT INTO user_data (user_id, key, value, updated_at)
+            VALUES (?,?,?,datetime('now','localtime'))
+            ON CONFLICT(user_id, key)
+            DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+        """, (uid, "sf_stats", json_lib.dumps(new_stats)))
+        # ── sf_sessions: rimuovi le sessioni di oggi ──
+        xr = c.execute("SELECT value FROM user_data WHERE user_id=? AND key='sf_sessions'", (uid,)).fetchone()
+        if xr and xr["value"]:
+            try:
+                sessions = json_lib.loads(xr["value"])
+                if isinstance(sessions, list):
+                    filtered = [s for s in sessions
+                                if (s.get("date") or s.get("ts","")[:10] or "") != today_iso]
+                    c.execute("""
+                        INSERT INTO user_data (user_id, key, value, updated_at)
+                        VALUES (?,?,?,datetime('now','localtime'))
+                        ON CONFLICT(user_id, key)
+                        DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+                    """, (uid, "sf_sessions", json_lib.dumps(filtered)))
+            except Exception: pass
+        # ── sf_timer: resetta a modalità lavoro ──
+        timer_reset = {"mode": "work", "timeLeft": 1500, "totalTime": 1500,
+                       "running": False, "cycle": 0, "savedAt": ts_now}
+        c.execute("""
+            INSERT INTO user_data (user_id, key, value, updated_at)
+            VALUES (?,?,?,datetime('now','localtime'))
+            ON CONFLICT(user_id, key)
+            DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+        """, (uid, "sf_timer", json_lib.dumps(timer_reset)))
+        # ── sf_coins: azzera progresso sfida giornaliera ──
+        coins_row = c.execute(
+            "SELECT value FROM user_data WHERE user_id=? AND key='sf_coins'", (uid,)
+        ).fetchone()
+        if coins_row and coins_row["value"]:
+            try:
+                cd = json_lib.loads(coins_row["value"])
+                cd["challengeProgress"] = 0
+                cd["challengeRewarded"] = False
+                c.execute("""
+                    INSERT INTO user_data (user_id, key, value, updated_at)
+                    VALUES (?,?,?,datetime('now','localtime'))
+                    ON CONFLICT(user_id, key)
+                    DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+                """, (uid, "sf_coins", json_lib.dumps(cd)))
+            except Exception:
+                pass
+        # ── sf_admin_flag=dirty → client ricarica al prossimo accesso ──
+        c.execute("""
+            INSERT INTO user_data (user_id, key, value, updated_at)
+            VALUES (?,?,?,datetime('now','localtime'))
+            ON CONFLICT(user_id, key)
+            DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+        """, (uid, "sf_admin_flag", "dirty"))
+        c.commit()
+    return jsonify({"ok": True})
+
 # ──────────────────────────────────────────
 # API: AMICI
 # ──────────────────────────────────────────
@@ -1487,9 +1567,17 @@ def stats_heatmap():
     return jsonify(result)
 
 def _user_weekly_minutes(c, uid, week_start):
+    """Calcola i minuti settimanali per la classifica.
+
+    Logica per giorno:
+    - Sessioni reali ("adm_..." senza data o con date): sommate normalmente.
+    - Sessioni "adm_day_..." (floor admin): per ogni giorno usa
+      max(somma_sessioni_reali, adm_day_duration) — evita il doppio conteggio.
+    - Per OGGI: sf_stats.minutes è il floor più recente (può essere più alto di adm_day_).
+    """
     today_str = date.today().isoformat()
-    sessions_today = 0
-    minutes = 0
+    regular_by_date = {}   # date -> minuti da sessioni reali
+    adm_day_by_date = {}   # date -> floor minuti impostato dall'admin (adm_day_ sessions)
     row = c.execute(
         "SELECT value FROM user_data WHERE user_id=? AND key='sf_sessions'", (uid,)
     ).fetchone()
@@ -1497,15 +1585,19 @@ def _user_weekly_minutes(c, uid, week_start):
         try:
             for s in json_lib.loads(row["value"]):
                 d = (s.get("date") or s.get("endedAt") or "")[:10]
-                if d >= week_start:
-                    dur = int(s.get("duration") or 25)
-                    minutes += dur
-                    if d == today_str:
-                        sessions_today += dur
+                if not d or d < week_start:
+                    continue
+                dur = int(s.get("duration") or 25)
+                if (s.get("id") or "").startswith("adm_day_"):
+                    adm_day_by_date[d] = max(adm_day_by_date.get(d, 0), dur)
+                else:
+                    regular_by_date[d] = regular_by_date.get(d, 0) + dur
         except Exception:
             pass
-    # Se admin ha impostato minuti oggi in sf_stats, prendi il massimo
-    # per evitare che le sessioni reali scendano sotto il valore admin
+    # Per ogni data: max(sessioni_reali, floor_admin)
+    all_dates = set(list(regular_by_date.keys()) + list(adm_day_by_date.keys()))
+    minutes = sum(max(regular_by_date.get(d, 0), adm_day_by_date.get(d, 0)) for d in all_dates)
+    # sf_stats.minutes = floor per OGGI (più aggiornato di adm_day_ in tempo reale)
     if today_str >= week_start:
         try:
             st_row = c.execute(
@@ -1515,15 +1607,16 @@ def _user_weekly_minutes(c, uid, week_start):
                 st = json_lib.loads(st_row["value"])
                 import datetime as _dt
                 st_date = st.get("date", "")
-                # sf_stats.date è toDateString() JS ("Mon Jun 23 2026") — convertiamo
                 try:
                     parsed = _dt.datetime.strptime(st_date, "%a %b %d %Y").date().isoformat()
                 except Exception:
                     parsed = st_date[:10]
                 if parsed == today_str:
                     admin_mins = int(st.get("minutes") or 0)
-                    if admin_mins > sessions_today:
-                        minutes += admin_mins - sessions_today
+                    today_total = max(regular_by_date.get(today_str, 0),
+                                      adm_day_by_date.get(today_str, 0))
+                    if admin_mins > today_total:
+                        minutes += admin_mins - today_total
         except Exception:
             pass
     return minutes

@@ -845,6 +845,32 @@ def admin_reset_today(uid):
                         DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
                     """, (uid, "sf_sessions", json_lib.dumps(filtered)))
             except Exception: pass
+        # ── sf_timer: resetta a modalità lavoro ──
+        timer_reset = {"mode": "work", "timeLeft": 1500, "totalTime": 1500,
+                       "running": False, "cycle": 0, "savedAt": ts_now}
+        c.execute("""
+            INSERT INTO user_data (user_id, key, value, updated_at)
+            VALUES (?,?,?,datetime('now','localtime'))
+            ON CONFLICT(user_id, key)
+            DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+        """, (uid, "sf_timer", json_lib.dumps(timer_reset)))
+        # ── sf_coins: azzera progresso sfida giornaliera ──
+        coins_row = c.execute(
+            "SELECT value FROM user_data WHERE user_id=? AND key='sf_coins'", (uid,)
+        ).fetchone()
+        if coins_row and coins_row["value"]:
+            try:
+                cd = json_lib.loads(coins_row["value"])
+                cd["challengeProgress"] = 0
+                cd["challengeRewarded"] = False
+                c.execute("""
+                    INSERT INTO user_data (user_id, key, value, updated_at)
+                    VALUES (?,?,?,datetime('now','localtime'))
+                    ON CONFLICT(user_id, key)
+                    DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+                """, (uid, "sf_coins", json_lib.dumps(cd)))
+            except Exception:
+                pass
         # ── sf_admin_flag=dirty → client ricarica al prossimo accesso ──
         c.execute("""
             INSERT INTO user_data (user_id, key, value, updated_at)

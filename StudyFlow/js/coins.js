@@ -396,6 +396,7 @@ function initChallenge() {
     coinData.challenge         = CHALLENGES[Math.floor(Math.random() * CHALLENGES.length)];
     coinData.challengeDate     = today;
     coinData.challengeProgress = 0;
+    coinData.challengeRewarded = false;
     saveCoinData();
   }
   _renderChallenge();
@@ -404,9 +405,15 @@ function initChallenge() {
 function _renderChallenge() {
   const el = document.getElementById('challenge-bar');
   if (!el || !coinData.challenge) return;
-  const ch   = coinData.challenge;
-  const pct  = Math.min(100, Math.round((coinData.challengeProgress / ch.target) * 100));
-  const done = coinData.challengeProgress >= ch.target;
+  const ch       = coinData.challenge;
+  const pct      = Math.min(100, Math.round((coinData.challengeProgress / ch.target) * 100));
+  const done     = coinData.challengeProgress >= ch.target;
+  const rewarded = coinData.challengeRewarded === true;
+  const rewardEl = done
+    ? (rewarded
+        ? `<div class="challenge-claimed">✅ Riscattata</div>`
+        : `<button class="challenge-claim-btn" onclick="claimChallengeReward()">🎁 +${ch.reward}</button>`)
+    : `<div class="challenge-reward">${_COIN_ICON} +${ch.reward}</div>`;
   el.innerHTML = `
     <div class="challenge-icon">${done ? '🏆' : '🎯'}</div>
     <div class="challenge-info">
@@ -414,7 +421,7 @@ function _renderChallenge() {
       <div class="challenge-desc">${ch.text} <span style="font-weight:700;color:var(--text)">${coinData.challengeProgress}/${ch.target}</span></div>
     </div>
     <div class="challenge-prog-wrap"><div class="challenge-prog-fill" style="width:${pct}%"></div></div>
-    <div class="challenge-reward">${_COIN_ICON} +${ch.reward}</div>`;
+    ${rewardEl}`;
 }
 
 /* Aggiorna il progresso della sfida con il valore assoluto corrente */
@@ -429,12 +436,22 @@ function updateChallengeProgress(key, value) {
   saveCoinData();
 
   if (prev < ch.target && coinData.challengeProgress >= ch.target) {
-    earnCoins(ch.reward);
     coinData.challengesCompleted = (coinData.challengesCompleted || 0) + 1;
     saveCoinData();
-    _showAchievNotif('Sfida completata!', ch.text, 'Ottimo lavoro! +' + ch.reward + ' monete!');
+    _showAchievNotif('Sfida completata! 🎯', ch.text, 'Clicca "🎁 Riscatta" per raccogliere +' + ch.reward + ' monete!');
     checkAchievements();
   }
+  _renderChallenge();
+}
+
+/* Riscatta il premio della sfida completata */
+function claimChallengeReward() {
+  loadCoinData();
+  const ch = coinData.challenge;
+  if (!ch || coinData.challengeProgress < ch.target || coinData.challengeRewarded === true) return;
+  coinData.challengeRewarded = true;
+  saveCoinData();
+  earnCoins(ch.reward);
   _renderChallenge();
 }
 

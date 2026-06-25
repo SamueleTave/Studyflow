@@ -99,6 +99,18 @@
   font-size:0.78rem; font-weight:700; color:#F59E0B;
   display:flex; align-items:center; gap:4px; flex-shrink:0;
 }
+.challenge-claim-btn {
+  font-size:0.78rem; font-weight:700; color:#fff;
+  background:linear-gradient(135deg,#F59E0B,#F97316);
+  border:none; border-radius:10px; padding:6px 14px;
+  cursor:pointer; flex-shrink:0; font-family:Poppins,sans-serif;
+  transition:transform 0.15s, opacity 0.15s; white-space:nowrap;
+}
+.challenge-claim-btn:hover { opacity:0.88; transform:scale(1.04); }
+.challenge-claimed {
+  font-size:0.78rem; font-weight:700; color:#22c55e;
+  display:flex; align-items:center; gap:4px; flex-shrink:0;
+}
 
 /* ── Stelle cadenti ── */
 .falling-star {
