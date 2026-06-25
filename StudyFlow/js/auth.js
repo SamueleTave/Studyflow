@@ -258,11 +258,13 @@ function _sfReinitAll() {
   if (typeof renderShopPage       === 'function') renderShopPage();
   if (typeof renderDailyDeal      === 'function') renderDailyDeal();
   if (typeof _fetchNotifications  === 'function') _fetchNotifications();
-  /* Se il timer non sta girando e il server ha resettato a work, aggiorna il display */
+  /* Se il server ha scritto mode:'work' ma il display mostra ancora una pausa, allineali */
   if (typeof _ring !== 'undefined' && _ring && typeof isRunning !== 'undefined' && !isRunning) {
     try {
       const _t = JSON.parse(localStorage.getItem('sf_timer') || '{}');
-      if (!_t.running && _t.mode !== 'work' && typeof _doSwitchMode === 'function') {
+      if (!_t.running && _t.mode === 'work' &&
+          typeof timerMode !== 'undefined' && timerMode !== 'work' &&
+          typeof _doSwitchMode === 'function') {
         _doSwitchMode('work');
       }
     } catch {}
