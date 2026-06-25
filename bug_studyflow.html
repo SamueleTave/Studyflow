@@ -155,14 +155,66 @@
 <body>
 
 <h1>🐛 Bug StudyFlow — Registro Completo</h1>
-<p class="subtitle">Aggiornato: 2026-06-24 — Sessione 26 &nbsp;|&nbsp; ⚡ Priorità: Netlify (manuale) &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
+<p class="subtitle">Aggiornato: 2026-06-25 — Sessione 27 &nbsp;|&nbsp; ⚡ Netlify: auto-deploy da GitHub &nbsp;|&nbsp; GitHub: SamueleTave/Studyflow &nbsp;|&nbsp; Backend: Render (studyflow-backend-5zy6.onrender.com)</p>
 
 <!-- STATO DEPLOY -->
 <div class="status-row">
-  <div class="status-chip"><div class="dot green"></div> GitHub: pushato (0ae15cf)</div>
-  <div class="status-chip"><div class="dot yellow"></div> Netlify: ⚠️ Upload manuale richiesto (StudyFlow/StudyFlow)</div>
-  <div class="status-chip"><div class="dot green"></div> Render: OK (app.py non cambiato)</div>
-  <div class="status-chip"><div class="dot red"></div> Pulizia DB: Reset oggi su Samu/Elly/Look via admin panel (ancora da fare)</div>
+  <div class="status-chip"><div class="dot green"></div> GitHub: pushato (257e51d)</div>
+  <div class="status-chip"><div class="dot green"></div> Netlify: auto-deploy ✅</div>
+  <div class="status-chip"><div class="dot red"></div> Render: ⚠️ Manual Deploy RICHIESTO (app.py non deployato da s24)</div>
+  <div class="status-chip"><div class="dot red"></div> Dopo Render: Reset oggi su kiwi07/Elly/Look via admin panel</div>
+</div>
+
+<!-- ===== AGGIORNAMENTI SESSIONE 27 — 2026-06-25 ===== -->
+<div class="section">
+  <div class="section-title">🚀 Aggiornamenti — sessione 27 (2026-06-25) — pushati (commit 257e51d)</div>
+
+  <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:16px 20px;margin-bottom:20px">
+    <div style="font-size:0.75rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">🔴 Bug critico — sessioni fantasma (+25m ogni login) su account kiwi07</div>
+    <p style="font-size:0.85rem;line-height:1.7;color:#e2e8f0">
+      <strong>Il problema era su kiwi07 (admin), non su Samu.</strong> Quando Render è in sleep (~50s wakeup), il sync al logout fallisce silenziosamente → il server mantiene <code>sf_timer.running: true</code>. Al login successivo, <code>_restoreTimer()</code> trova il timer "in corso" con <code>timeLeft=0</code> e chiama <code>_onEnd(true)</code> → aggiunge una sessione fantasma da 25 minuti. Entrando e uscendo 2 volte: 50m OGGI senza aver studiato.
+    </p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#ef4444;text-transform:uppercase;margin-bottom:10px">🛡️ Fix sessioni fantasma (auth.js + timer.js)</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span><div><strong>Guard auth.js — stale timer dal server</strong> — <code>loadFromServer()</code>: se sf_timer ha <code>running:true</code> con timerStart di giorno precedente, o già marcato dal marker <code>_sf_timer_processed_ts</code>, scrive <code>{running:false, mode:'work'}</code> in localStorage e triggerSync verso server. Previene il problema alla radice prima che timer.js lo processi.</div></li>
+        <li><span>✓</span><div><strong>Guard 0/1/2 in timer.js _restoreTimer()</strong> — quando <code>timeLeft=0</code> con <code>running:true</code>: Guard0 (no timerStart→reset sicuro), Guard1 (giorno precedente→reset), Guard2 (marker già presente→reset). Solo se supera tutti e 3 chiama <code>_onEnd(true)</code>.</div></li>
+        <li><span>✓</span><div><strong>Marker _sf_timer_processed_ts</strong> — spostato da _restoreTimer() a <code>_onEnd()</code> inizio blocco work. Non è in <code>_SF_SYNC_KEYS</code> → sopravvive al logout/login. Deduplication cross-session: stesso timerStart non può generare due sessioni.</div></li>
+        <li><span>✓</span><div><strong>Vecchio formato senza timerStart</strong> — Guard0 intercetta timer vecchio/corrotto senza timerStart → reset sicuro senza sessione.</div></li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:#f59e0b;text-transform:uppercase;margin-bottom:10px">🗑️ Fix "Reset oggi" admin — completo</div>
+      <ul class="todo-list" style="opacity:0.8">
+        <li><span>✓</span><div><strong>sf_timer reset a work mode</strong> — admin_reset_today scrive <code>{mode:'work', running:false, cycle:0}</code> nel DB. Prossimo login mostra timer in work mode, non "Pausa Breve".</div></li>
+        <li><span>✓</span><div><strong>challengeProgress/challengeRewarded azzerati</strong> — admin_reset_today resetta anche il progresso sfida in sf_coins. Sfida riparte da 0.</div></li>
+        <li><span>✓</span><div><strong>Streak e TUTTI i campi preservati</strong> — <code>new_stats = dict(existing_stats)</code> + override solo sessions/minutes/_adminTs. Prima creava oggetto minimo → streak spariva se mancante. Ora qualsiasi campo admin-set sopravvive al reset.</div></li>
+        <li><span>✓</span><div><strong>Filtro sessioni UTC corretto</strong> — <code>datetime.fromtimestamp(ts/1000, utc)</code> invece di <code>str(ts)[:10]</code> che crashava silenziosamente su interi. Date ISO (<code>datetime.now(utc)</code>) uguale al client (<code>toISOString()</code>).</div></li>
+        <li><span>✓</span><div><strong>_sfReinitAll() condizione corretta</strong> — controlla <code>timerMode</code> (variabile JS in-memory, impostata da _restoreTimer con il vecchio stato) contro <code>_t.mode</code> (localStorage appena scritto dal server). Prima controllava <code>_t.mode !== 'work'</code> → sempre false → timer mai aggiornato.</div></li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="margin-top:16px">
+    <div style="font-size:0.72rem;font-weight:700;color:#10b981;text-transform:uppercase;margin-bottom:10px">🎯 Sfida giornaliera — bottone Riscatta</div>
+    <ul class="todo-list" style="opacity:0.8">
+      <li><span>✓</span><div><strong>Monete non più auto-assegnate</strong> — <code>updateChallengeProgress()</code> rimuove <code>earnCoins(ch.reward)</code>. Notifica cambiata in "Clicca 🎁 Riscatta per raccogliere +X monete!"</div></li>
+      <li><span>✓</span><div><strong>claimChallengeReward()</strong> — nuova funzione pubblica: controlla progress≥target e challengeRewarded===false, setta true, salva, chiama earnCoins(), re-render. Doppio click sicuro (guard challengeRewarded).</div></li>
+      <li><span>✓</span><div><strong>_renderChallenge() aggiornata</strong> — mostra <code>&lt;button class="challenge-claim-btn"&gt;🎁 +XX&lt;/button&gt;</code> se completata+non riscattata. Mostra <code>✅ Riscattata</code> se già riscattata. CSS stili in shop.css.</div></li>
+      <li><span>✓</span><div><strong>initChallenge() reset giornaliero</strong> — <code>challengeRewarded=false</code> su nuovo giorno (oltre a progress=0 e nuova sfida).</div></li>
+    </ul>
+  </div>
+
+  <div style="margin-top:16px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.25);border-radius:12px;padding:14px 18px">
+    <div style="font-size:0.75rem;font-weight:700;color:#a78bfa;text-transform:uppercase;margin-bottom:8px">⚠️ Modifiche admin — comportamento garantito</div>
+    <p style="font-size:0.83rem;line-height:1.7;color:#e2e8f0">
+      Modifiche admin (streak, coins, balance, shop) persistono attraverso logout/login ✅ &nbsp;|&nbsp; Persistono attraverso "Reset oggi" ✅ (fix s27)<br>
+      <strong>Unico caso dove streak cambia:</strong> quando l'utente <em>studia</em> e <code>updateStreak()</code> vede che lastStudy non è ieri → streak reset a 1. Comportamento intenzionale del meccanismo streak. L'admin può sempre re-impostarla.
+    </p>
+  </div>
 </div>
 
 <!-- ===== AGGIORNAMENTI SESSIONE 26 — 2026-06-24 ===== -->
@@ -1016,7 +1068,7 @@
 </div>
 
 <p style="color:#475569;font-size:0.72rem;text-align:center;margin-top:40px">
-  Aggiornato — Sessione 26 · 2026-06-24 · Claude Sonnet 4.6
+  Aggiornato — Sessione 27 · 2026-06-25 · Claude Sonnet 4.6
 </p>
 
 </body>
