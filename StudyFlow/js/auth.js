@@ -115,6 +115,25 @@ async function loadFromServer() {
       // sf_timer e sf_garden sono real-time: il dato locale è più fresco del server
       // MA solo nelle sessioni successive (non al primo caricamento dopo login)
       if (!isFirstLoad && (k === 'sf_timer' || k === 'sf_garden') && localVal != null) return;
+      /* sf_timer: se il server ha running:true con timerStart di un giorno precedente
+         (o già processato dal marker), scrivi running:false e aggiorna il server.
+         Previene sessioni fantasma quando il sync al logout fallisce (Render sleeping). */
+      if (k === 'sf_timer') {
+        try {
+          const _t = JSON.parse(data[k] || '{}');
+          if (_t.running && _t.timerStart) {
+            const _startDay = new Date(_t.timerStart).toISOString().slice(0, 10);
+            const _today    = new Date().toISOString().slice(0, 10);
+            const _doneTs   = localStorage.getItem('_sf_timer_processed_ts');
+            const _isStale  = _startDay !== _today || (_doneTs && parseInt(_doneTs) === _t.timerStart);
+            if (_isStale) {
+              _sfOrigSetItem(k, JSON.stringify({ mode: 'work', timeLeft: 1500, totalTime: 1500, running: false, cycle: 0, savedAt: Date.now() }));
+              _triggerSync();
+              return;
+            }
+          }
+        } catch {}
+      }
       // Per sf_coins: merge intelligente — se admin ha aggiornato (_adminTs diverso), server vince su shop/balance.
       // Altrimenti gli acquisti locali recenti vengono preservati.
       /* sf_sessions: merge con backup pre-logout per non perdere sessioni se sync fallisce */
