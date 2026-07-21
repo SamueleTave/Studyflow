@@ -345,8 +345,13 @@ def _migrate_db():
             except sqlite3.OperationalError:
                 pass
 
-init_db()
-_migrate_db()
+try:
+    init_db()
+    _migrate_db()
+except Exception as _startup_err:
+    import traceback
+    print(f"[STARTUP WARNING] DB init failed: {_startup_err}")
+    traceback.print_exc()
 
 def _hash_pin(pin):
     return hashlib.sha256(pin.encode()).hexdigest()
