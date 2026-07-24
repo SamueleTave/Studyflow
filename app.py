@@ -34,15 +34,12 @@ if USE_PG:
     import psycopg2.extras
     from psycopg2 import pool as _pg_pool
     _IntegrityError = psycopg2.IntegrityError
+    _conn_pool = _pg_pool.ThreadedConnectionPool(1, 5, DATABASE_URL)
 else:
     _IntegrityError = sqlite3.IntegrityError
-
-_conn_pool = None
+    _conn_pool = None
 
 def _get_pool():
-    global _conn_pool
-    if _conn_pool is None:
-        _conn_pool = _pg_pool.ThreadedConnectionPool(1, 5, DATABASE_URL)
     return _conn_pool
 
 
@@ -127,7 +124,7 @@ class _Conn:
                     self._cur.execute(s)
                 except Exception:
                     pass  # IF NOT EXISTS gestisce la maggior parte dei casi
-        self._conn.autocommit = False
+        # autocommit viene resettato a False in __exit__ prima del putconn
 
     def commit(self):
         self._conn.commit()
@@ -137,20 +134,25 @@ class _Conn:
 
     def __exit__(self, exc_type, *_):
         if self._cur is not None:
+            broken = False
             if exc_type:
                 try:
                     self._conn.rollback()
                 except Exception:
-                    pass
+                    broken = True
             else:
                 self._conn.commit()
-            self._cur.close()
-            # Resetta autocommit prima di restituire al pool
             try:
-                self._conn.autocommit = False
+                self._cur.close()
             except Exception:
-                pass
-            _get_pool().putconn(self._conn, close=bool(exc_type))
+                broken = True
+            finally:
+                # C2: se autocommit=False fallisce la connessione è sporca → chiudi
+                try:
+                    self._conn.autocommit = False
+                except Exception:
+                    broken = True
+                _get_pool().putconn(self._conn, close=broken or bool(exc_type))
         else:
             self._conn.close()
 
