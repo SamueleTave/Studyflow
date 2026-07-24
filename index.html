@@ -532,6 +532,8 @@
 <script src="js/calendar.js?v=4"></script>
 <script>
   let _bannerVer = null;
+  function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function _safeColor(c) { return /^#[0-9a-fA-F]{3,6}$/.test(c) ? c : '#6366f1'; }
   function dismissBanner() {
     const el = document.getElementById('update-banner');
     if (el) { el.style.transition = 'opacity 0.3s, transform 0.3s'; el.style.opacity = '0'; el.style.transform = 'translateY(-6px)'; setTimeout(() => el.style.display = 'none', 310); }
@@ -539,7 +541,7 @@
   }
   async function _loadBanner() {
     try {
-      const r = await fetch(window.SF_API_BASE + '/config');
+      const r = await fetch(window.SF_API_BASE || '/api' + '/config');
       if (!r.ok) return;
       const cfg = await r.json();
       if (!cfg.banner_json) return;
@@ -552,10 +554,10 @@
       if (!bodyEl) return;
       const itemsHtml = (b.items || []).map(it =>
         `<div class="update-item">
-          <span class="update-dot" style="background:${it.color || '#6366f1'}"></span>
-          <span>${it.bold ? `<b>${it.bold}</b> — ` : ''}${it.text || ''}</span>
+          <span class="update-dot" style="background:${_safeColor(it.color)}"></span>
+          <span>${it.bold ? `<b>${_esc(it.bold)}</b> — ` : ''}${_esc(it.text || '')}</span>
         </div>`).join('');
-      bodyEl.innerHTML = `<span class="update-badge">✨ ${b.title}</span><div class="update-items">${itemsHtml}</div>`;
+      bodyEl.innerHTML = `<span class="update-badge">✨ ${_esc(b.title)}</span><div class="update-items">${itemsHtml}</div>`;
       const el = document.getElementById('update-banner');
       if (el) el.style.display = '';
     } catch(e) {}

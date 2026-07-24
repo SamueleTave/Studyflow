@@ -17,7 +17,10 @@ from flask import Flask, jsonify, request, send_from_directory, make_response, a
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder=".")
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app, resources={r"/api/*": {"origins": [
+    "https://preeminent-dolphin-94c6bc.netlify.app",
+    "http://localhost:5001", "http://127.0.0.1:5001",
+]}})
 DB = "studyflow.db"
 
 # ──────────────────────────────────────────

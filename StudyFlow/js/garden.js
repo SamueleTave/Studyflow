@@ -1293,6 +1293,7 @@ async function _fetchGardenWeather() {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(2)}&longitude=${lon.toFixed(2)}&current=weathercode,precipitation,cloudcover&daily=sunrise,sunset&timezone=auto`;
     const r   = await fetch(url);
+    if (!r.ok) return;
     const d   = await r.json();
     const _ph = s => { if (!s) return null; const t = s.split('T')[1]; if (!t) return null; const [h,m] = t.split(':'); return +h + (+m)/60; };
     const data = {

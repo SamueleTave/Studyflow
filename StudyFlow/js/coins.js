@@ -12,6 +12,7 @@ async function _loadShopDisabled() {
   try {
     const _base = (typeof SF_API_BASE !== 'undefined' && SF_API_BASE) ? SF_API_BASE : '/api';
     const r = await fetch(_base + '/config');
+    if (!r.ok) return;
     const cfg = await r.json();
     _shopDisabledItems   = JSON.parse(cfg.shop_disabled_items || '[]');
     _shopPriceOverrides  = JSON.parse(cfg.shop_prices || '{}');

@@ -243,6 +243,9 @@ async function loadFromServer() {
     if (isFirstLoad) sessionStorage.setItem('sf_session_loaded', '1');
     // Se era dirty (admin aveva modificato), reinizializza tutta la UI su questa pagina
     if (adminDirty) _sfReinitAll();
+    // Aggiorna sempre la pill ruolo dopo il sync server — evita il race condition
+    // in cui updateLevelPill() girava prima che loadFromServer() completasse
+    else if (typeof updateLevelPill === 'function') updateLevelPill();
     return true;
   } catch { return false; }
 }
@@ -311,8 +314,9 @@ function _initSidebarUser() {
 
   const pill = document.createElement('div');
   pill.className = 'sidebar-user-pill';
+  const _escU = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   pill.innerHTML =
-    '<span class="sidebar-user-name">' + auth.username + '</span>' +
+    '<span class="sidebar-user-name">' + _escU(auth.username) + '</span>' +
     '<button class="sidebar-logout-btn" onclick="logout()">Esci</button>';
   bottom.insertBefore(pill, bottom.firstChild);
 

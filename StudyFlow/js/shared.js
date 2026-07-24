@@ -759,6 +759,8 @@ function _getBackendRole(sessionCount) {
   if (override && override !== 'auto' && override !== '') {
     const found = SF_ROLES.find(r => r.key === override);
     if (found) return found;
+    // override non valido (es. 'leggenda' non esiste): ignora e cade sul calcolo normale
+    localStorage.removeItem('sf_role_override');
   }
   let role = SF_ROLES[0];
   for (const r of SF_ROLES) { if (sessionCount >= r.min) role = r; }
