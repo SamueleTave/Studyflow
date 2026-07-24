@@ -538,8 +538,10 @@ def user_get_data():
 def user_sync_data():
     user = get_auth_user(required=True)
     data = request.get_json(silent=True) or {}
-    # sf_friends è gestita esclusivamente dagli endpoint /api/friends/*
-    _SERVER_MANAGED = {'sf_friends'}
+    # sf_friends: gestita dagli endpoint /api/friends/*
+    # sf_role_override: scrivibile solo dall'admin — il client non può sovrascrivere
+    # il ruolo impostato dall'admin prima che detecti il dirty flag
+    _SERVER_MANAGED = {'sf_friends', 'sf_role_override', 'sf_admin_flag'}
     corrections = {}   # chiavi da rimandare al client con i valori corretti
     with get_db() as c:
         for key, value in data.items():
