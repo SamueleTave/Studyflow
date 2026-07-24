@@ -1297,7 +1297,7 @@
 .sp-overlay.active { opacity: 1; pointer-events: all; }
 
 .sp-box {
-  background: var(--card-bg);
+  background: rgba(255,255,255,0.94);
   border: 1px solid var(--card-border);
   border-radius: 26px;
   padding: 26px 24px 22px;
@@ -1362,6 +1362,7 @@
   border: 1.5px solid var(--card-border);
   border-radius: 16px;
   cursor: pointer;
+  overflow: hidden;
   transition: background 0.15s, border-color 0.15s, transform 0.12s, box-shadow 0.15s;
 }
 .sp-tile:hover {
@@ -1383,20 +1384,20 @@
 .sp-tile.sp-active .sp-tile-lbl { color: var(--accent); }
 
 /* ── Timer style previews ── */
-.sp-t { color: var(--text); font-variant-numeric: tabular-nums; line-height: 1; }
-.sp-t-minimal  { font-size: 1.5rem; font-weight: 200; letter-spacing: 2px; }
-.sp-t-thin     { font-size: 1.5rem; font-weight: 100; letter-spacing: 4px; }
-.sp-t-bold     { font-size: 1.3rem; font-weight: 900; letter-spacing: 0.5px; }
-.sp-t-orbitron   { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; letter-spacing: 2px; }
-.sp-t-bebas      { font-family: 'Bebas Neue', cursive; font-size: 1.8rem; letter-spacing: 5px; }
-.sp-t-serif      { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; }
-.sp-t-spacemono  { font-family: 'Space Mono', monospace; font-size: 1.1rem; font-weight: 700; letter-spacing: 2px; }
-.sp-t-neon       { font-size: 1.4rem; font-weight: 200; letter-spacing: 4px; color: #00e5ff; text-shadow: 0 0 6px #00e5ff, 0 0 14px #0090ff; }
+.sp-t { color: var(--text); font-variant-numeric: tabular-nums; line-height: 1; max-width: 100%; white-space: nowrap; }
+.sp-t-minimal  { font-size: 1.2rem; font-weight: 200; letter-spacing: 1px; }
+.sp-t-thin     { font-size: 1.2rem; font-weight: 100; letter-spacing: 2px; }
+.sp-t-bold     { font-size: 1.2rem; font-weight: 900; letter-spacing: 0.5px; }
+.sp-t-orbitron   { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; }
+.sp-t-bebas      { font-family: 'Bebas Neue', cursive; font-size: 1.4rem; letter-spacing: 3px; }
+.sp-t-serif      { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+.sp-t-spacemono  { font-family: 'Space Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; }
+.sp-t-neon       { font-size: 1.1rem; font-weight: 200; letter-spacing: 2px; color: #00e5ff; text-shadow: 0 0 6px #00e5ff, 0 0 14px #0090ff; }
 
 /* ── Clock previews ── */
 .sp-c { width: 100%; border-radius: 8px; padding: 5px 7px; display: flex; align-items: center; gap: 5px; overflow: hidden; }
 .sp-c-standard { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; }
-.sp-c-minimal  { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text); }
+.sp-c-minimal  { background: var(--card); border: 1px solid var(--card-border); color: var(--text); }
 .sp-c-neon     { background: rgba(0,0,0,0.82); border: 1px solid var(--accent); color: white; }
 .sp-c-retro    { background: #1a1a00; color: #FFBF00; }
 .sp-c-elegant  { background: rgba(0,0,0,0.04); border: 1px solid var(--card-border); color: var(--text); }

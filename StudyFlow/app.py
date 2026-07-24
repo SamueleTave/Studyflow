@@ -32,9 +32,18 @@ USE_PG = bool(DATABASE_URL)
 if USE_PG:
     import psycopg2
     import psycopg2.extras
+    from psycopg2 import pool as _pg_pool
     _IntegrityError = psycopg2.IntegrityError
 else:
     _IntegrityError = sqlite3.IntegrityError
+
+_conn_pool = None
+
+def _get_pool():
+    global _conn_pool
+    if _conn_pool is None:
+        _conn_pool = _pg_pool.ThreadedConnectionPool(1, 5, DATABASE_URL)
+    return _conn_pool
 
 
 def _now():
@@ -59,7 +68,7 @@ class _Conn:
 
     def __init__(self):
         if USE_PG:
-            self._conn = psycopg2.connect(DATABASE_URL)
+            self._conn = _get_pool().getconn()
             self._cur  = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         else:
             self._conn = sqlite3.connect(DB)
@@ -129,11 +138,21 @@ class _Conn:
     def __exit__(self, exc_type, *_):
         if self._cur is not None:
             if exc_type:
-                self._conn.rollback()
+                try:
+                    self._conn.rollback()
+                except Exception:
+                    pass
             else:
                 self._conn.commit()
             self._cur.close()
-        self._conn.close()
+            # Resetta autocommit prima di restituire al pool
+            try:
+                self._conn.autocommit = False
+            except Exception:
+                pass
+            _get_pool().putconn(self._conn, close=bool(exc_type))
+        else:
+            self._conn.close()
 
 
 def get_db():
